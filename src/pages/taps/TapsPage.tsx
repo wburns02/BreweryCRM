@@ -1,0 +1,179 @@
+import { useState } from 'react';
+import { GlassWater, AlertTriangle, DollarSign, Droplets } from 'lucide-react';
+import Badge from '../../components/ui/Badge';
+import ProgressBar from '../../components/ui/ProgressBar';
+import Modal from '../../components/ui/Modal';
+import { tapLines, beers } from '../../data/mockData';
+import type { Beer } from '../../types';
+
+export default function TapsPage() {
+  const [selectedBeer, setSelectedBeer] = useState<Beer | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const activeTaps = tapLines.filter(t => t.status === 'active');
+  const totalRevenue = activeTaps.reduce((s, t) => s + t.revenueToday, 0);
+  const totalPours = activeTaps.reduce((s, t) => s + t.totalPours, 0);
+  const lowKegs = activeTaps.filter(t => t.kegLevel < 25);
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <GlassWater className="w-4 h-4 text-blue-400" />
+            <span className="text-xs text-brewery-400">Active Taps</span>
+          </div>
+          <p className="text-2xl font-bold text-brewery-50">{activeTaps.length} / 13</p>
+        </div>
+        <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs text-brewery-400">Today's Draft Revenue</span>
+          </div>
+          <p className="text-2xl font-bold text-emerald-400">${totalRevenue.toLocaleString()}</p>
+        </div>
+        <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Droplets className="w-4 h-4 text-amber-400" />
+            <span className="text-xs text-brewery-400">Total Pours Today</span>
+          </div>
+          <p className="text-2xl font-bold text-amber-400">{totalPours}</p>
+        </div>
+        <div className={`bg-brewery-900/80 border rounded-xl p-4 ${lowKegs.length > 0 ? 'border-red-500/30' : 'border-brewery-700/30'}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className={`w-4 h-4 ${lowKegs.length > 0 ? 'text-red-400' : 'text-brewery-400'}`} />
+            <span className="text-xs text-brewery-400">Low Kegs</span>
+          </div>
+          <p className={`text-2xl font-bold ${lowKegs.length > 0 ? 'text-red-400' : 'text-brewery-50'}`}>{lowKegs.length}</p>
+        </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="flex gap-2">
+        <button onClick={() => setViewMode('grid')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === 'grid' ? 'bg-amber-600/20 text-amber-300' : 'text-brewery-400 hover:text-brewery-200'}`}>Grid View</button>
+        <button onClick={() => setViewMode('list')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === 'list' ? 'bg-amber-600/20 text-amber-300' : 'text-brewery-400 hover:text-brewery-200'}`}>List View</button>
+      </div>
+
+      {/* Tap Grid */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {tapLines.map((tap) => {
+            const beer = beers.find(b => b.id === tap.beerId);
+            return (
+              <div
+                key={tap.tapNumber}
+                onClick={() => beer && setSelectedBeer(beer)}
+                className={`bg-brewery-900/80 border rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                  tap.kegLevel < 15 ? 'border-red-500/40 hover:border-red-400/60 hover:shadow-red-500/10' :
+                  tap.kegLevel < 35 ? 'border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-500/10' :
+                  'border-brewery-700/30 hover:border-amber-500/20 hover:shadow-amber-500/5'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                      tap.status === 'active' ? 'bg-amber-600/20 text-amber-400' : 'bg-brewery-700/40 text-brewery-500'
+                    }`}>
+                      {tap.tapNumber}
+                    </div>
+                    <div>
+                      {beer?.isNonAlcoholic && <Badge variant="blue">NA</Badge>}
+                      {beer?.category === 'limited' && <Badge variant="purple">Limited</Badge>}
+                      {beer?.category === 'seasonal' && <Badge variant="green">Seasonal</Badge>}
+                    </div>
+                  </div>
+                  <span className="text-xs text-brewery-400">{tap.abv}%</span>
+                </div>
+                <h3 className="text-sm font-semibold text-brewery-100 mb-0.5">{tap.beerName || 'Empty'}</h3>
+                <p className="text-[10px] text-brewery-400 mb-3">{tap.style}</p>
+
+                <div className="mb-2">
+                  <div className="flex justify-between text-[10px] text-brewery-500 mb-1">
+                    <span>Keg Level</span>
+                    <span className={`font-medium ${tap.kegLevel < 25 ? 'text-red-400' : 'text-brewery-300'}`}>{tap.kegLevel}%</span>
+                  </div>
+                  <ProgressBar value={tap.kegLevel} size="md" color={tap.kegLevel < 25 ? 'red' : tap.kegLevel < 50 ? 'amber' : 'green'} />
+                </div>
+
+                <div className="flex justify-between text-[10px] mt-3 pt-3 border-t border-brewery-700/20">
+                  <span className="text-brewery-400">{tap.totalPours} pours</span>
+                  <span className="text-emerald-400 font-medium">${tap.revenueToday}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-brewery-700/30">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Tap</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Beer</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Style</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">ABV</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase w-32">Keg Level</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-brewery-400 uppercase">Pours</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-brewery-400 uppercase">Revenue</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brewery-700/20">
+              {tapLines.map(tap => (
+                <tr key={tap.tapNumber} className="hover:bg-brewery-800/30 transition-colors cursor-pointer" onClick={() => { const b = beers.find(b2 => b2.id === tap.beerId); b && setSelectedBeer(b); }}>
+                  <td className="px-4 py-3 text-sm font-bold text-amber-400">#{tap.tapNumber}</td>
+                  <td className="px-4 py-3 text-sm text-brewery-100">{tap.beerName}</td>
+                  <td className="px-4 py-3 text-sm text-brewery-300">{tap.style}</td>
+                  <td className="px-4 py-3 text-sm text-brewery-300">{tap.abv}%</td>
+                  <td className="px-4 py-3"><ProgressBar value={tap.kegLevel} showLabel size="sm" /></td>
+                  <td className="px-4 py-3 text-sm text-brewery-200 text-right">{tap.totalPours}</td>
+                  <td className="px-4 py-3 text-sm text-emerald-400 text-right font-medium">${tap.revenueToday}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Beer Detail Modal */}
+      <Modal open={!!selectedBeer} onClose={() => setSelectedBeer(null)} title={selectedBeer?.name || ''} size="lg">
+        {selectedBeer && (
+          <div className="space-y-5">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="amber">{selectedBeer.style}</Badge>
+              <Badge variant="blue">{selectedBeer.abv}% ABV</Badge>
+              <Badge variant="green">{selectedBeer.ibu} IBU</Badge>
+              <Badge variant="purple">{selectedBeer.category}</Badge>
+              {selectedBeer.isNonAlcoholic && <Badge variant="blue">Non-Alcoholic</Badge>}
+            </div>
+            <p className="text-sm text-brewery-200">{selectedBeer.description}</p>
+            <div>
+              <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Tasting Notes</h4>
+              <p className="text-sm text-brewery-200">{selectedBeer.tastingNotes}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Food Pairings</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedBeer.foodPairings.map(fp => <Badge key={fp} variant="gray">{fp}</Badge>)}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-3 rounded-lg bg-brewery-800/30">
+                <p className="text-xl font-bold text-amber-400">{selectedBeer.totalPours.toLocaleString()}</p>
+                <p className="text-[10px] text-brewery-400">Total Pours</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-brewery-800/30">
+                <p className="text-xl font-bold text-brewery-100">{selectedBeer.rating}</p>
+                <p className="text-[10px] text-brewery-400">Rating</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-brewery-800/30">
+                <p className="text-xl font-bold text-brewery-100">{selectedBeer.kegLevel}%</p>
+                <p className="text-[10px] text-brewery-400">Keg Level</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
