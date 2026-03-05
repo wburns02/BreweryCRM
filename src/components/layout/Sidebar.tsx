@@ -1,4 +1,4 @@
-import { Beer, LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign } from 'lucide-react';
+import { Beer, LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -13,6 +13,8 @@ interface SidebarProps {
 
 const navItems: { id: PageId; label: string; icon: React.ElementType; group: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, group: 'Overview' },
+  { id: 'pos', label: 'POS', icon: CreditCard, group: 'Taproom' },
+  { id: 'floor-plan', label: 'Floor Plan', icon: Map, group: 'Taproom' },
   { id: 'customers', label: 'Customers', icon: Users, group: 'Guests' },
   { id: 'mug-club', label: 'Mug Club', icon: Crown, group: 'Guests' },
   { id: 'reservations', label: 'Reservations', icon: BookOpen, group: 'Guests' },
@@ -22,6 +24,7 @@ const navItems: { id: PageId; label: string; icon: React.ElementType; group: str
   { id: 'kegs', label: 'Keg Tracking', icon: Package, group: 'Brewery' },
   { id: 'menu', label: 'Food & Menu', icon: UtensilsCrossed, group: 'Operations' },
   { id: 'inventory', label: 'Inventory', icon: Warehouse, group: 'Operations' },
+  { id: 'taproom-analytics', label: 'Taproom Analytics', icon: BarChart2, group: 'Operations' },
   { id: 'events', label: 'Events', icon: Calendar, group: 'Marketing' },
   { id: 'marketing', label: 'Marketing', icon: Megaphone, group: 'Marketing' },
   { id: 'financials', label: 'Financials', icon: DollarSign, group: 'Finance' },

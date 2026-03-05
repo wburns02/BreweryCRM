@@ -13,11 +13,16 @@ import EventsPage from './pages/events/EventsPage';
 import ReservationsPage from './pages/reservations/ReservationsPage';
 import MenuPage from './pages/menu/MenuPage';
 import InventoryPage from './pages/inventory/InventoryPage';
+import TaproomAnalyticsPage from './pages/taproom-analytics/TaproomAnalyticsPage';
 import StaffPage from './pages/staff/StaffPage';
 import DistributionPage from './pages/distribution/DistributionPage';
 import MarketingPage from './pages/marketing/MarketingPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
+import POSPage from './pages/pos/POSPage';
+import FloorPlanPage from './pages/floor-plan/FloorPlanPage';
+import { BreweryProvider } from './context/BreweryContext';
+import { ToastProvider } from './components/ui/ToastProvider';
 import type { PageId } from './types';
 import { clsx } from 'clsx';
 
@@ -34,11 +39,14 @@ const pageTitles: Record<PageId, string> = {
   reservations: 'Reservations & Tables',
   menu: 'Food & Menu Engineering',
   inventory: 'Inventory Management',
+  'taproom-analytics': 'Taproom Analytics',
   staff: 'Staff Management',
   distribution: 'Distribution & Wholesale',
   marketing: 'Marketing & Campaigns',
   reports: 'Reports & Analytics',
   settings: 'Settings & Compliance',
+  pos: 'Taproom POS',
+  'floor-plan': 'Floor Plan & Table Management',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -54,11 +62,14 @@ const pages: Record<PageId, React.ComponentType> = {
   reservations: ReservationsPage,
   menu: MenuPage,
   inventory: InventoryPage,
+  'taproom-analytics': TaproomAnalyticsPage,
   staff: StaffPage,
   distribution: DistributionPage,
   marketing: MarketingPage,
   reports: ReportsPage,
   settings: SettingsPage,
+  pos: POSPage,
+  'floor-plan': FloorPlanPage,
 };
 
 function App() {
@@ -69,6 +80,8 @@ function App() {
   const PageComponent = pages[currentPage];
 
   return (
+    <BreweryProvider>
+    <ToastProvider>
     <div className="min-h-screen bg-brewery-950">
       <Sidebar
         currentPage={currentPage}
@@ -85,6 +98,8 @@ function App() {
         </main>
       </div>
     </div>
+    </ToastProvider>
+    </BreweryProvider>
   );
 }
 

@@ -462,6 +462,28 @@ export interface KegEvent {
   performedBy?: string;
 }
 
+export interface VisitRecord {
+  id: string;
+  date: string;
+  dayOfWeek: string;
+  arrivalTime: string;
+  partySize: number;
+  totalSpent: number;
+  beersOrdered: { beerName: string; quantity: number; size: string }[];
+  foodOrdered: { itemName: string; quantity: number }[];
+  tabClosedBy: string;
+  rating?: number;
+  notes?: string;
+}
+
+export interface CustomerNote {
+  id: string;
+  date: string;
+  author: string;
+  type: 'note' | 'call' | 'email' | 'complaint' | 'compliment' | 'milestone';
+  content: string;
+}
+
 export interface MonthlyFinancial {
   month: string;
   monthLabel: string;
@@ -486,4 +508,208 @@ export interface MonthlyFinancial {
   netMarginPct: number;
 }
 
-export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings';
+export interface ScheduleShift {
+  id: string;
+  staffId: string;
+  staffName: string;
+  role: StaffMember['role'];
+  date: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  hours: number;
+  section: 'taproom' | 'kitchen' | 'brewery' | 'patio' | 'events';
+  status: 'scheduled' | 'confirmed' | 'in-progress' | 'completed' | 'called-out' | 'no-show';
+  notes?: string;
+}
+
+export interface StaffCertification {
+  id: string;
+  staffId: string;
+  staffName: string;
+  type: 'tabc' | 'food-handler' | 'cicerone' | 'first-aid' | 'forklift';
+  status: 'active' | 'expiring-soon' | 'expired' | 'not-required';
+  issueDate: string;
+  expiryDate: string;
+  daysUntilExpiry: number;
+}
+
+export interface DailyLabor {
+  date: string;
+  totalHours: number;
+  totalCost: number;
+  breweryHours: number;
+  breweryCost: number;
+  taproomHours: number;
+  taproomCost: number;
+  kitchenHours: number;
+  kitchenCost: number;
+  revenue: number;
+  laborPct: number;
+  headcount: number;
+}
+
+export interface QCBreakdown {
+  appearance: number;
+  aroma: number;
+  flavor: number;
+  mouthfeel: number;
+  overall: number;
+}
+
+export interface TTBMonthlyReport {
+  month: string;
+  beginningInventory: number;
+  produced: number;
+  received: number;
+  transferredTaproom: number;
+  transferredDistribution: number;
+  endingInventory: number;
+  losses: number;
+  exciseTax: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  poNumber: string;
+  supplier: string;
+  items: { name: string; qty: number; unit: string; unitCost: number }[];
+  totalCost: number;
+  status: 'draft' | 'ordered' | 'partial' | 'received' | 'cancelled';
+  orderDate: string;
+  eta: string;
+  receivedDate?: string;
+  notes?: string;
+}
+
+export interface WholesaleOrder {
+  id: string;
+  orderNumber: string;
+  accountId: string;
+  accountName: string;
+  items: { beerName: string; kegSize: '1/2' | '1/4' | '1/6'; quantity: number; unitPrice: number }[];
+  total: number;
+  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'invoiced' | 'paid';
+  orderDate: string;
+  deliveryDate?: string;
+  paymentStatus: 'current' | '30-days' | '60-days' | '90-days';
+  notes?: string;
+}
+
+export interface SocialMetrics {
+  date: string;
+  instagramFollowers: number;
+  facebookLikes: number;
+  untappdCheckins: number;
+  googleReviewCount: number;
+  googleRating: number;
+  instagramEngagement: number;
+  facebookEngagement: number;
+}
+
+export interface ContentCalendarEntry {
+  id: string;
+  date: string;
+  platform: 'instagram' | 'facebook' | 'tiktok' | 'untappd';
+  caption: string;
+  status: 'planned' | 'posted' | 'skipped';
+  type: 'photo' | 'video' | 'story' | 'reel' | 'checkin';
+}
+
+export interface CustomerSegment {
+  id: string;
+  name: string;
+  count: number;
+  avgSpend: number;
+  visitFrequency: string;
+  topBeer: string;
+  suggestedCampaign: string;
+  color: string;
+}
+
+export interface WeeklyFoodCost {
+  week: string;
+  weekLabel: string;
+  foodRevenue: number;
+  foodCost: number;
+  foodCostPct: number;
+  categories: { name: string; cost: number; revenue: number; costPct: number }[];
+}
+
+export interface MugClubMonthly {
+  month: string;
+  monthLabel: string;
+  totalMembers: number;
+  newSignups: number;
+  renewals: number;
+  cancellations: number;
+  revenue: number;
+  avgVisitsPerMember: number;
+}
+
+export interface OpenTab {
+  id: string;
+  customerName: string;
+  customerId?: string;
+  items: { name: string; size: string; price: number; qty: number }[];
+  openedAt: string;
+  server: string;
+  subtotal: number;
+  tableNumber?: string;
+}
+
+export interface POSTransaction {
+  id: string;
+  customerName: string;
+  items: { name: string; size: string; price: number; qty: number }[];
+  subtotal: number;
+  tax: number;
+  discount?: number;
+  discountType?: string;
+  total: number;
+  paymentMethod: 'cash' | 'card' | 'tab' | 'mug-club';
+  server: string;
+  closedAt: string;
+  tipAmount?: number;
+}
+
+export interface FloorTable {
+  id: string;
+  zone: 'taproom' | 'bar' | 'patio' | 'beer-garden' | 'private-room';
+  label: string;
+  seats: number;
+  x: number;
+  y: number;
+  shape: 'circle' | 'rect' | 'community';
+  width?: number;
+  height?: number;
+  radius?: number;
+  status: 'available' | 'occupied' | 'reserved' | 'needs-attention' | 'closed';
+  currentTabId?: string;
+  currentCustomerName?: string;
+  currentCustomerId?: string;
+  partySize?: number;
+  serverId?: string;
+  serverName?: string;
+  seatedAt?: string;
+  reservationId?: string;
+}
+
+export interface ServiceAlert {
+  id: string;
+  tableId: string;
+  type: 'no-order' | 'check-requested' | 'high-tab' | 'long-seated' | 'vip-arrived' | 'reservation-due';
+  message: string;
+  priority: 'high' | 'medium' | 'low';
+  createdAt: string;
+}
+
+export interface OrderTimelineEntry {
+  id: string;
+  tableId: string;
+  time: string;
+  action: 'seated' | 'ordered' | 'served' | 'check-requested' | 'payment' | 'cleared';
+  description: string;
+}
+
+export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan';

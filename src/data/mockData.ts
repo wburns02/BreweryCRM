@@ -1,4 +1,4 @@
-import type { Customer, Beer, Batch, TapLine, BreweryEvent, Reservation, MenuItem, InventoryItem, StaffMember, WholesaleAccount, MugClubMember, EmailCampaign, DailySales, ComplianceItem, Performer, DetailedRecipe, Keg, MonthlyFinancial } from '../types';
+import type { Customer, Beer, Batch, TapLine, BreweryEvent, Reservation, MenuItem, InventoryItem, StaffMember, WholesaleAccount, MugClubMember, EmailCampaign, DailySales, ComplianceItem, Performer, DetailedRecipe, Keg, MonthlyFinancial, VisitRecord, CustomerNote, ScheduleShift, DailyLabor, QCBreakdown, TTBMonthlyReport, PurchaseOrder, WholesaleOrder, SocialMetrics, ContentCalendarEntry, CustomerSegment, WeeklyFoodCost, MugClubMonthly, OpenTab, POSTransaction, FloorTable, ServiceAlert, OrderTimelineEntry } from '../types';
 
 export const customers: Customer[] = [
   { id: '1', firstName: 'Jake', lastName: 'Morrison', email: 'jake@email.com', phone: '(830) 555-0101', firstVisit: '2026-01-15', lastVisit: '2026-03-02', totalVisits: 24, totalSpent: 1842.50, avgTicket: 76.77, favoriteBeers: ['Hill Country Haze', 'Bulverde Blonde'], dietaryRestrictions: [], tags: ['regular', 'vip'], loyaltyPoints: 2450, loyaltyTier: 'Gold', mugClubMember: true, mugClubTier: 'Premium', notes: 'Loves IPAs, brings family every Saturday', source: 'word-of-mouth', familyMembers: [{ name: 'Sarah', relation: 'wife' }, { name: 'Max', relation: 'son', age: 7 }] },
@@ -488,4 +488,459 @@ export const monthlyFinancials: MonthlyFinancial[] = [
   { month: '2026-01', monthLabel: 'Jan', beerRevenue: 38600, foodRevenue: 25400, naRevenue: 6200, merchandiseRevenue: 2800, eventRevenue: 3200, wholesaleRevenue: 3400, totalRevenue: 79600, cogs: 24280, laborCost: 26070, rent: 8500, utilities: 3100, marketing: 1500, insurance: 950, licenses: 400, supplies: 1900, misc: 1400, totalExpenses: 68100, netProfit: 11500, netMarginPct: 14.4 },
   { month: '2026-02', monthLabel: 'Feb', beerRevenue: 44800, foodRevenue: 29600, naRevenue: 7200, merchandiseRevenue: 3400, eventRevenue: 5600, wholesaleRevenue: 4800, totalRevenue: 95400, cogs: 28620, laborCost: 29770, rent: 8500, utilities: 3200, marketing: 1800, insurance: 950, licenses: 400, supplies: 2000, misc: 1500, totalExpenses: 76740, netProfit: 18660, netMarginPct: 19.6 },
   { month: '2026-03', monthLabel: 'Mar', beerRevenue: 54200, foodRevenue: 36800, naRevenue: 8800, merchandiseRevenue: 4200, eventRevenue: 7800, wholesaleRevenue: 6200, totalRevenue: 118000, cogs: 34220, laborCost: 35400, rent: 8500, utilities: 3400, marketing: 2400, insurance: 950, licenses: 400, supplies: 2200, misc: 1600, totalExpenses: 89070, netProfit: 28930, netMarginPct: 24.5 },
+];
+
+// Visit history for all 8 customers
+export const visitHistory: Record<string, VisitRecord[]> = {
+  // Jake Morrison — Saturday regular, IPA lover, brings family
+  '1': [
+    { id: 'v1-1', date: '2026-03-01', dayOfWeek: 'Saturday', arrivalTime: '14:30', partySize: 4, totalSpent: 92.50, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 3, size: 'Pint' }, { beerName: 'Bulverde Blonde', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Smoked Wings', quantity: 1 }, { itemName: 'Kids Mac & Cheese', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5, notes: 'Brought the whole family' },
+    { id: 'v1-2', date: '2026-02-22', dayOfWeek: 'Saturday', arrivalTime: '15:00', partySize: 4, totalSpent: 88.00, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }, { beerName: 'Citra Smash IPA', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 2 }], tabClosedBy: 'Rachel Kim', rating: 5 },
+    { id: 'v1-3', date: '2026-02-15', dayOfWeek: 'Saturday', arrivalTime: '13:45', partySize: 2, totalSpent: 62.00, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }, { beerName: 'Prickly Pear Sour', quantity: 1, size: 'Half' }], foodOrdered: [{ itemName: 'Jalapeño Poppers', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 4 },
+    { id: 'v1-4', date: '2026-02-08', dayOfWeek: 'Saturday', arrivalTime: '14:15', partySize: 4, totalSpent: 95.00, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 3, size: 'Pint' }], foodOrdered: [{ itemName: 'Fish Tacos', quantity: 2 }, { itemName: 'Craft Root Beer', quantity: 2 }], tabClosedBy: 'Amy Nguyen', rating: 5, notes: "Max's birthday celebration" },
+    { id: 'v1-5', date: '2026-02-01', dayOfWeek: 'Saturday', arrivalTime: '15:30', partySize: 3, totalSpent: 74.50, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }, { beerName: 'Bulverde Blonde', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+    { id: 'v1-6', date: '2026-01-25', dayOfWeek: 'Saturday', arrivalTime: '14:00', partySize: 4, totalSpent: 82.00, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }, { beerName: 'Lone Star Lager', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 1 }, { itemName: 'Kids Chicken Tenders', quantity: 1 }], tabClosedBy: 'Rachel Kim', rating: 4 },
+    { id: 'v1-7', date: '2026-01-18', dayOfWeek: 'Saturday', arrivalTime: '13:30', partySize: 2, totalSpent: 56.00, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Nachos', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5 },
+    { id: 'v1-8', date: '2026-01-15', dayOfWeek: 'Wednesday', arrivalTime: '18:00', partySize: 1, totalSpent: 28.00, beersOrdered: [{ beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }], foodOrdered: [], tabClosedBy: 'Rachel Kim', notes: 'First visit — signed up for loyalty' },
+  ],
+  // Maria Gonzalez — weekday patio regular, prefers sours and wheats
+  '2': [
+    { id: 'v2-1', date: '2026-03-03', dayOfWeek: 'Monday', arrivalTime: '17:00', partySize: 1, totalSpent: 42.00, beersOrdered: [{ beerName: 'Prickly Pear Sour', quantity: 1, size: 'Pint' }, { beerName: 'Texas Sunset Wheat', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Garden Salad', quantity: 1 }], tabClosedBy: 'Rachel Kim', rating: 4 },
+    { id: 'v2-2', date: '2026-02-26', dayOfWeek: 'Wednesday', arrivalTime: '16:30', partySize: 2, totalSpent: 68.00, beersOrdered: [{ beerName: 'Prickly Pear Sour', quantity: 2, size: 'Pint' }, { beerName: 'Texas Sunset Wheat', quantity: 1, size: 'Half' }], foodOrdered: [{ itemName: 'Fish Tacos', quantity: 1 }, { itemName: 'Side Salad', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5, notes: 'Brought a friend, sat on patio' },
+    { id: 'v2-3', date: '2026-02-19', dayOfWeek: 'Wednesday', arrivalTime: '17:15', partySize: 1, totalSpent: 38.50, beersOrdered: [{ beerName: 'Prickly Pear Sour', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Hummus Plate', quantity: 1 }], tabClosedBy: 'Rachel Kim' },
+    { id: 'v2-4', date: '2026-02-12', dayOfWeek: 'Wednesday', arrivalTime: '16:45', partySize: 1, totalSpent: 35.00, beersOrdered: [{ beerName: 'Texas Sunset Wheat', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Garden Salad', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 4 },
+    { id: 'v2-5', date: '2026-02-05', dayOfWeek: 'Wednesday', arrivalTime: '17:00', partySize: 3, totalSpent: 85.00, beersOrdered: [{ beerName: 'Prickly Pear Sour', quantity: 2, size: 'Pint' }, { beerName: 'Bluebonnet Blonde', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 2 }], tabClosedBy: 'Amy Nguyen', notes: 'Girls night out on patio' },
+    { id: 'v2-6', date: '2026-02-01', dayOfWeek: 'Saturday', arrivalTime: '12:00', partySize: 1, totalSpent: 32.00, beersOrdered: [{ beerName: 'Texas Sunset Wheat', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Fruit Plate', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+  ],
+  // Tom Henderson — trivia regular, lager and porter drinker
+  '3': [
+    { id: 'v3-1', date: '2026-03-01', dayOfWeek: 'Saturday', arrivalTime: '19:00', partySize: 4, totalSpent: 78.00, beersOrdered: [{ beerName: 'Lone Star Lager', quantity: 3, size: 'Pint' }, { beerName: 'Mesquite Smoked Porter', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Nachos', quantity: 1 }, { itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5, notes: 'Trivia night — team won 2nd place' },
+    { id: 'v3-2', date: '2026-02-25', dayOfWeek: 'Tuesday', arrivalTime: '19:00', partySize: 4, totalSpent: 72.00, beersOrdered: [{ beerName: 'Lone Star Lager', quantity: 4, size: 'Pint' }], foodOrdered: [{ itemName: 'Jalapeño Poppers', quantity: 2 }], tabClosedBy: 'Rachel Kim', notes: 'Trivia Tuesday regular' },
+    { id: 'v3-3', date: '2026-02-18', dayOfWeek: 'Tuesday', arrivalTime: '18:45', partySize: 3, totalSpent: 58.00, beersOrdered: [{ beerName: 'Lone Star Lager', quantity: 2, size: 'Pint' }, { beerName: 'Mesquite Smoked Porter', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+    { id: 'v3-4', date: '2026-02-11', dayOfWeek: 'Tuesday', arrivalTime: '19:00', partySize: 4, totalSpent: 65.00, beersOrdered: [{ beerName: 'Lone Star Lager', quantity: 3, size: 'Pint' }, { beerName: 'Jalapeño Cream Ale', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Nachos', quantity: 1 }], tabClosedBy: 'Amy Nguyen', rating: 4 },
+    { id: 'v3-5', date: '2026-02-04', dayOfWeek: 'Tuesday', arrivalTime: '18:30', partySize: 4, totalSpent: 70.00, beersOrdered: [{ beerName: 'Lone Star Lager', quantity: 2, size: 'Pint' }, { beerName: 'Mesquite Smoked Porter', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+  ],
+  // Ashley Chen — newer customer, exploring
+  '4': [
+    { id: 'v4-1', date: '2026-02-28', dayOfWeek: 'Friday', arrivalTime: '19:30', partySize: 2, totalSpent: 58.00, beersOrdered: [{ beerName: 'Bluebonnet Blonde', quantity: 1, size: 'Pint' }, { beerName: 'Craft Root Beer', quantity: 1, size: 'Large' }], foodOrdered: [{ itemName: 'Garden Salad', quantity: 1 }, { itemName: 'Grilled Veggie Wrap', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 4, notes: 'Asked about mug club membership' },
+    { id: 'v4-2', date: '2026-02-22', dayOfWeek: 'Saturday', arrivalTime: '12:00', partySize: 2, totalSpent: 65.00, beersOrdered: [{ beerName: 'Bluebonnet Blonde', quantity: 2, size: 'Pint' }, { beerName: 'Prickly Pear Sour', quantity: 1, size: 'Taster' }], foodOrdered: [{ itemName: 'Fish Tacos', quantity: 1 }], tabClosedBy: 'Amy Nguyen' },
+    { id: 'v4-3', date: '2026-02-17', dayOfWeek: 'Monday', arrivalTime: '17:00', partySize: 1, totalSpent: 28.00, beersOrdered: [{ beerName: 'Craft Root Beer', quantity: 1, size: 'Large' }, { beerName: 'Bluebonnet Blonde', quantity: 1, size: 'Taster' }], foodOrdered: [{ itemName: 'Hummus Plate', quantity: 1 }], tabClosedBy: 'Rachel Kim' },
+    { id: 'v4-4', date: '2026-02-14', dayOfWeek: 'Friday', arrivalTime: '20:00', partySize: 2, totalSpent: 72.00, beersOrdered: [{ beerName: 'Bluebonnet Blonde', quantity: 2, size: 'Pint' }, { beerName: 'Hill Country Kombucha', quantity: 1, size: 'Small' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 1 }, { itemName: 'Side Salad', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5, notes: "Valentine's dinner date" },
+  ],
+  // Bobby Whitfield — VIP founding member, 3x/week, BA Stout lover
+  '5': [
+    { id: 'v5-1', date: '2026-03-04', dayOfWeek: 'Tuesday', arrivalTime: '17:30', partySize: 1, totalSpent: 85.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }, { beerName: 'Hill Country Haze', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'BBQ Brisket Plate', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5 },
+    { id: 'v5-2', date: '2026-03-02', dayOfWeek: 'Sunday', arrivalTime: '13:00', partySize: 3, totalSpent: 120.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }, { beerName: 'Hill Country Haze', quantity: 2, size: 'Pint' }, { beerName: 'Lone Star Lager', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 2 }, { itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Rachel Kim', notes: 'Hosted networking brunch' },
+    { id: 'v5-3', date: '2026-02-28', dayOfWeek: 'Friday', arrivalTime: '18:00', partySize: 2, totalSpent: 98.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }, { beerName: 'Mesquite Smoked Porter', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'BBQ Brisket Plate', quantity: 1 }, { itemName: 'Dark Chocolate Brownie', quantity: 1 }], tabClosedBy: 'Jessica Tran', rating: 5 },
+    { id: 'v5-4', date: '2026-02-25', dayOfWeek: 'Tuesday', arrivalTime: '17:00', partySize: 1, totalSpent: 65.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }], foodOrdered: [{ itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Rachel Kim' },
+    { id: 'v5-5', date: '2026-02-23', dayOfWeek: 'Sunday', arrivalTime: '14:00', partySize: 5, totalSpent: 180.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 3, size: 'Half' }, { beerName: 'Hill Country Haze', quantity: 3, size: 'Pint' }, { beerName: 'Lone Star Lager', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 3 }, { itemName: 'Nachos', quantity: 1 }], tabClosedBy: 'Amy Nguyen', rating: 5, notes: 'Monthly networking event — 5 business owners' },
+    { id: 'v5-6', date: '2026-02-21', dayOfWeek: 'Friday', arrivalTime: '19:00', partySize: 2, totalSpent: 110.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 3, size: 'Half' }, { beerName: 'Mesquite Smoked Porter', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'BBQ Brisket Plate', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+    { id: 'v5-7', date: '2026-02-18', dayOfWeek: 'Tuesday', arrivalTime: '17:30', partySize: 1, totalSpent: 72.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }, { beerName: 'Hill Country Haze', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Jalapeño Poppers', quantity: 1 }], tabClosedBy: 'Rachel Kim', rating: 4 },
+    { id: 'v5-8', date: '2026-02-16', dayOfWeek: 'Sunday', arrivalTime: '12:30', partySize: 2, totalSpent: 88.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }, { beerName: 'Lone Star Lager', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Brewery Burger', quantity: 1 }, { itemName: 'Side Salad', quantity: 1 }], tabClosedBy: 'Amy Nguyen' },
+    { id: 'v5-9', date: '2026-02-14', dayOfWeek: 'Friday', arrivalTime: '18:30', partySize: 2, totalSpent: 145.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 3, size: 'Half' }, { beerName: 'Prickly Pear Sour', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'BBQ Brisket Plate', quantity: 2 }], tabClosedBy: 'Jessica Tran', rating: 5, notes: 'Valentine\'s dinner with wife' },
+    { id: 'v5-10', date: '2026-02-11', dayOfWeek: 'Tuesday', arrivalTime: '17:00', partySize: 1, totalSpent: 58.00, beersOrdered: [{ beerName: 'Barrel-Aged Imperial Stout', quantity: 2, size: 'Half' }], foodOrdered: [{ itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Rachel Kim' },
+  ],
+  // Diane Foster — family visitor with 3 kids
+  '6': [
+    { id: 'v6-1', date: '2026-02-20', dayOfWeek: 'Thursday', arrivalTime: '17:00', partySize: 5, totalSpent: 68.00, beersOrdered: [{ beerName: 'Texas Sunset Wheat', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Kids Mac & Cheese', quantity: 2 }, { itemName: 'Kids Chicken Tenders', quantity: 1 }, { itemName: 'Garden Salad', quantity: 1 }], tabClosedBy: 'Amy Nguyen', rating: 4, notes: '3 kids, used play area' },
+    { id: 'v6-2', date: '2026-02-13', dayOfWeek: 'Thursday', arrivalTime: '16:30', partySize: 5, totalSpent: 72.00, beersOrdered: [{ beerName: 'Texas Sunset Wheat', quantity: 1, size: 'Pint' }, { beerName: 'Hill Country Kombucha', quantity: 1, size: 'Small' }], foodOrdered: [{ itemName: 'Kids Mac & Cheese', quantity: 2 }, { itemName: 'Brewery Burger', quantity: 1 }], tabClosedBy: 'Amy Nguyen' },
+    { id: 'v6-3', date: '2026-02-06', dayOfWeek: 'Thursday', arrivalTime: '17:15', partySize: 4, totalSpent: 55.00, beersOrdered: [{ beerName: 'Bluebonnet Blonde', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Kids Chicken Tenders', quantity: 2 }, { itemName: 'Fruit Plate', quantity: 1 }], tabClosedBy: 'Amy Nguyen', rating: 5 },
+    { id: 'v6-4', date: '2026-01-30', dayOfWeek: 'Thursday', arrivalTime: '16:45', partySize: 5, totalSpent: 62.00, beersOrdered: [{ beerName: 'Texas Sunset Wheat', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Kids Mac & Cheese', quantity: 3 }, { itemName: 'Garden Salad', quantity: 1 }], tabClosedBy: 'Rachel Kim' },
+  ],
+  // Carlos Rivera — homebrewer, porter and cream ale fan
+  '7': [
+    { id: 'v7-1', date: '2026-03-03', dayOfWeek: 'Monday', arrivalTime: '18:00', partySize: 2, totalSpent: 82.00, beersOrdered: [{ beerName: 'Mesquite Smoked Porter', quantity: 2, size: 'Pint' }, { beerName: 'Jalapeño Cream Ale', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Nachos', quantity: 1 }, { itemName: 'Smoked Wings', quantity: 1 }], tabClosedBy: 'Rachel Kim', rating: 5, notes: 'Discussed collab brew idea with Mike' },
+    { id: 'v7-2', date: '2026-02-27', dayOfWeek: 'Thursday', arrivalTime: '19:00', partySize: 1, totalSpent: 55.00, beersOrdered: [{ beerName: 'Mesquite Smoked Porter', quantity: 1, size: 'Pint' }, { beerName: 'Barrel-Aged Imperial Stout', quantity: 1, size: 'Half' }, { beerName: 'Jalapeño Cream Ale', quantity: 1, size: 'Taster' }], foodOrdered: [{ itemName: 'BBQ Brisket Plate', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+    { id: 'v7-3', date: '2026-02-20', dayOfWeek: 'Thursday', arrivalTime: '18:30', partySize: 3, totalSpent: 95.00, beersOrdered: [{ beerName: 'Mesquite Smoked Porter', quantity: 2, size: 'Pint' }, { beerName: 'Jalapeño Cream Ale', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Nachos', quantity: 1 }, { itemName: 'Brewery Burger', quantity: 1 }], tabClosedBy: 'Amy Nguyen', rating: 4, notes: 'Brought homebrew club friends' },
+    { id: 'v7-4', date: '2026-02-13', dayOfWeek: 'Thursday', arrivalTime: '18:00', partySize: 1, totalSpent: 48.00, beersOrdered: [{ beerName: 'Mesquite Smoked Porter', quantity: 2, size: 'Pint' }], foodOrdered: [{ itemName: 'Jalapeño Poppers', quantity: 1 }], tabClosedBy: 'Jessica Tran' },
+    { id: 'v7-5', date: '2026-02-10', dayOfWeek: 'Monday', arrivalTime: '19:00', partySize: 2, totalSpent: 72.00, beersOrdered: [{ beerName: 'Jalapeño Cream Ale', quantity: 2, size: 'Pint' }, { beerName: 'Mesquite Smoked Porter', quantity: 1, size: 'Pint' }], foodOrdered: [{ itemName: 'Quesadillas', quantity: 1 }], tabClosedBy: 'Rachel Kim', rating: 5 },
+  ],
+  // Linda Thompson — sober/NA drinker
+  '8': [
+    { id: 'v8-1', date: '2026-02-15', dayOfWeek: 'Saturday', arrivalTime: '14:00', partySize: 2, totalSpent: 42.00, beersOrdered: [{ beerName: 'Craft Root Beer', quantity: 1, size: 'Large' }, { beerName: 'Ginger Beer', quantity: 1, size: 'Large' }, { beerName: 'Hill Country Kombucha', quantity: 1, size: 'Small' }], foodOrdered: [{ itemName: 'Garden Salad', quantity: 1 }], tabClosedBy: 'Amy Nguyen', rating: 5, notes: 'Loves the NA selection — brought a friend who is also sober' },
+    { id: 'v8-2', date: '2026-02-01', dayOfWeek: 'Saturday', arrivalTime: '13:30', partySize: 1, totalSpent: 28.00, beersOrdered: [{ beerName: 'Craft Root Beer', quantity: 1, size: 'Large' }, { beerName: 'Hill Country Kombucha', quantity: 1, size: 'Small' }], foodOrdered: [{ itemName: 'Fruit Plate', quantity: 1 }], tabClosedBy: 'Rachel Kim', rating: 4 },
+    { id: 'v8-3', date: '2026-01-18', dayOfWeek: 'Saturday', arrivalTime: '15:00', partySize: 3, totalSpent: 52.00, beersOrdered: [{ beerName: 'Ginger Beer', quantity: 2, size: 'Large' }, { beerName: 'Craft Root Beer', quantity: 1, size: 'Large' }], foodOrdered: [{ itemName: 'Hummus Plate', quantity: 1 }], tabClosedBy: 'Amy Nguyen', notes: 'Brought sober friends, loved atmosphere' },
+    { id: 'v8-4', date: '2026-01-05', dayOfWeek: 'Sunday', arrivalTime: '12:00', partySize: 1, totalSpent: 22.00, beersOrdered: [{ beerName: 'Craft Root Beer', quantity: 1, size: 'Large' }], foodOrdered: [{ itemName: 'Side Salad', quantity: 1 }], tabClosedBy: 'Rachel Kim', notes: 'First visit' },
+  ],
+};
+
+export const customerNotes: Record<string, CustomerNote[]> = {
+  '1': [
+    { id: 'n1-1', date: '2026-03-01', author: 'Jessica Tran', type: 'note', content: "Jake mentioned he's thinking about hosting Max's birthday party here in April. Should follow up." },
+    { id: 'n1-2', date: '2026-02-08', author: 'Amy Nguyen', type: 'milestone', content: "Max's birthday celebration — brought the family. Gave complimentary dessert." },
+    { id: 'n1-3', date: '2026-01-15', author: 'Derek Wilson', type: 'milestone', content: 'First visit! Signed up for loyalty program immediately. IPA lover.' },
+  ],
+  '2': [
+    { id: 'n2-1', date: '2026-02-26', author: 'Jessica Tran', type: 'compliment', content: 'Maria said the Prickly Pear Sour is the best she has had in Texas. Wants to bring more friends.' },
+    { id: 'n2-2', date: '2026-02-05', author: 'Amy Nguyen', type: 'note', content: 'Prefers patio seating. Always asks for gluten-free menu options.' },
+  ],
+  '3': [
+    { id: 'n3-1', date: '2026-03-01', author: 'Jessica Tran', type: 'note', content: 'Tom\'s trivia team "Hop To It" won 2nd place. Very competitive — loves the trivia nights.' },
+    { id: 'n3-2', date: '2026-02-04', author: 'Rachel Kim', type: 'note', content: 'Nut allergy — always confirm wings are prepared separately. Put flag on his profile.' },
+  ],
+  '4': [
+    { id: 'n4-1', date: '2026-02-28', author: 'Jessica Tran', type: 'note', content: 'Ashley asked about mug club membership. Send her info and sign-up link.' },
+    { id: 'n4-2', date: '2026-02-14', author: 'Jessica Tran', type: 'compliment', content: "Valentine's dinner date — said the atmosphere was perfect. Wants to come back for events." },
+  ],
+  '5': [
+    { id: 'n5-1', date: '2026-03-04', author: 'Derek Wilson', type: 'milestone', content: "Bobby's 38th visit! Founding member #001 — consider a recognition event." },
+    { id: 'n5-2', date: '2026-02-23', author: 'Amy Nguyen', type: 'note', content: 'Hosted monthly networking event with 5 local business owners. Bought a round for everyone.' },
+    { id: 'n5-3', date: '2026-02-14', author: 'Jessica Tran', type: 'compliment', content: "Valentine's dinner — raved about the BA Stout pairing with the dark chocolate brownie." },
+    { id: 'n5-4', date: '2025-12-20', author: 'Derek Wilson', type: 'milestone', content: 'Founding Mug Club Member #001! Bought the very first mug. Local business owner, huge supporter.' },
+  ],
+  '6': [
+    { id: 'n6-1', date: '2026-02-20', author: 'Amy Nguyen', type: 'note', content: '3 kids love the play area. Always needs high chairs. Great family customer.' },
+    { id: 'n6-2', date: '2026-02-06', author: 'Amy Nguyen', type: 'compliment', content: 'Diane said BBW is the only brewery she feels comfortable bringing kids to. Shared on Facebook.' },
+  ],
+  '7': [
+    { id: 'n7-1', date: '2026-03-03', author: 'Rachel Kim', type: 'note', content: 'Carlos discussed collab brew idea with Mike — wants to brew a smoked chile porter. Mike is interested.' },
+    { id: 'n7-2', date: '2026-02-20', author: 'Amy Nguyen', type: 'note', content: 'Brought 2 homebrew club friends. They all ordered flights and geeked out about our process.' },
+  ],
+  '8': [
+    { id: 'n8-1', date: '2026-02-15', author: 'Amy Nguyen', type: 'compliment', content: 'Linda brought a sober friend. Both said our NA selection is the best in the Hill Country.' },
+    { id: 'n8-2', date: '2026-01-05', author: 'Rachel Kim', type: 'note', content: 'First visit. Sober — only orders NA beverages. Very happy we have 3 NA options on tap.' },
+  ],
+};
+
+// Weekly Schedule — ~40 shifts across the week
+const weekDates = ['2026-03-02', '2026-03-03', '2026-03-04', '2026-03-05', '2026-03-06', '2026-03-07', '2026-03-08'];
+
+
+export const weeklySchedule: ScheduleShift[] = [
+  // Mike Bradley — Brewer (Mon-Fri AM)
+  { id: 'ws-1', staffId: '1', staffName: 'Mike Bradley', role: 'brewer', date: weekDates[0], dayOfWeek: 'Mon', startTime: '06:00', endTime: '14:00', hours: 8, section: 'brewery', status: 'completed' },
+  { id: 'ws-2', staffId: '1', staffName: 'Mike Bradley', role: 'brewer', date: weekDates[1], dayOfWeek: 'Tue', startTime: '06:00', endTime: '14:00', hours: 8, section: 'brewery', status: 'completed' },
+  { id: 'ws-3', staffId: '1', staffName: 'Mike Bradley', role: 'brewer', date: weekDates[2], dayOfWeek: 'Wed', startTime: '06:00', endTime: '14:00', hours: 8, section: 'brewery', status: 'completed' },
+  { id: 'ws-4', staffId: '1', staffName: 'Mike Bradley', role: 'brewer', date: weekDates[3], dayOfWeek: 'Thu', startTime: '06:00', endTime: '14:00', hours: 8, section: 'brewery', status: 'in-progress' },
+  { id: 'ws-5', staffId: '1', staffName: 'Mike Bradley', role: 'brewer', date: weekDates[4], dayOfWeek: 'Fri', startTime: '06:00', endTime: '14:00', hours: 8, section: 'brewery', status: 'scheduled' },
+  { id: 'ws-41', staffId: '1', staffName: 'Mike Bradley', role: 'brewer', date: weekDates[5], dayOfWeek: 'Sat', startTime: '08:00', endTime: '12:00', hours: 4, section: 'brewery', status: 'scheduled', notes: 'Keg cleaning & tank CIP' },
+
+  // Jessica Tran — Bartender (Wed-Sat PM)
+  { id: 'ws-6', staffId: '2', staffName: 'Jessica Tran', role: 'bartender', date: weekDates[2], dayOfWeek: 'Wed', startTime: '16:00', endTime: '00:00', hours: 8, section: 'taproom', status: 'completed' },
+  { id: 'ws-7', staffId: '2', staffName: 'Jessica Tran', role: 'bartender', date: weekDates[3], dayOfWeek: 'Thu', startTime: '16:00', endTime: '00:00', hours: 8, section: 'taproom', status: 'in-progress' },
+  { id: 'ws-8', staffId: '2', staffName: 'Jessica Tran', role: 'bartender', date: weekDates[4], dayOfWeek: 'Fri', startTime: '16:00', endTime: '00:00', hours: 8, section: 'taproom', status: 'scheduled' },
+  { id: 'ws-9', staffId: '2', staffName: 'Jessica Tran', role: 'bartender', date: weekDates[5], dayOfWeek: 'Sat', startTime: '14:00', endTime: '00:00', hours: 10, section: 'taproom', status: 'scheduled' },
+
+  // Tony Perez — Cook (Tue-Sat)
+  { id: 'ws-10', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[1], dayOfWeek: 'Tue', startTime: '10:00', endTime: '18:00', hours: 8, section: 'kitchen', status: 'completed' },
+  { id: 'ws-11', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[2], dayOfWeek: 'Wed', startTime: '10:00', endTime: '18:00', hours: 8, section: 'kitchen', status: 'completed' },
+  { id: 'ws-12', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[3], dayOfWeek: 'Thu', startTime: '10:00', endTime: '18:00', hours: 8, section: 'kitchen', status: 'in-progress' },
+  { id: 'ws-13', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[4], dayOfWeek: 'Fri', startTime: '10:00', endTime: '22:00', hours: 12, section: 'kitchen', status: 'scheduled' },
+  { id: 'ws-14', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[5], dayOfWeek: 'Sat', startTime: '10:00', endTime: '22:00', hours: 12, section: 'kitchen', status: 'scheduled' },
+
+  // Amy Nguyen — Server (Thu-Sun)
+  { id: 'ws-15', staffId: '4', staffName: 'Amy Nguyen', role: 'server', date: weekDates[3], dayOfWeek: 'Thu', startTime: '16:00', endTime: '22:00', hours: 6, section: 'taproom', status: 'scheduled' },
+  { id: 'ws-16', staffId: '4', staffName: 'Amy Nguyen', role: 'server', date: weekDates[4], dayOfWeek: 'Fri', startTime: '16:00', endTime: '23:00', hours: 7, section: 'taproom', status: 'scheduled' },
+  { id: 'ws-17', staffId: '4', staffName: 'Amy Nguyen', role: 'server', date: weekDates[5], dayOfWeek: 'Sat', startTime: '11:00', endTime: '23:00', hours: 12, section: 'taproom', status: 'scheduled' },
+  { id: 'ws-18', staffId: '4', staffName: 'Amy Nguyen', role: 'server', date: weekDates[6], dayOfWeek: 'Sun', startTime: '11:00', endTime: '20:00', hours: 9, section: 'taproom', status: 'scheduled' },
+
+  // Derek Wilson — Manager (Mon-Tue, Fri-Sat)
+  { id: 'ws-19', staffId: '5', staffName: 'Derek Wilson', role: 'manager', date: weekDates[0], dayOfWeek: 'Mon', startTime: '10:00', endTime: '18:00', hours: 8, section: 'taproom', status: 'completed' },
+  { id: 'ws-20', staffId: '5', staffName: 'Derek Wilson', role: 'manager', date: weekDates[1], dayOfWeek: 'Tue', startTime: '10:00', endTime: '18:00', hours: 8, section: 'taproom', status: 'completed' },
+  { id: 'ws-21', staffId: '5', staffName: 'Derek Wilson', role: 'manager', date: weekDates[2], dayOfWeek: 'Wed', startTime: '10:00', endTime: '18:00', hours: 8, section: 'taproom', status: 'completed' },
+  { id: 'ws-22', staffId: '5', staffName: 'Derek Wilson', role: 'manager', date: weekDates[4], dayOfWeek: 'Fri', startTime: '14:00', endTime: '23:00', hours: 9, section: 'taproom', status: 'scheduled' },
+  { id: 'ws-23', staffId: '5', staffName: 'Derek Wilson', role: 'manager', date: weekDates[5], dayOfWeek: 'Sat', startTime: '14:00', endTime: '23:00', hours: 9, section: 'taproom', status: 'scheduled' },
+
+  // Rachel Kim — Bartender (Mon-Tue, Sun)
+  { id: 'ws-24', staffId: '6', staffName: 'Rachel Kim', role: 'bartender', date: weekDates[0], dayOfWeek: 'Mon', startTime: '16:00', endTime: '00:00', hours: 8, section: 'taproom', status: 'completed' },
+  { id: 'ws-25', staffId: '6', staffName: 'Rachel Kim', role: 'bartender', date: weekDates[1], dayOfWeek: 'Tue', startTime: '16:00', endTime: '00:00', hours: 8, section: 'taproom', status: 'completed' },
+  { id: 'ws-26', staffId: '6', staffName: 'Rachel Kim', role: 'bartender', date: weekDates[6], dayOfWeek: 'Sun', startTime: '11:00', endTime: '20:00', hours: 9, section: 'taproom', status: 'scheduled' },
+
+  // Extra coverage shifts
+  { id: 'ws-27', staffId: '4', staffName: 'Amy Nguyen', role: 'server', date: weekDates[2], dayOfWeek: 'Wed', startTime: '17:00', endTime: '22:00', hours: 5, section: 'patio', status: 'completed', notes: 'Patio overflow help' },
+  { id: 'ws-28', staffId: '2', staffName: 'Jessica Tran', role: 'bartender', date: weekDates[6], dayOfWeek: 'Sun', startTime: '14:00', endTime: '20:00', hours: 6, section: 'taproom', status: 'scheduled', notes: 'Extra Sunday coverage' },
+
+  // Saturday heavy coverage
+  { id: 'ws-29', staffId: '6', staffName: 'Rachel Kim', role: 'bartender', date: weekDates[5], dayOfWeek: 'Sat', startTime: '11:00', endTime: '18:00', hours: 7, section: 'taproom', status: 'scheduled', notes: 'Day shift' },
+
+  // Kitchen extra
+  { id: 'ws-30', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[0], dayOfWeek: 'Mon', startTime: '11:00', endTime: '17:00', hours: 6, section: 'kitchen', status: 'completed', notes: 'Prep day — event catering' },
+
+  // One called-out shift
+  { id: 'ws-31', staffId: '4', staffName: 'Amy Nguyen', role: 'server', date: weekDates[1], dayOfWeek: 'Tue', startTime: '16:00', endTime: '22:00', hours: 6, section: 'taproom', status: 'called-out', notes: 'Sick — Rachel covered' },
+
+  // Manager Thu
+  { id: 'ws-32', staffId: '5', staffName: 'Derek Wilson', role: 'manager', date: weekDates[3], dayOfWeek: 'Thu', startTime: '10:00', endTime: '18:00', hours: 8, section: 'taproom', status: 'in-progress' },
+
+  // Sun kitchen
+  { id: 'ws-33', staffId: '3', staffName: 'Tony Perez', role: 'cook', date: weekDates[6], dayOfWeek: 'Sun', startTime: '10:00', endTime: '18:00', hours: 8, section: 'kitchen', status: 'scheduled' },
+];
+
+// Daily Labor Costs — 30 days
+export const dailyLaborCosts: DailyLabor[] = Array.from({ length: 30 }, (_, i) => {
+  const date = new Date(2026, 1, 3 + i);
+  const dayOfWeek = date.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
+
+  const breweryHours = 8; // Mike always works
+  const breweryCost = breweryHours * 28;
+  const taproomHours = isWeekend ? 28 + Math.floor(Math.random() * 8) : 16 + Math.floor(Math.random() * 6);
+  const taproomCost = taproomHours * 16; // blended rate
+  const kitchenHours = isWeekend ? 12 : 8;
+  const kitchenCost = kitchenHours * 20;
+  const totalHours = breweryHours + taproomHours + kitchenHours;
+  const totalCost = breweryCost + taproomCost + kitchenCost;
+
+  const baseBeer = isWeekend ? 3200 : 1800;
+  const baseFood = isWeekend ? 2400 : 1200;
+  const revenue = baseBeer + baseFood + Math.floor(Math.random() * 1200);
+  const laborPct = Math.round((totalCost / revenue) * 10000) / 100;
+  const headcount = isWeekend ? 5 + Math.floor(Math.random() * 2) : 3 + Math.floor(Math.random() * 2);
+
+  return {
+    date: date.toISOString().split('T')[0],
+    totalHours,
+    totalCost,
+    breweryHours,
+    breweryCost,
+    taproomHours,
+    taproomCost,
+    kitchenHours,
+    kitchenCost,
+    revenue,
+    laborPct,
+    headcount,
+  };
+});
+
+// QC Breakdowns — one per batch
+export const qcBreakdowns: Record<string, QCBreakdown> = {
+  '1': { appearance: 5, aroma: 5, flavor: 4, mouthfeel: 5, overall: 5 },  // 96 → qualityScore 95
+  '2': { appearance: 4, aroma: 4, flavor: 4, mouthfeel: 4, overall: 4 },  // in progress
+  '3': { appearance: 4, aroma: 5, flavor: 4, mouthfeel: 4, overall: 5 },  // 88
+  '4': { appearance: 5, aroma: 4, flavor: 5, mouthfeel: 5, overall: 4 },  // 92
+};
+
+// TTB Monthly Reports — 6 months
+export const ttbReports: TTBMonthlyReport[] = [
+  { month: '2025-10', beginningInventory: 28, produced: 42, received: 0, transferredTaproom: 35, transferredDistribution: 8, endingInventory: 27, losses: 0, exciseTax: 147 },
+  { month: '2025-11', beginningInventory: 27, produced: 49, received: 0, transferredTaproom: 38, transferredDistribution: 10, endingInventory: 28, losses: 0, exciseTax: 171.5 },
+  { month: '2025-12', beginningInventory: 28, produced: 56, received: 0, transferredTaproom: 42, transferredDistribution: 12, endingInventory: 30, losses: 0, exciseTax: 196 },
+  { month: '2026-01', beginningInventory: 30, produced: 49, received: 0, transferredTaproom: 40, transferredDistribution: 10, endingInventory: 29, losses: 0, exciseTax: 171.5 },
+  { month: '2026-02', beginningInventory: 29, produced: 56, received: 0, transferredTaproom: 44, transferredDistribution: 14, endingInventory: 27, losses: 0, exciseTax: 196 },
+  { month: '2026-03', beginningInventory: 27, produced: 35, received: 0, transferredTaproom: 28, transferredDistribution: 8, endingInventory: 26, losses: 0, exciseTax: 122.5 },
+];
+
+// Purchase Orders — 8 POs
+export const purchaseOrders: PurchaseOrder[] = [
+  { id: 'po-001', poNumber: 'PO-2026-041', supplier: 'Briess', items: [{ name: '2-Row Pale Malt', qty: 2000, unit: 'lbs', unitCost: 0.65 }, { name: 'Crystal 60 Malt', qty: 200, unit: 'lbs', unitCost: 0.85 }], totalCost: 1470, status: 'received', orderDate: '2026-02-18', eta: '2026-02-25', receivedDate: '2026-02-24' },
+  { id: 'po-002', poNumber: 'PO-2026-042', supplier: 'Yakima Chief', items: [{ name: 'Citra Hops', qty: 30, unit: 'lbs', unitCost: 18.50 }, { name: 'Mosaic Hops', qty: 25, unit: 'lbs', unitCost: 19.00 }, { name: 'Galaxy Hops', qty: 15, unit: 'lbs', unitCost: 22.00 }], totalCost: 1360, status: 'received', orderDate: '2026-02-12', eta: '2026-02-20', receivedDate: '2026-02-19' },
+  { id: 'po-003', poNumber: 'PO-2026-043', supplier: 'Fermentis', items: [{ name: 'US-05 Yeast', qty: 30, unit: 'packets', unitCost: 4.50 }, { name: 'S-04 Yeast', qty: 20, unit: 'packets', unitCost: 4.50 }], totalCost: 225, status: 'received', orderDate: '2026-02-10', eta: '2026-02-17', receivedDate: '2026-02-16' },
+  { id: 'po-004', poNumber: 'PO-2026-044', supplier: 'Ball Corp', items: [{ name: '16oz Crowler Cans', qty: 5000, unit: 'units', unitCost: 0.35 }], totalCost: 1750, status: 'ordered', orderDate: '2026-03-01', eta: '2026-03-10' },
+  { id: 'po-005', poNumber: 'PO-2026-045', supplier: 'US Foods', items: [{ name: 'Beef Brisket (Packer)', qty: 80, unit: 'lbs', unitCost: 4.50 }, { name: 'Chicken Wings', qty: 60, unit: 'lbs', unitCost: 3.20 }], totalCost: 552, status: 'partial', orderDate: '2026-02-28', eta: '2026-03-04', notes: 'Wings backordered, brisket received' },
+  { id: 'po-006', poNumber: 'PO-2026-046', supplier: 'Sysco', items: [{ name: 'Angus Burger Patties', qty: 300, unit: 'units', unitCost: 1.80 }, { name: 'Brioche Buns', qty: 300, unit: 'units', unitCost: 0.55 }], totalCost: 705, status: 'ordered', orderDate: '2026-03-02', eta: '2026-03-06' },
+  { id: 'po-007', poNumber: 'PO-2026-047', supplier: 'Five Star', items: [{ name: 'PBW Cleaner', qty: 25, unit: 'lbs', unitCost: 3.20 }, { name: 'Star San', qty: 10, unit: 'gal', unitCost: 12.50 }], totalCost: 205, status: 'received', orderDate: '2026-02-05', eta: '2026-02-12', receivedDate: '2026-02-11' },
+  { id: 'po-008', poNumber: 'PO-2026-048', supplier: 'Custom Ink', items: [{ name: 'BBW Logo T-Shirts', qty: 100, unit: 'units', unitCost: 8.50 }, { name: 'BBW Logo Hats', qty: 50, unit: 'units', unitCost: 12.00 }], totalCost: 1450, status: 'draft', orderDate: '2026-03-04', eta: '2026-03-18', notes: 'Awaiting new logo proof approval' },
+];
+
+// Wholesale Orders — 12 orders
+export const wholesaleOrders: WholesaleOrder[] = [
+  { id: 'wo-001', orderNumber: 'WO-2026-101', accountId: '1', accountName: 'The Rusty Tap', items: [{ beerName: 'Hill Country Haze', kegSize: '1/2', quantity: 2, unitPrice: 200 }, { beerName: 'Lone Star Lager', kegSize: '1/2', quantity: 1, unitPrice: 190 }], total: 590, status: 'delivered', orderDate: '2026-02-25', deliveryDate: '2026-02-28', paymentStatus: 'current' },
+  { id: 'wo-002', orderNumber: 'WO-2026-102', accountId: '2', accountName: 'Gruene General Store', items: [{ beerName: 'Bulverde Blonde', kegSize: '1/6', quantity: 4, unitPrice: 80 }, { beerName: 'Hill Country Haze', kegSize: '1/6', quantity: 2, unitPrice: 85 }], total: 490, status: 'delivered', orderDate: '2026-02-20', deliveryDate: '2026-02-22', paymentStatus: 'current' },
+  { id: 'wo-003', orderNumber: 'WO-2026-103', accountId: '3', accountName: 'Canyon Lake BBQ', items: [{ beerName: 'Mesquite Smoked Porter', kegSize: '1/2', quantity: 1, unitPrice: 210 }, { beerName: 'Bulverde Blonde', kegSize: '1/2', quantity: 1, unitPrice: 185 }], total: 395, status: 'invoiced', orderDate: '2026-02-18', deliveryDate: '2026-02-20', paymentStatus: '30-days' },
+  { id: 'wo-004', orderNumber: 'WO-2026-104', accountId: '1', accountName: 'The Rusty Tap', items: [{ beerName: 'Hill Country Haze', kegSize: '1/2', quantity: 2, unitPrice: 200 }], total: 400, status: 'shipped', orderDate: '2026-03-03', deliveryDate: '2026-03-05', paymentStatus: 'current' },
+  { id: 'wo-005', orderNumber: 'WO-2026-105', accountId: '2', accountName: 'Gruene General Store', items: [{ beerName: 'Prickly Pear Sour', kegSize: '1/6', quantity: 3, unitPrice: 85 }, { beerName: 'Lone Star Lager', kegSize: '1/6', quantity: 3, unitPrice: 75 }], total: 480, status: 'pending', orderDate: '2026-03-04', paymentStatus: 'current' },
+  { id: 'wo-006', orderNumber: 'WO-2026-106', accountId: '3', accountName: 'Canyon Lake BBQ', items: [{ beerName: 'Mesquite Smoked Porter', kegSize: '1/4', quantity: 2, unitPrice: 120 }], total: 240, status: 'pending', orderDate: '2026-03-04', paymentStatus: '30-days' },
+  { id: 'wo-007', orderNumber: 'WO-2026-107', accountId: '1', accountName: 'The Rusty Tap', items: [{ beerName: 'Jalapeño Cream Ale', kegSize: '1/2', quantity: 1, unitPrice: 195 }, { beerName: 'Citra Smash IPA', kegSize: '1/2', quantity: 1, unitPrice: 205 }], total: 400, status: 'delivered', orderDate: '2026-02-10', deliveryDate: '2026-02-12', paymentStatus: 'current' },
+  { id: 'wo-008', orderNumber: 'WO-2026-108', accountId: '2', accountName: 'Gruene General Store', items: [{ beerName: 'Bluebonnet Blonde', kegSize: '1/6', quantity: 4, unitPrice: 75 }], total: 300, status: 'paid', orderDate: '2026-02-05', deliveryDate: '2026-02-07', paymentStatus: 'current' },
+  { id: 'wo-009', orderNumber: 'WO-2026-109', accountId: '1', accountName: 'The Rusty Tap', items: [{ beerName: 'Barrel-Aged Imperial Stout', kegSize: '1/6', quantity: 2, unitPrice: 90 }], total: 180, status: 'delivered', orderDate: '2026-02-15', deliveryDate: '2026-02-17', paymentStatus: 'current' },
+  { id: 'wo-010', orderNumber: 'WO-2026-110', accountId: '3', accountName: 'Canyon Lake BBQ', items: [{ beerName: 'Lone Star Lager', kegSize: '1/2', quantity: 2, unitPrice: 190 }], total: 380, status: 'delivered', orderDate: '2026-02-01', deliveryDate: '2026-02-03', paymentStatus: '60-days' },
+  { id: 'wo-011', orderNumber: 'WO-2026-111', accountId: '1', accountName: 'The Rusty Tap', items: [{ beerName: 'Hill Country Haze', kegSize: '1/4', quantity: 2, unitPrice: 115 }, { beerName: 'Bulverde Blonde', kegSize: '1/4', quantity: 2, unitPrice: 105 }], total: 440, status: 'invoiced', orderDate: '2026-02-22', deliveryDate: '2026-02-24', paymentStatus: 'current' },
+  { id: 'wo-012', orderNumber: 'WO-2026-112', accountId: '2', accountName: 'Gruene General Store', items: [{ beerName: 'Texas Sunset Wheat', kegSize: '1/6', quantity: 3, unitPrice: 75 }], total: 225, status: 'confirmed', orderDate: '2026-03-03', deliveryDate: '2026-03-05', paymentStatus: 'current' },
+];
+
+// Social Media Metrics — 30 days
+export const socialMetrics: SocialMetrics[] = Array.from({ length: 30 }, (_, i) => {
+  const base = {
+    instagramFollowers: 2680 + i * 5 + Math.floor(Math.random() * 8),
+    facebookLikes: 1380 + i * 2 + Math.floor(Math.random() * 4),
+    untappdCheckins: 8100 + i * 6 + Math.floor(Math.random() * 12),
+    googleReviewCount: 182 + Math.floor(i / 5),
+    googleRating: 4.6,
+  };
+  return {
+    date: new Date(2026, 1, 3 + i).toISOString().split('T')[0],
+    ...base,
+    instagramEngagement: 2.8 + Math.random() * 1.5,
+    facebookEngagement: 1.4 + Math.random() * 0.8,
+  };
+});
+
+// Content Calendar — next 7 days
+export const contentCalendar: ContentCalendarEntry[] = [
+  { id: 'cc-1', date: '2026-03-05', platform: 'instagram', caption: 'Thirsty Thursday vibes. Hill Country Haze on tap.', status: 'posted', type: 'photo' },
+  { id: 'cc-2', date: '2026-03-05', platform: 'facebook', caption: 'TONIGHT: Trivia Tuesday winners got a $50 gift card! Think you can beat them?', status: 'posted', type: 'photo' },
+  { id: 'cc-3', date: '2026-03-06', platform: 'instagram', caption: 'Friday vibes start early. Live music tonight with Coyote Creek Band!', status: 'planned', type: 'reel' },
+  { id: 'cc-4', date: '2026-03-06', platform: 'tiktok', caption: 'POV: The brewer walks you through brew day at BBW', status: 'planned', type: 'video' },
+  { id: 'cc-5', date: '2026-03-07', platform: 'instagram', caption: 'Saturday at the brewery. Bring the whole family.', status: 'planned', type: 'story' },
+  { id: 'cc-6', date: '2026-03-07', platform: 'facebook', caption: 'Kids Craft & Brew Saturday — 11am-3pm! Free face painting, balloon animals.', status: 'planned', type: 'photo' },
+  { id: 'cc-7', date: '2026-03-08', platform: 'instagram', caption: 'Sunday funday. Brunch + brews + live music. Rachel behind the bar.', status: 'planned', type: 'photo' },
+  { id: 'cc-8', date: '2026-03-08', platform: 'untappd', caption: 'New badge unlocked! Check in to our Spring Saison (coming 3/15).', status: 'planned', type: 'checkin' },
+  { id: 'cc-9', date: '2026-03-09', platform: 'instagram', caption: 'Monday vibes. Rachel pouring pints. Happy hour 3-6pm.', status: 'planned', type: 'photo' },
+  { id: 'cc-10', date: '2026-03-10', platform: 'instagram', caption: 'Taco Tuesday + our Lone Star Lager = perfection', status: 'planned', type: 'reel' },
+  { id: 'cc-11', date: '2026-03-10', platform: 'facebook', caption: 'Mug Club exclusive: Spring Saison pre-release tasting 3/13!', status: 'planned', type: 'photo' },
+  { id: 'cc-12', date: '2026-03-11', platform: 'instagram', caption: 'Behind the scenes: Tony smoking brisket for 14 hours', status: 'planned', type: 'video' },
+];
+
+// Customer Segments
+export const customerSegments: CustomerSegment[] = [
+  { id: 'seg-1', name: 'IPA Lovers', count: 45, avgSpend: 68.50, visitFrequency: '2.3x/month', topBeer: 'Hill Country Haze', suggestedCampaign: 'New hop variety tasting invite', color: '#f59e0b' },
+  { id: 'seg-2', name: 'Lager Loyalists', count: 23, avgSpend: 52.00, visitFrequency: '1.8x/month', topBeer: 'Lone Star Lager', suggestedCampaign: 'Mexican Lager & taco pairing night', color: '#3b82f6' },
+  { id: 'seg-3', name: 'Weekend Warriors', count: 67, avgSpend: 74.20, visitFrequency: '3.1x/month', topBeer: 'Bulverde Blonde', suggestedCampaign: 'Happy hour weekday conversion offer', color: '#10b981' },
+  { id: 'seg-4', name: 'Mug Club Members', count: 28, avgSpend: 89.00, visitFrequency: '4.2x/month', topBeer: 'Barrel-Aged Imperial Stout', suggestedCampaign: 'Exclusive member-only barrel tapping', color: '#8b5cf6' },
+  { id: 'seg-5', name: 'Families', count: 34, avgSpend: 95.50, visitFrequency: '1.5x/month', topBeer: 'Texas Sunset Wheat', suggestedCampaign: 'Saturday kids event series', color: '#ec4899' },
+  { id: 'seg-6', name: 'Event Regulars', count: 19, avgSpend: 62.00, visitFrequency: '2.1x/month', topBeer: 'Prickly Pear Sour', suggestedCampaign: 'Early-bird event ticket access', color: '#f97316' },
+  { id: 'seg-7', name: 'New Visitors (30 days)', count: 41, avgSpend: 45.00, visitFrequency: '1.0x/month', topBeer: 'Bulverde Blonde', suggestedCampaign: 'Welcome back 10% off 2nd visit', color: '#6b7280' },
+];
+
+// Weekly Food Costs — 12 weeks
+export const weeklyFoodCosts: WeeklyFoodCost[] = Array.from({ length: 12 }, (_, i) => {
+  const weekStart = new Date(2025, 11, 16 + i * 7);
+  const foodRevenue = 5500 + Math.floor(Math.random() * 2000);
+  const foodCostBase = foodRevenue * (0.27 + Math.random() * 0.08);
+  const foodCost = Math.round(foodCostBase);
+  return {
+    week: weekStart.toISOString().split('T')[0],
+    weekLabel: `W${i + 1}`,
+    foodRevenue,
+    foodCost,
+    foodCostPct: Math.round((foodCost / foodRevenue) * 10000) / 100,
+    categories: [
+      { name: 'Protein', cost: Math.round(foodCost * 0.42), revenue: Math.round(foodRevenue * 0.45), costPct: Math.round(foodCost * 0.42 / (foodRevenue * 0.45) * 10000) / 100 },
+      { name: 'Produce', cost: Math.round(foodCost * 0.18), revenue: Math.round(foodRevenue * 0.20), costPct: Math.round(foodCost * 0.18 / (foodRevenue * 0.20) * 10000) / 100 },
+      { name: 'Dairy', cost: Math.round(foodCost * 0.12), revenue: Math.round(foodRevenue * 0.12), costPct: Math.round(foodCost * 0.12 / (foodRevenue * 0.12) * 10000) / 100 },
+      { name: 'Dry Goods', cost: Math.round(foodCost * 0.15), revenue: Math.round(foodRevenue * 0.13), costPct: Math.round(foodCost * 0.15 / (foodRevenue * 0.13) * 10000) / 100 },
+      { name: 'Beverages (NA)', cost: Math.round(foodCost * 0.13), revenue: Math.round(foodRevenue * 0.10), costPct: Math.round(foodCost * 0.13 / (foodRevenue * 0.10) * 10000) / 100 },
+    ],
+  };
+});
+
+// Mug Club Monthly Analytics — 12 months
+export const mugClubMonthly: MugClubMonthly[] = [
+  { month: '2025-04', monthLabel: 'Apr', totalMembers: 8, newSignups: 8, renewals: 0, cancellations: 0, revenue: 1192, avgVisitsPerMember: 3.2 },
+  { month: '2025-05', monthLabel: 'May', totalMembers: 12, newSignups: 4, renewals: 0, cancellations: 0, revenue: 596, avgVisitsPerMember: 3.5 },
+  { month: '2025-06', monthLabel: 'Jun', totalMembers: 15, newSignups: 3, renewals: 0, cancellations: 0, revenue: 447, avgVisitsPerMember: 3.8 },
+  { month: '2025-07', monthLabel: 'Jul', totalMembers: 18, newSignups: 4, renewals: 0, cancellations: 1, revenue: 596, avgVisitsPerMember: 4.0 },
+  { month: '2025-08', monthLabel: 'Aug', totalMembers: 20, newSignups: 3, renewals: 0, cancellations: 1, revenue: 447, avgVisitsPerMember: 3.9 },
+  { month: '2025-09', monthLabel: 'Sep', totalMembers: 22, newSignups: 2, renewals: 0, cancellations: 0, revenue: 298, avgVisitsPerMember: 4.1 },
+  { month: '2025-10', monthLabel: 'Oct', totalMembers: 24, newSignups: 3, renewals: 0, cancellations: 1, revenue: 447, avgVisitsPerMember: 4.2 },
+  { month: '2025-11', monthLabel: 'Nov', totalMembers: 26, newSignups: 2, renewals: 0, cancellations: 0, revenue: 298, avgVisitsPerMember: 3.7 },
+  { month: '2025-12', monthLabel: 'Dec', totalMembers: 30, newSignups: 5, renewals: 1, cancellations: 0, revenue: 895, avgVisitsPerMember: 4.5 },
+  { month: '2026-01', monthLabel: 'Jan', totalMembers: 34, newSignups: 5, renewals: 1, cancellations: 0, revenue: 895, avgVisitsPerMember: 4.0 },
+  { month: '2026-02', monthLabel: 'Feb', totalMembers: 38, newSignups: 4, renewals: 0, cancellations: 0, revenue: 596, avgVisitsPerMember: 4.3 },
+  { month: '2026-03', monthLabel: 'Mar', totalMembers: 41, newSignups: 3, renewals: 0, cancellations: 0, revenue: 447, avgVisitsPerMember: 4.1 },
+];
+
+// Open Tabs — 7 active tabs for POS
+export const openTabs: OpenTab[] = [
+  { id: 'tab-1', customerName: 'Jake Morrison', customerId: '1', items: [{ name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 2 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 1 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 1 }], openedAt: '2026-03-05T17:15:00', server: 'Jessica Tran', subtotal: 41.98, tableNumber: 'T-12' },
+  { id: 'tab-2', customerName: 'Walk-in', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 2 }, { name: 'Topo Chico', size: '', price: 4, qty: 1 }], openedAt: '2026-03-05T18:30:00', server: 'Amy Nguyen', subtotal: 18, tableNumber: 'P-5' },
+  { id: 'tab-3', customerName: 'Carlos Rivera', customerId: '7', items: [{ name: 'Mesquite Smoked Porter', size: 'Pint', price: 7, qty: 1 }, { name: 'Jalapeño Cream Ale', size: 'Half', price: 5, qty: 1 }, { name: 'Brewhouse Burger', size: '', price: 16.99, qty: 1 }, { name: 'Loaded Fries', size: '', price: 8.99, qty: 1 }], openedAt: '2026-03-05T18:05:00', server: 'Jessica Tran', subtotal: 37.98 },
+  { id: 'tab-4', customerName: 'Bobby Whitfield', customerId: '5', items: [{ name: 'Barrel-Aged Imperial Stout', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'Smoked Brisket Plate', size: '', price: 19.99, qty: 1 }, { name: 'Stout Brownie Sundae', size: '', price: 10.99, qty: 1 }, { name: 'Prickly Pear Sour', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'BBQ Pulled Pork Sandwich', size: '', price: 14.99, qty: 1 }], openedAt: '2026-03-05T16:00:00', server: 'Rachel Kim', subtotal: 66.97, tableNumber: 'T-1' },
+  { id: 'tab-5', customerName: 'Walk-in (Patio)', items: [{ name: 'Bulverde Blonde', size: 'Pint', price: 7, qty: 3 }, { name: 'Lavender Lemonade', size: '', price: 5.99, qty: 2 }, { name: 'Kids Chicken Tenders', size: '', price: 8.99, qty: 2 }], openedAt: '2026-03-05T17:45:00', server: 'Amy Nguyen', subtotal: 50.97, tableNumber: 'P-8' },
+  { id: 'tab-6', customerName: 'Maria Gonzalez', customerId: '2', items: [{ name: 'Texas Sunset Wheat', size: 'Pint', price: 7, qty: 1 }, { name: 'Fish Tacos', size: '', price: 15.99, qty: 1 }], openedAt: '2026-03-05T18:40:00', server: 'Jessica Tran', subtotal: 22.99 },
+  { id: 'tab-7', customerName: 'Tom Henderson', customerId: '3', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 4 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 2 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 2 }], openedAt: '2026-03-05T19:10:00', server: 'Rachel Kim', subtotal: 83.96 },
+];
+
+// POS Transactions — last 20 closed
+export const posTransactions: POSTransaction[] = [
+  { id: 'tx-1', customerName: 'Walk-in', items: [{ name: 'Bulverde Blonde', size: 'Pint', price: 7, qty: 2 }], subtotal: 14, tax: 1.16, total: 15.16, paymentMethod: 'card', server: 'Jessica Tran', closedAt: '2026-03-05T14:22:00', tipAmount: 3 },
+  { id: 'tx-2', customerName: 'Ashley Chen', items: [{ name: 'Craft Root Beer', size: 'Large', price: 6, qty: 1 }, { name: 'Kids Mac & Cheese', size: '', price: 7.99, qty: 1 }], subtotal: 13.99, tax: 1.15, total: 15.14, paymentMethod: 'card', server: 'Amy Nguyen', closedAt: '2026-03-05T14:45:00', tipAmount: 3 },
+  { id: 'tx-3', customerName: 'Walk-in', items: [{ name: 'Hill Country Haze', size: 'Taster', price: 3, qty: 3 }, { name: 'Prickly Pear Sour', size: 'Taster', price: 3, qty: 2 }, { name: 'Citra Smash IPA', size: 'Taster', price: 3, qty: 1 }], subtotal: 18, tax: 1.49, total: 19.49, paymentMethod: 'cash', server: 'Rachel Kim', closedAt: '2026-03-05T15:10:00' },
+  { id: 'tx-4', customerName: 'Diane Foster', items: [{ name: 'Texas Sunset Wheat', size: 'Pint', price: 7, qty: 1 }, { name: 'Lavender Lemonade', size: '', price: 5.99, qty: 3 }, { name: 'Kids Grilled Cheese', size: '', price: 7.99, qty: 2 }, { name: 'Kids Chicken Tenders', size: '', price: 8.99, qty: 1 }], subtotal: 49.94, tax: 4.12, total: 54.06, paymentMethod: 'card', server: 'Amy Nguyen', closedAt: '2026-03-05T15:30:00', tipAmount: 10 },
+  { id: 'tx-5', customerName: 'Jake Morrison', items: [{ name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 2 }, { name: 'Brewhouse Burger', size: '', price: 16.99, qty: 1 }], subtotal: 30.99, tax: 2.56, discount: 0, total: 33.55, paymentMethod: 'mug-club', server: 'Jessica Tran', closedAt: '2026-03-05T13:15:00', tipAmount: 7 },
+  { id: 'tx-6', customerName: 'Walk-in', items: [{ name: 'Barrel-Aged Imperial Stout', size: 'Half', price: 5, qty: 2 }, { name: 'Brew Cheese & Pretzel Board', size: '', price: 13.99, qty: 1 }], subtotal: 23.99, tax: 1.98, total: 25.97, paymentMethod: 'card', server: 'Rachel Kim', closedAt: '2026-03-05T15:50:00', tipAmount: 5 },
+  { id: 'tx-7', customerName: 'Walk-in', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 1 }], subtotal: 7, tax: 0.58, total: 7.58, paymentMethod: 'cash', server: 'Amy Nguyen', closedAt: '2026-03-05T16:05:00' },
+  { id: 'tx-8', customerName: 'Linda Thompson', items: [{ name: 'Craft Root Beer', size: 'Large', price: 6, qty: 1 }, { name: 'Ginger Beer', size: 'Large', price: 6, qty: 1 }, { name: 'Grilled Veggie Bowl', size: '', price: 13.99, qty: 1 }], subtotal: 25.99, tax: 2.14, total: 28.13, paymentMethod: 'card', server: 'Jessica Tran', closedAt: '2026-03-05T16:20:00', tipAmount: 5 },
+  { id: 'tx-9', customerName: 'Walk-in', items: [{ name: 'BBW Logo T-Shirt', size: 'L', price: 25, qty: 1 }, { name: 'Branded Pint Glass', size: '', price: 8, qty: 2 }], subtotal: 41, tax: 3.38, total: 44.38, paymentMethod: 'card', server: 'Rachel Kim', closedAt: '2026-03-05T16:45:00' },
+  { id: 'tx-10', customerName: 'Walk-in', items: [{ name: 'Citra Smash IPA', size: 'Pint', price: 7, qty: 2 }, { name: 'Jalapeño Poppers', size: '', price: 11.99, qty: 1 }], subtotal: 25.99, tax: 2.14, total: 28.13, paymentMethod: 'card', server: 'Amy Nguyen', closedAt: '2026-03-05T17:00:00', tipAmount: 5 },
+  { id: 'tx-11', customerName: 'Walk-in', items: [{ name: 'Bluebonnet Blonde', size: 'Pint', price: 7, qty: 1 }, { name: 'Coleslaw', size: '', price: 4.99, qty: 1 }], subtotal: 11.99, tax: 0.99, total: 12.98, paymentMethod: 'cash', server: 'Jessica Tran', closedAt: '2026-03-05T13:30:00' },
+  { id: 'tx-12', customerName: 'Walk-in Group', items: [{ name: 'Hill Country Haze', size: 'Pint', price: 7, qty: 4 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 2 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 1 }], subtotal: 70.97, tax: 5.86, discount: 14.19, discountType: 'Happy Hour 20%', total: 62.64, paymentMethod: 'card', server: 'Rachel Kim', closedAt: '2026-03-05T17:30:00', tipAmount: 12 },
+  { id: 'tx-13', customerName: 'Walk-in', items: [{ name: 'Mesquite Smoked Porter', size: 'Growler', price: 14, qty: 1 }], subtotal: 14, tax: 1.16, total: 15.16, paymentMethod: 'card', server: 'Jessica Tran', closedAt: '2026-03-05T14:00:00' },
+  { id: 'tx-14', customerName: 'Walk-in', items: [{ name: 'Iced Coffee', size: '', price: 4.99, qty: 2 }, { name: 'Stout Brownie Sundae', size: '', price: 10.99, qty: 1 }], subtotal: 20.97, tax: 1.73, total: 22.70, paymentMethod: 'card', server: 'Amy Nguyen', closedAt: '2026-03-05T15:15:00', tipAmount: 4 },
+  { id: 'tx-15', customerName: 'Bobby Whitfield', items: [{ name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 3 }, { name: 'Smoked Brisket Plate', size: '', price: 19.99, qty: 2 }, { name: 'Jalapeño Cream Ale', size: 'Mug Club 20oz', price: 7, qty: 2 }], subtotal: 74.98, tax: 6.19, total: 81.17, paymentMethod: 'mug-club', server: 'Rachel Kim', closedAt: '2026-03-04T21:15:00', tipAmount: 15 },
+  { id: 'tx-16', customerName: 'Walk-in', items: [{ name: 'Bulverde Blonde', size: 'Crowler', price: 8, qty: 2 }], subtotal: 16, tax: 1.32, total: 17.32, paymentMethod: 'card', server: 'Jessica Tran', closedAt: '2026-03-05T12:30:00' },
+  { id: 'tx-17', customerName: 'Walk-in', items: [{ name: 'Watermelon Agua Fresca', size: '', price: 5.99, qty: 2 }, { name: 'Kids Mac & Cheese', size: '', price: 7.99, qty: 1 }], subtotal: 19.97, tax: 1.65, total: 21.62, paymentMethod: 'cash', server: 'Amy Nguyen', closedAt: '2026-03-05T13:00:00' },
+  { id: 'tx-18', customerName: 'Walk-in', items: [{ name: 'Prickly Pear Sour', size: 'Pint', price: 7, qty: 2 }, { name: 'Texas Sunset Wheat', size: 'Pint', price: 7, qty: 1 }], subtotal: 21, tax: 1.73, total: 22.73, paymentMethod: 'card', server: 'Rachel Kim', closedAt: '2026-03-05T16:30:00', tipAmount: 4 },
+  { id: 'tx-19', customerName: 'Carlos Rivera', items: [{ name: 'Mesquite Smoked Porter', size: 'Pint', price: 7, qty: 2 }, { name: 'Smoked Brisket Plate', size: '', price: 19.99, qty: 1 }, { name: 'Jalapeño Poppers', size: '', price: 11.99, qty: 1 }], subtotal: 45.98, tax: 3.79, total: 49.77, paymentMethod: 'card', server: 'Jessica Tran', closedAt: '2026-03-04T20:45:00', tipAmount: 9 },
+  { id: 'tx-20', customerName: 'Walk-in', items: [{ name: 'Hill Country Kombucha', size: 'Small', price: 4, qty: 1 }], subtotal: 4, tax: 0.33, total: 4.33, paymentMethod: 'cash', server: 'Amy Nguyen', closedAt: '2026-03-05T11:30:00' },
+];
+
+// Floor Plan Tables — 26 tables across 5 zones
+// SVG viewBox: 0 0 900 600
+export const floorTables: FloorTable[] = [
+  // Main Taproom (center) — 8 tables
+  { id: 'T-1', zone: 'taproom', label: 'T1', seats: 4, x: 220, y: 180, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-4', currentCustomerName: 'Bobby Whitfield', currentCustomerId: '5', partySize: 2, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T16:00:00' },
+  { id: 'T-2', zone: 'taproom', label: 'T2', seats: 2, x: 310, y: 160, shape: 'circle', radius: 22, status: 'available' },
+  { id: 'T-3', zone: 'taproom', label: 'T3', seats: 4, x: 400, y: 180, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-3', currentCustomerName: 'Carlos Rivera', currentCustomerId: '7', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T18:05:00' },
+  { id: 'T-4', zone: 'taproom', label: 'T4', seats: 2, x: 220, y: 270, shape: 'circle', radius: 22, status: 'reserved', reservationId: '1' },
+  { id: 'T-5', zone: 'taproom', label: 'T5', seats: 4, x: 310, y: 260, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-6', currentCustomerName: 'Maria Gonzalez', currentCustomerId: '2', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T18:40:00' },
+  { id: 'T-6', zone: 'taproom', label: 'T6', seats: 2, x: 400, y: 280, shape: 'circle', radius: 22, status: 'available' },
+  { id: 'T-7', zone: 'taproom', label: 'T7', seats: 4, x: 310, y: 350, shape: 'rect', width: 48, height: 48, status: 'needs-attention', currentCustomerName: 'Walk-in', partySize: 3, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T17:15:00' },
+  { id: 'T-8', zone: 'taproom', label: 'T8', seats: 8, x: 460, y: 260, shape: 'community', width: 80, height: 40, status: 'occupied', currentTabId: 'tab-7', currentCustomerName: 'Tom Henderson', currentCustomerId: '3', partySize: 6, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T19:10:00' },
+
+  // Bar Area (top) — 6 stools
+  { id: 'B-1', zone: 'bar', label: 'B1', seats: 1, x: 180, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentTabId: 'tab-1', currentCustomerName: 'Jake Morrison', currentCustomerId: '1', partySize: 1, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T17:15:00' },
+  { id: 'B-2', zone: 'bar', label: 'B2', seats: 1, x: 240, y: 55, shape: 'circle', radius: 16, status: 'available' },
+  { id: 'B-3', zone: 'bar', label: 'B3', seats: 1, x: 300, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentCustomerName: 'Walk-in', partySize: 1, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T18:50:00' },
+  { id: 'B-4', zone: 'bar', label: 'B4', seats: 1, x: 360, y: 55, shape: 'circle', radius: 16, status: 'available' },
+  { id: 'B-5', zone: 'bar', label: 'B5', seats: 1, x: 420, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentCustomerName: 'Walk-in', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T19:05:00' },
+  { id: 'B-6', zone: 'bar', label: 'B6', seats: 1, x: 480, y: 55, shape: 'circle', radius: 16, status: 'available' },
+
+  // Patio (right side) — 4 tables
+  { id: 'P-1', zone: 'patio', label: 'P1', seats: 4, x: 640, y: 160, shape: 'rect', width: 48, height: 48, status: 'available' },
+  { id: 'P-2', zone: 'patio', label: 'P2', seats: 4, x: 740, y: 160, shape: 'rect', width: 48, height: 48, status: 'needs-attention', currentCustomerName: 'Walk-in', partySize: 4, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T17:30:00' },
+  { id: 'P-3', zone: 'patio', label: 'P3', seats: 6, x: 640, y: 260, shape: 'rect', width: 56, height: 48, status: 'reserved', reservationId: '2' },
+  { id: 'P-4', zone: 'patio', label: 'P4', seats: 4, x: 740, y: 260, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-5', currentCustomerName: 'Walk-in (Patio)', partySize: 5, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T17:45:00' },
+
+  // Beer Garden (bottom) — 6 picnic tables
+  { id: 'G-1', zone: 'beer-garden', label: 'G1', seats: 6, x: 160, y: 460, shape: 'rect', width: 60, height: 36, status: 'available' },
+  { id: 'G-2', zone: 'beer-garden', label: 'G2', seats: 6, x: 260, y: 460, shape: 'rect', width: 60, height: 36, status: 'occupied', currentCustomerName: 'Walk-in Group', partySize: 8, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T18:20:00' },
+  { id: 'G-3', zone: 'beer-garden', label: 'G3', seats: 6, x: 360, y: 460, shape: 'rect', width: 60, height: 36, status: 'available' },
+  { id: 'G-4', zone: 'beer-garden', label: 'G4', seats: 6, x: 160, y: 530, shape: 'rect', width: 60, height: 36, status: 'available' },
+  { id: 'G-5', zone: 'beer-garden', label: 'G5', seats: 6, x: 260, y: 530, shape: 'rect', width: 60, height: 36, status: 'occupied', currentCustomerName: 'Walk-in Couple', partySize: 2, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T19:00:00' },
+  { id: 'G-6', zone: 'beer-garden', label: 'G6', seats: 6, x: 360, y: 530, shape: 'rect', width: 60, height: 36, status: 'closed' },
+
+  // Private Room (top-right) — 2 tables
+  { id: 'R-1', zone: 'private-room', label: 'R1', seats: 20, x: 660, y: 50, shape: 'rect', width: 70, height: 40, status: 'reserved', reservationId: '3' },
+  { id: 'R-2', zone: 'private-room', label: 'R2', seats: 20, x: 770, y: 50, shape: 'rect', width: 70, height: 40, status: 'available' },
+];
+
+// Service Alerts
+export const serviceAlerts: ServiceAlert[] = [
+  { id: 'alert-1', tableId: 'T-7', type: 'no-order', message: 'Table T7 seated 45+ min with no food order', priority: 'high', createdAt: '2026-03-05T18:00:00' },
+  { id: 'alert-2', tableId: 'P-2', type: 'check-requested', message: 'Table P2 requested check', priority: 'medium', createdAt: '2026-03-05T18:25:00' },
+  { id: 'alert-3', tableId: 'T-8', type: 'high-tab', message: 'Table T8 tab exceeds $80 — verify party', priority: 'low', createdAt: '2026-03-05T19:15:00' },
+  { id: 'alert-4', tableId: 'T-1', type: 'long-seated', message: 'Table T1 occupied 3+ hours (Bobby Whitfield VIP)', priority: 'low', createdAt: '2026-03-05T19:00:00' },
+  { id: 'alert-5', tableId: 'T-4', type: 'reservation-due', message: 'Jake Morrison party of 4 arriving in 12 min (T4)', priority: 'medium', createdAt: '2026-03-05T19:18:00' },
+  { id: 'alert-6', tableId: 'B-5', type: 'long-seated', message: 'Bar B5 — 2 guests seated 55 min, only 1 drink ordered', priority: 'medium', createdAt: '2026-03-05T19:05:00' },
+];
+
+// Order Timeline Entries
+export const orderTimelines: OrderTimelineEntry[] = [
+  // Table T-1 (Bobby Whitfield)
+  { id: 'ot-1', tableId: 'T-1', time: '2026-03-05T16:00:00', action: 'seated', description: 'Seated Bobby Whitfield, party of 2' },
+  { id: 'ot-2', tableId: 'T-1', time: '2026-03-05T16:05:00', action: 'ordered', description: '1x Barrel-Aged Imperial Stout (Mug Club 20oz)' },
+  { id: 'ot-3', tableId: 'T-1', time: '2026-03-05T16:08:00', action: 'ordered', description: '1x Hill Country Haze (Mug Club 20oz)' },
+  { id: 'ot-4', tableId: 'T-1', time: '2026-03-05T16:15:00', action: 'ordered', description: '1x Smoked Brisket Plate, 1x BBQ Pulled Pork Sandwich' },
+  { id: 'ot-5', tableId: 'T-1', time: '2026-03-05T16:30:00', action: 'served', description: 'Food served to table' },
+  { id: 'ot-6', tableId: 'T-1', time: '2026-03-05T17:15:00', action: 'ordered', description: '1x Prickly Pear Sour (Mug Club 20oz), 1x Stout Brownie Sundae' },
+  // Table T-3 (Carlos Rivera)
+  { id: 'ot-7', tableId: 'T-3', time: '2026-03-05T18:05:00', action: 'seated', description: 'Seated Carlos Rivera, party of 2' },
+  { id: 'ot-8', tableId: 'T-3', time: '2026-03-05T18:10:00', action: 'ordered', description: '1x Mesquite Smoked Porter (Pint), 1x Jalapeño Cream Ale (Half)' },
+  { id: 'ot-9', tableId: 'T-3', time: '2026-03-05T18:18:00', action: 'ordered', description: '1x Brewhouse Burger, 1x Loaded Fries' },
+  { id: 'ot-10', tableId: 'T-3', time: '2026-03-05T18:35:00', action: 'served', description: 'Food served to table' },
+  // Table T-8 (Tom Henderson group)
+  { id: 'ot-11', tableId: 'T-8', time: '2026-03-05T19:10:00', action: 'seated', description: 'Seated Tom Henderson trivia group, party of 6' },
+  { id: 'ot-12', tableId: 'T-8', time: '2026-03-05T19:15:00', action: 'ordered', description: '4x Lone Star Lager (Pint), 2x Loaded Nachos, 2x Smoked Wings' },
+  // Table P-4 (Walk-in Patio)
+  { id: 'ot-13', tableId: 'P-4', time: '2026-03-05T17:45:00', action: 'seated', description: 'Walk-in family party of 5 seated on patio' },
+  { id: 'ot-14', tableId: 'P-4', time: '2026-03-05T17:50:00', action: 'ordered', description: '3x Bulverde Blonde (Pint), 2x Lavender Lemonade' },
+  { id: 'ot-15', tableId: 'P-4', time: '2026-03-05T17:55:00', action: 'ordered', description: '2x Kids Chicken Tenders' },
+  { id: 'ot-16', tableId: 'P-4', time: '2026-03-05T18:15:00', action: 'served', description: 'Food served to table' },
+  // Bar B-1 (Jake Morrison)
+  { id: 'ot-17', tableId: 'B-1', time: '2026-03-05T17:15:00', action: 'seated', description: 'Jake Morrison seated at bar' },
+  { id: 'ot-18', tableId: 'B-1', time: '2026-03-05T17:18:00', action: 'ordered', description: '2x Hill Country Haze (Mug Club 20oz)' },
+  { id: 'ot-19', tableId: 'B-1', time: '2026-03-05T17:25:00', action: 'ordered', description: '1x Smoked Wings, 1x Loaded Nachos' },
+  { id: 'ot-20', tableId: 'B-1', time: '2026-03-05T17:40:00', action: 'served', description: 'Food served' },
 ];
