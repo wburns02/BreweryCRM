@@ -3,7 +3,7 @@ import { Calendar, Music, DollarSign, Plus, MapPin, Clock, Ticket, Star } from '
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import StatCard from '../../components/ui/StatCard';
-import { performers } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { useBrewery } from '../../context/BreweryContext';
 import { useToast } from '../../components/ui/ToastProvider';
 import type { BreweryEvent, Performer } from '../../types';
@@ -17,6 +17,7 @@ const inputClass = 'w-full bg-brewery-800/50 border border-brewery-600/30 rounde
 const labelClass = 'block text-xs font-medium text-brewery-300 mb-1';
 
 export default function EventsPage() {
+  const { performers } = useData();
   const { events, addEvent } = useBrewery();
   const { toast } = useToast();
 

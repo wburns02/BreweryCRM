@@ -2,8 +2,11 @@ import { DollarSign, Users, CalendarDays, GlassWater, Star, AlertTriangle } from
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
-import { dailySales, tapLines, events, batches, reservations, complianceItems, beers } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
+
+export default function DashboardPage() {
+  const { dailySales, tapLines, events, batches, reservations, complianceItems, beers } = useData();
 
 const todaySales = dailySales[dailySales.length - 1];
 const lastWeekSales = dailySales[dailySales.length - 8];
@@ -43,7 +46,6 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   );
 };
 
-export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* KPI Cards */}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, BarChart3, Users, Calculator } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, ScatterChart, Scatter, ZAxis, Legend } from 'recharts';
-import { monthlyFinancials, beers, detailedRecipes, staff } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { clsx } from 'clsx';
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString();
@@ -66,6 +66,7 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 // TAB 1: OVERVIEW
 // ═══════════════════════════════════════════════
 function OverviewTab() {
+  const { monthlyFinancials } = useData();
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytd = monthlyFinancials.reduce((s, m) => s + m.totalRevenue, 0);
@@ -229,6 +230,7 @@ function OverviewTab() {
 // TAB 2: P&L STATEMENT
 // ═══════════════════════════════════════════════
 function PnlTab() {
+  const { monthlyFinancials } = useData();
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytdSum = (fn: (m: typeof curr) => number) => monthlyFinancials.reduce((s, m) => s + fn(m), 0);
@@ -328,6 +330,7 @@ function PnlTab() {
 // TAB 3: BEER ECONOMICS
 // ═══════════════════════════════════════════════
 function BeerTab() {
+  const { beers, detailedRecipes } = useData();
   const beerData = useMemo(() => {
     return beers.filter(b => b.status === 'on-tap' && !b.isNonAlcoholic).map(b => {
       const recipe = detailedRecipes.find(r => r.beerId === b.id);
@@ -447,6 +450,7 @@ function BeerTab() {
 // TAB 4: LABOR & OVERHEAD
 // ═══════════════════════════════════════════════
 function LaborTab() {
+  const { staff, monthlyFinancials } = useData();
   const activeStaff = staff.filter(s => s.status === 'active');
   const totalWeeklyLabor = activeStaff.reduce((s, m) => s + m.hourlyRate * m.hoursThisWeek, 0);
   const totalWeeklyHours = activeStaff.reduce((s, m) => s + m.hoursThisWeek, 0);

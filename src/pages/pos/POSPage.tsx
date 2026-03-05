@@ -4,7 +4,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { useBrewery } from '../../context/BreweryContext';
 import { useToast } from '../../components/ui/ToastProvider';
-import { customers, menuItems } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import type { OpenTab } from '../../types';
 
 type MenuCategory = 'draft' | 'food' | 'na-beverages' | 'merchandise';
@@ -54,6 +54,7 @@ function kegLevelBg(level: number): string {
 }
 
 export default function POSPage() {
+  const { customers, menuItems } = useData();
   const { tabs, tapLines, addToTab, closeTab, holdTab } = useBrewery();
   const { toast } = useToast();
   const [menuCat, setMenuCat] = useState<MenuCategory>('draft');

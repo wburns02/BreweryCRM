@@ -3,10 +3,11 @@ import { GlassWater, AlertTriangle, DollarSign, Droplets } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Modal from '../../components/ui/Modal';
-import { tapLines, beers } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import type { Beer } from '../../types';
 
 export default function TapsPage() {
+  const { tapLines, beers } = useData();
   const [selectedBeer, setSelectedBeer] = useState<Beer | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 

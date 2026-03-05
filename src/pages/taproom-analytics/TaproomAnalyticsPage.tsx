@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Activity, Users, TrendingUp, TrendingDown, Star, Clock, Droplets, Crown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, LineChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
-import { dailySales, tapLines, beers, customers, reservations, staff } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
 
@@ -39,6 +39,7 @@ function getShiftStatus(reservationCount: number) {
 // TAB 1: LIVE SHIFT VIEW
 // ═══════════════════════════════════════════════
 function LiveShiftTab() {
+  const { dailySales, tapLines, reservations, staff } = useData();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -220,7 +221,8 @@ function LiveShiftTab() {
 // TAB 2: POUR ANALYTICS
 // ═══════════════════════════════════════════════
 function PourTab() {
-  const activeTaps = useMemo(() => tapLines.filter(t => t.status === 'active'), []);
+  const { tapLines, beers } = useData();
+  const activeTaps = useMemo(() => tapLines.filter(t => t.status === 'active'), [tapLines]);
 
   const pourData = useMemo(() => {
     return activeTaps.map(tap => {
@@ -417,6 +419,7 @@ function PourTab() {
 // TAB 3: GUEST INSIGHTS
 // ═══════════════════════════════════════════════
 function GuestTab() {
+  const { customers } = useData();
   // Visit frequency distribution
   const visitBuckets = useMemo(() => {
     const buckets = [
@@ -625,6 +628,7 @@ function GuestTab() {
 // TAB 4: TREND ANALYSIS
 // ═══════════════════════════════════════════════
 function TrendTab() {
+  const { dailySales } = useData();
   // Revenue trend with 7-day SMA
   const revenueWithSMA = useMemo(() => {
     return dailySales.map((d, i) => {

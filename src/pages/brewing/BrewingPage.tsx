@@ -5,7 +5,7 @@ import ProgressBar from '../../components/ui/ProgressBar';
 import Modal from '../../components/ui/Modal';
 import { useBrewery } from '../../context/BreweryContext';
 import { useToast } from '../../components/ui/ToastProvider';
-import { beers } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const statusColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'gray' | 'red'> = {
@@ -23,6 +23,7 @@ const tanks = [
 ];
 
 export default function BrewingPage() {
+  const { beers } = useData();
   const { batches, addBatch } = useBrewery();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'batches' | 'tanks' | 'recipes'>('batches');

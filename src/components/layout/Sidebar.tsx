@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map } from 'lucide-react';
+import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -9,6 +9,7 @@ interface SidebarProps {
   onToggle: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onLogout?: () => void;
 }
 
 const navItems: { id: PageId; label: string; icon: React.ElementType; group: string }[] = [
@@ -34,7 +35,7 @@ const navItems: { id: PageId; label: string; icon: React.ElementType; group: str
   { id: 'settings', label: 'Settings', icon: Settings, group: 'System' },
 ];
 
-export default function Sidebar({ currentPage, onNavigate, collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
+export default function Sidebar({ currentPage, onNavigate, collapsed, onToggle, mobileOpen, onMobileClose, onLogout }: SidebarProps) {
   let lastGroup = '';
 
   return (
@@ -90,13 +91,28 @@ export default function Sidebar({ currentPage, onNavigate, collapsed, onToggle, 
           })}
         </nav>
 
-        {/* Collapse Toggle */}
-        <button
-          onClick={onToggle}
-          className="hidden lg:flex items-center justify-center h-10 border-t border-brewery-700/30 text-brewery-500 hover:text-brewery-200 transition-colors"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+        {/* Logout + Collapse Toggle */}
+        <div className="border-t border-brewery-700/30">
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className={clsx(
+                'w-full flex items-center gap-3 px-4 py-2.5 text-sm text-brewery-400 hover:text-red-400 hover:bg-brewery-800/50 transition-colors',
+                collapsed && 'justify-center px-2'
+              )}
+              title={collapsed ? 'Sign Out' : undefined}
+            >
+              <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+              {!collapsed && <span>Sign Out</span>}
+            </button>
+          )}
+          <button
+            onClick={onToggle}
+            className="hidden lg:flex items-center justify-center w-full h-10 text-brewery-500 hover:text-brewery-200 transition-colors"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
       </aside>
     </>
   );

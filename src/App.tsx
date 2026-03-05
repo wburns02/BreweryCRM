@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import DashboardPage from './pages/dashboard/DashboardPage';
@@ -21,8 +21,12 @@ import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import POSPage from './pages/pos/POSPage';
 import FloorPlanPage from './pages/floor-plan/FloorPlanPage';
+import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
+import { DataProvider } from './context/DataContext';
 import { ToastProvider } from './components/ui/ToastProvider';
+import { login, getMe, logout } from './api/auth';
+import { getToken } from './api/client';
 import type { PageId } from './types';
 import { clsx } from 'clsx';
 
@@ -76,10 +80,42 @@ function App() {
   const [currentPage, setCurrentPage] = useState<PageId>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (getToken()) {
+      getMe().then(() => setAuthenticated(true)).catch(() => setAuthenticated(false));
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
+
+  const handleLogin = async (email: string, password: string) => {
+    await login(email, password);
+    setAuthenticated(true);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setAuthenticated(false);
+  };
+
+  if (authenticated === null) {
+    return (
+      <div className="min-h-screen bg-brewery-950 flex items-center justify-center">
+        <div className="text-brewery-400 text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   const PageComponent = pages[currentPage];
 
   return (
+    <DataProvider>
     <BreweryProvider>
     <ToastProvider>
     <div className="min-h-screen bg-brewery-950">
@@ -90,6 +126,7 @@ function App() {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
+        onLogout={handleLogout}
       />
       <div className={clsx('transition-all duration-300', sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]')}>
         <TopBar onMenuToggle={() => setMobileOpen(true)} pageTitle={pageTitles[currentPage]} />
@@ -100,6 +137,7 @@ function App() {
     </div>
     </ToastProvider>
     </BreweryProvider>
+    </DataProvider>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { UserCog, Clock, DollarSign, ShieldCheck } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { staff } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 
 const roleColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'gray'> = {
   brewer: 'amber', bartender: 'purple', server: 'green', cook: 'red', host: 'blue', manager: 'blue', dishwasher: 'gray',
@@ -10,6 +10,7 @@ const roleColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'red' |
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function StaffPage() {
+  const { staff } = useData();
   const [activeTab, setActiveTab] = useState<'team' | 'schedule' | 'compliance'>('team');
   const totalHours = staff.reduce((s, m) => s + m.hoursThisWeek, 0);
   const totalLabor = staff.reduce((s, m) => s + (m.hoursThisWeek * m.hourlyRate), 0);

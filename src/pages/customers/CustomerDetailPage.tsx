@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Mail, Phone, Calendar, Star, Crown, Beer, MessageSquare, TrendingUp } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { customers, visitHistory, customerNotes } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 
 const tierColors = { Bronze: 'gray' as const, Silver: 'blue' as const, Gold: 'amber' as const, Platinum: 'purple' as const };
 
@@ -13,6 +13,7 @@ interface CustomerDetailPageProps {
 }
 
 export default function CustomerDetailPage({ customerId, onBack }: CustomerDetailPageProps) {
+  const { customers, visitHistory, customerNotes } = useData();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const customer = customers.find(c => c.id === customerId);
   const visits = visitHistory[customerId] || [];

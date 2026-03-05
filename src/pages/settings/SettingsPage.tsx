@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Settings, Shield, Bell, Database, AlertTriangle, CheckCircle } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { complianceItems } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { useBrewery } from '../../context/BreweryContext';
 import { useToast } from '../../components/ui/ToastProvider';
 
 export default function SettingsPage() {
+  const { complianceItems } = useData();
   const { settings, updateSettings } = useBrewery();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'general' | 'compliance' | 'integrations' | 'notifications'>('general');

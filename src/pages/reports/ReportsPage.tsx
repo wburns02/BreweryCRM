@@ -1,47 +1,49 @@
 import { DollarSign, Users, TrendingUp, Percent } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
-import { dailySales, beers, customers } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
-const totalRevenue = dailySales.reduce((s, d) => s + d.totalRevenue, 0);
-const totalCustomers = dailySales.reduce((s, d) => s + d.customerCount, 0);
-const avgDaily = Math.round(totalRevenue / dailySales.length);
-const beerPct = Math.round((dailySales.reduce((s, d) => s + d.beerRevenue, 0) / totalRevenue) * 100);
-
-const weeklyData = Array.from({ length: 4 }, (_, i) => {
-  const start = i * 7;
-  const week = dailySales.slice(start, start + 7);
-  return {
-    week: `Week ${i + 1}`,
-    beer: week.reduce((s, d) => s + d.beerRevenue, 0),
-    food: week.reduce((s, d) => s + d.foodRevenue, 0),
-    na: week.reduce((s, d) => s + d.naRevenue, 0),
-    events: week.reduce((s, d) => s + d.eventRevenue, 0),
-  };
-});
-
-const beerPopularity = beers
-  .filter(b => b.status === 'on-tap')
-  .sort((a, b) => b.totalPours - a.totalPours)
-  .slice(0, 6)
-  .map(b => ({ name: b.name.length > 15 ? b.name.slice(0, 15) + '...' : b.name, pours: b.totalPours, rating: b.rating }));
-
-const categoryRevenue = [
-  { name: 'Beer', value: dailySales.reduce((s, d) => s + d.beerRevenue, 0), color: '#d97706' },
-  { name: 'Food', value: dailySales.reduce((s, d) => s + d.foodRevenue, 0), color: '#059669' },
-  { name: 'NA Beverages', value: dailySales.reduce((s, d) => s + d.naRevenue, 0), color: '#3b82f6' },
-  { name: 'Merchandise', value: dailySales.reduce((s, d) => s + d.merchandiseRevenue, 0), color: '#a855f7' },
-  { name: 'Events', value: dailySales.reduce((s, d) => s + d.eventRevenue, 0), color: '#f43f5e' },
-];
-
-const loyaltyDistro = [
-  { name: 'Bronze', value: customers.filter(c => c.loyaltyTier === 'Bronze').length, color: '#94a3b8' },
-  { name: 'Silver', value: customers.filter(c => c.loyaltyTier === 'Silver').length, color: '#60a5fa' },
-  { name: 'Gold', value: customers.filter(c => c.loyaltyTier === 'Gold').length, color: '#fbbf24' },
-  { name: 'Platinum', value: customers.filter(c => c.loyaltyTier === 'Platinum').length, color: '#c084fc' },
-];
-
 export default function ReportsPage() {
+  const { dailySales, beers, customers } = useData();
+
+  const totalRevenue = dailySales.reduce((s, d) => s + d.totalRevenue, 0);
+  const totalCustomers = dailySales.reduce((s, d) => s + d.customerCount, 0);
+  const avgDaily = dailySales.length > 0 ? Math.round(totalRevenue / dailySales.length) : 0;
+  const beerPct = totalRevenue > 0 ? Math.round((dailySales.reduce((s, d) => s + d.beerRevenue, 0) / totalRevenue) * 100) : 0;
+
+  const weeklyData = Array.from({ length: 4 }, (_, i) => {
+    const start = i * 7;
+    const week = dailySales.slice(start, start + 7);
+    return {
+      week: `Week ${i + 1}`,
+      beer: week.reduce((s, d) => s + d.beerRevenue, 0),
+      food: week.reduce((s, d) => s + d.foodRevenue, 0),
+      na: week.reduce((s, d) => s + d.naRevenue, 0),
+      events: week.reduce((s, d) => s + d.eventRevenue, 0),
+    };
+  });
+
+  const beerPopularity = beers
+    .filter(b => b.status === 'on-tap')
+    .sort((a, b) => b.totalPours - a.totalPours)
+    .slice(0, 6)
+    .map(b => ({ name: b.name.length > 15 ? b.name.slice(0, 15) + '...' : b.name, pours: b.totalPours, rating: b.rating }));
+
+  const categoryRevenue = [
+    { name: 'Beer', value: dailySales.reduce((s, d) => s + d.beerRevenue, 0), color: '#d97706' },
+    { name: 'Food', value: dailySales.reduce((s, d) => s + d.foodRevenue, 0), color: '#059669' },
+    { name: 'NA Beverages', value: dailySales.reduce((s, d) => s + d.naRevenue, 0), color: '#3b82f6' },
+    { name: 'Merchandise', value: dailySales.reduce((s, d) => s + d.merchandiseRevenue, 0), color: '#a855f7' },
+    { name: 'Events', value: dailySales.reduce((s, d) => s + d.eventRevenue, 0), color: '#f43f5e' },
+  ];
+
+  const loyaltyDistro = [
+    { name: 'Bronze', value: customers.filter(c => c.loyaltyTier === 'Bronze').length, color: '#94a3b8' },
+    { name: 'Silver', value: customers.filter(c => c.loyaltyTier === 'Silver').length, color: '#60a5fa' },
+    { name: 'Gold', value: customers.filter(c => c.loyaltyTier === 'Gold').length, color: '#fbbf24' },
+    { name: 'Platinum', value: customers.filter(c => c.loyaltyTier === 'Platinum').length, color: '#c084fc' },
+  ];
+
   return (
     <div className="space-y-6">
       {/* KPIs */}

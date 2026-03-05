@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { OpenTab, TapLine, Batch, GravityReading, FloorTable, ServiceAlert, Customer, Reservation, BreweryEvent, EmailCampaign, MugClubMember, InventoryItem } from '../types';
-import { openTabs as initialTabs, tapLines as initialTapLines, batches as initialBatches, floorTables as initialFloorTables, serviceAlerts as initialAlerts, customers as initialCustomers, reservations as initialReservations, events as initialEvents, emailCampaigns as initialCampaigns, mugClubMembers as initialMugClubMembers, inventoryItems as initialInventoryItems } from '../data/mockData';
+import { api } from '../api/client';
 
 interface BusinessSettings {
   businessName: string;
@@ -24,6 +24,7 @@ interface BreweryState {
   mugClubMembers: MugClubMember[];
   inventoryItems: InventoryItem[];
   settings: BusinessSettings;
+  loading: boolean;
   addToTab: (tabId: string, item: { name: string; size: string; price: number; qty: number }) => void;
   closeTab: (tabId: string) => void;
   holdTab: (tab: OpenTab) => void;
@@ -46,6 +47,7 @@ interface BreweryState {
   addMugClubMember: (member: Omit<MugClubMember, 'id'>) => void;
   updateInventoryItem: (id: string, updates: Partial<InventoryItem>) => void;
   updateSettings: (updates: Partial<BusinessSettings>) => void;
+  refetch: () => void;
 }
 
 const BreweryContext = createContext<BreweryState | null>(null);
@@ -61,21 +63,97 @@ const defaultSettings: BusinessSettings = {
   timezone: 'America/Chicago (CST)',
 };
 
+// Snake_case → camelCase field mapping for API responses
+function toCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function mapKeys(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[toCamel(k)] = v;
+  }
+  return out;
+}
+
+function mapArray<T>(arr: Record<string, unknown>[]): T[] {
+  return arr.map(item => mapKeys(item) as T);
+}
+
 export function BreweryProvider({ children }: { children: React.ReactNode }) {
-  const [tabs, setTabs] = useState<OpenTab[]>(initialTabs);
-  const [tapLineState, setTapLines] = useState<TapLine[]>(initialTapLines);
-  const [batchState, setBatches] = useState<Batch[]>(initialBatches);
-  const [floorTables, setFloorTables] = useState<FloorTable[]>(initialFloorTables);
-  const [serviceAlerts, setServiceAlerts] = useState<ServiceAlert[]>(initialAlerts);
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
-  const [events, setEvents] = useState<BreweryEvent[]>(initialEvents);
-  const [emailCampaigns, setEmailCampaigns] = useState<EmailCampaign[]>(initialCampaigns);
-  const [mugClubMembers, setMugClubMembers] = useState<MugClubMember[]>(initialMugClubMembers);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
+  const [tabs, setTabs] = useState<OpenTab[]>([]);
+  const [tapLineState, setTapLines] = useState<TapLine[]>([]);
+  const [batchState, setBatches] = useState<Batch[]>([]);
+  const [floorTables, setFloorTables] = useState<FloorTable[]>([]);
+  const [serviceAlerts, setServiceAlerts] = useState<ServiceAlert[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [events, setEvents] = useState<BreweryEvent[]>([]);
+  const [emailCampaigns, setEmailCampaigns] = useState<EmailCampaign[]>([]);
+  const [mugClubMembers, setMugClubMembers] = useState<MugClubMember[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [settings, setSettings] = useState<BusinessSettings>(defaultSettings);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAll = useCallback(async () => {
+    try {
+      const [
+        tabsData, tapsData, batchesData, tablesData, alertsData,
+        customersData, reservationsData, eventsData, campaignsData,
+        mugClubData, inventoryData, settingsData,
+      ] = await Promise.all([
+        api.get<Record<string, unknown>[]>('/pos/tabs/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/taps/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/batches/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/floor-plan/tables/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/floor-plan/alerts/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/customers/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/reservations/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/events/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/marketing/campaigns/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/mug-club/members/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/inventory/').catch(() => []),
+        api.get<Record<string, unknown>>('/settings/').catch(() => null),
+      ]);
+
+      setTabs(mapArray<OpenTab>(tabsData));
+      setTapLines(mapArray<TapLine>(tapsData));
+      setBatches(mapArray<Batch>(batchesData));
+      setFloorTables(mapArray<FloorTable>(tablesData));
+      setServiceAlerts(mapArray<ServiceAlert>(alertsData));
+      setCustomers(mapArray<Customer>(customersData));
+      setReservations(mapArray<Reservation>(reservationsData));
+      setEvents(mapArray<BreweryEvent>(eventsData));
+      setEmailCampaigns(mapArray<EmailCampaign>(campaignsData));
+      setMugClubMembers(mapArray<MugClubMember>(mugClubData));
+      setInventoryItems(mapArray<InventoryItem>(inventoryData));
+
+      if (settingsData) {
+        const s = mapKeys(settingsData) as Record<string, string>;
+        setSettings({
+          businessName: s.businessName || defaultSettings.businessName,
+          address: s.address || defaultSettings.address,
+          phone: s.phone || defaultSettings.phone,
+          email: s.email || defaultSettings.email,
+          taxRate: s.taxRate || defaultSettings.taxRate,
+          timezone: s.timezone || defaultSettings.timezone,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch brewery data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  // --- Mutations --- (optimistic local + API call)
 
   const addToTab = useCallback((tabId: string, item: { name: string; size: string; price: number; qty: number }) => {
+    // Optimistic local update
     setTabs(prev => prev.map(t => {
       if (t.id !== tabId) return t;
       const existing = t.items.find(i => i.name === item.name && i.size === item.size);
@@ -85,10 +163,12 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
       const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
       return { ...t, items, subtotal };
     }));
+    api.post(`/pos/tabs/${tabId}/items`, item).catch(console.error);
   }, []);
 
   const closeTab = useCallback((tabId: string) => {
     setTabs(prev => prev.filter(t => t.id !== tabId));
+    api.post(`/pos/tabs/${tabId}/close`).catch(console.error);
   }, []);
 
   const holdTab = useCallback((tab: OpenTab) => {
@@ -101,10 +181,22 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
 
   const createTab = useCallback((tab: OpenTab) => {
     setTabs(prev => [...prev, tab]);
+    api.post('/pos/tabs/', {
+      customer_name: tab.customerName,
+      customer_id: tab.customerId || null,
+      server: tab.server,
+      table_number: tab.tableNumber || null,
+    }).catch(console.error);
   }, []);
 
   const updateTapLine = useCallback((tapNumber: number, updates: Partial<TapLine>) => {
     setTapLines(prev => prev.map(t => t.tapNumber === tapNumber ? { ...t, ...updates } : t));
+    // Convert camelCase keys to snake_case for API
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+    }
+    api.patch(`/taps/${tapNumber}`, snakeUpdates).catch(console.error);
   }, []);
 
   const advanceBatchStatus = useCallback((batchId: string) => {
@@ -114,29 +206,49 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
       if (idx < 0 || idx >= statusOrder.length - 1) return b;
       return { ...b, status: statusOrder[idx + 1] };
     }));
+    api.post(`/batches/${batchId}/advance-status`).catch(console.error);
   }, []);
 
   const addBatch = useCallback((batch: Omit<Batch, 'id'>) => {
-    setBatches(prev => [...prev, { ...batch, id: `batch-${Date.now()}` }]);
-  }, []);
+    const tempId = `batch-${Date.now()}`;
+    setBatches(prev => [...prev, { ...batch, id: tempId }]);
+    api.post('/batches/', batch).then(() => fetchAll()).catch(console.error);
+  }, [fetchAll]);
 
   const addGravityReading = useCallback((batchId: string, reading: GravityReading) => {
     setBatches(prev => prev.map(b => {
       if (b.id !== batchId) return b;
       return { ...b, gravityReadings: [...b.gravityReadings, reading] };
     }));
+    api.post(`/batches/${batchId}/gravity-readings`, {
+      date: reading.date,
+      gravity: reading.gravity,
+      temp: reading.temp,
+    }).catch(console.error);
   }, []);
 
   const updateTable = useCallback((tableId: string, updates: Partial<FloorTable>) => {
     setFloorTables(prev => prev.map(t => t.id === tableId ? { ...t, ...updates } : t));
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+    }
+    api.patch(`/floor-plan/tables/${tableId}`, snakeUpdates).catch(console.error);
   }, []);
 
   const dismissAlert = useCallback((alertId: string) => {
     setServiceAlerts(prev => prev.filter(a => a.id !== alertId));
+    api.delete(`/floor-plan/alerts/${alertId}`).catch(console.error);
   }, []);
 
   const addAlert = useCallback((alert: ServiceAlert) => {
     setServiceAlerts(prev => [...prev, alert]);
+    api.post('/floor-plan/alerts/', {
+      table_id: alert.tableId,
+      type: alert.type,
+      message: alert.message,
+      priority: alert.priority,
+    }).catch(console.error);
   }, []);
 
   const seatGuests = useCallback((tableId: string, customerName: string, partySize: number, serverId: string, serverName: string, customerId?: string) => {
@@ -163,6 +275,13 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
       serverName,
       seatedAt: new Date().toISOString(),
     } : t));
+    api.post(`/floor-plan/tables/${tableId}/seat`, {
+      customer_name: customerName,
+      party_size: partySize,
+      server_id: serverId,
+      server_name: serverName,
+      customer_id: customerId || null,
+    }).catch(console.error);
   }, []);
 
   const clearTable = useCallback((tableId: string) => {
@@ -184,52 +303,85 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
         reservationId: undefined,
       };
     }));
+    api.post(`/floor-plan/tables/${tableId}/clear`).catch(console.error);
   }, []);
 
   const addCustomer = useCallback((customer: Omit<Customer, 'id'>) => {
-    setCustomers(prev => [...prev, { ...customer, id: `c-${Date.now()}` }]);
-  }, []);
+    const tempId = `c-${Date.now()}`;
+    setCustomers(prev => [...prev, { ...customer, id: tempId }]);
+    api.post('/customers/', customer).then(() => fetchAll()).catch(console.error);
+  }, [fetchAll]);
 
   const updateCustomer = useCallback((id: string, updates: Partial<Customer>) => {
     setCustomers(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+    }
+    api.patch(`/customers/${id}`, snakeUpdates).catch(console.error);
   }, []);
 
   const addReservation = useCallback((reservation: Omit<Reservation, 'id'>) => {
-    setReservations(prev => [...prev, { ...reservation, id: `res-${Date.now()}` }]);
-  }, []);
+    const tempId = `res-${Date.now()}`;
+    setReservations(prev => [...prev, { ...reservation, id: tempId }]);
+    api.post('/reservations/', reservation).then(() => fetchAll()).catch(console.error);
+  }, [fetchAll]);
 
   const updateReservation = useCallback((id: string, updates: Partial<Reservation>) => {
     setReservations(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+    }
+    api.patch(`/reservations/${id}`, snakeUpdates).catch(console.error);
   }, []);
 
   const addEvent = useCallback((event: Omit<BreweryEvent, 'id'>) => {
-    setEvents(prev => [...prev, { ...event, id: `evt-${Date.now()}` }]);
-  }, []);
+    const tempId = `evt-${Date.now()}`;
+    setEvents(prev => [...prev, { ...event, id: tempId }]);
+    api.post('/events/', event).then(() => fetchAll()).catch(console.error);
+  }, [fetchAll]);
 
   const addCampaign = useCallback((campaign: Omit<EmailCampaign, 'id'>) => {
-    setEmailCampaigns(prev => [...prev, { ...campaign, id: `camp-${Date.now()}` }]);
-  }, []);
+    const tempId = `camp-${Date.now()}`;
+    setEmailCampaigns(prev => [...prev, { ...campaign, id: tempId }]);
+    api.post('/marketing/campaigns/', campaign).then(() => fetchAll()).catch(console.error);
+  }, [fetchAll]);
 
   const addMugClubMember = useCallback((member: Omit<MugClubMember, 'id'>) => {
-    setMugClubMembers(prev => [...prev, { ...member, id: `mc-${Date.now()}` }]);
-  }, []);
+    const tempId = `mc-${Date.now()}`;
+    setMugClubMembers(prev => [...prev, { ...member, id: tempId }]);
+    api.post('/mug-club/members/', member).then(() => fetchAll()).catch(console.error);
+  }, [fetchAll]);
 
   const updateInventoryItem = useCallback((id: string, updates: Partial<InventoryItem>) => {
     setInventoryItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+    }
+    api.patch(`/inventory/${id}`, snakeUpdates).catch(console.error);
   }, []);
 
   const updateSettings = useCallback((updates: Partial<BusinessSettings>) => {
     setSettings(prev => ({ ...prev, ...updates }));
+    const snakeUpdates: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(updates)) {
+      snakeUpdates[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+    }
+    api.patch('/settings/', snakeUpdates).catch(console.error);
   }, []);
 
   return (
     <BreweryContext.Provider value={{
       tabs, tapLines: tapLineState, batches: batchState, floorTables, serviceAlerts,
       customers, reservations, events, emailCampaigns, mugClubMembers, inventoryItems, settings,
+      loading,
       addToTab, closeTab, holdTab, createTab, updateTapLine, advanceBatchStatus, addBatch, addGravityReading,
       updateTable, dismissAlert, addAlert, seatGuests, clearTable,
       addCustomer, updateCustomer, addReservation, updateReservation,
       addEvent, addCampaign, addMugClubMember, updateInventoryItem, updateSettings,
+      refetch: fetchAll,
     }}>
       {children}
     </BreweryContext.Provider>

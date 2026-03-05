@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Package, Truck, Building2, Wrench, AlertTriangle, Search, Clock, RotateCcw, ChevronDown } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { kegs } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import type { Keg, KegEvent } from '../../types';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -74,6 +74,7 @@ function daysSince(dateStr: string): number {
 
 // ──── FLEET SUMMARY CALCULATIONS ────
 function useFleetSummary() {
+  const { kegs } = useData();
   return useMemo(() => {
     const deployed = kegs.filter(k => k.status === 'deployed');
     const missing = kegs.filter(k => k.status === 'missing');
@@ -97,7 +98,7 @@ function useFleetSummary() {
       depositsOutstanding: depositsOut,
       fillsThisMonth: kegs.filter(k => k.fillDate && k.fillDate >= '2026-03-01').length,
     };
-  }, []);
+  }, [kegs]);
 }
 
 // ──── KPI STAT CARD ────
@@ -222,6 +223,7 @@ function KegDetailModal({ keg, onClose }: { keg: Keg; onClose: () => void }) {
 
 // ──── FLEET TAB ────
 function FleetTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
+  const { kegs } = useData();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -236,7 +238,7 @@ function FleetTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
       }
       return true;
     });
-  }, [statusFilter, sizeFilter, search]);
+  }, [kegs, statusFilter, sizeFilter, search]);
 
   const statuses = ['all', 'clean-empty', 'filled', 'on-tap', 'deployed', 'returned-dirty', 'cleaning', 'missing'];
 
@@ -275,7 +277,8 @@ function FleetTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
 
 // ──── DEPLOYED TAB ────
 function DeployedTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
-  const deployed = useMemo(() => kegs.filter(k => k.status === 'deployed' || k.status === 'missing'), []);
+  const { kegs } = useData();
+  const deployed = useMemo(() => kegs.filter(k => k.status === 'deployed' || k.status === 'missing'), [kegs]);
   const grouped = useMemo(() => {
     const map: Record<string, { name: string; kegs: Keg[]; totalDeposit: number }> = {};
     deployed.forEach(k => {
@@ -345,11 +348,12 @@ function DeployedTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
 
 // ──── RETURNS TAB ────
 function ReturnsTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
+  const { kegs } = useData();
   const pendingReturns = useMemo(() =>
     kegs.filter(k => k.status === 'deployed' && k.expectedReturnDate && new Date(k.expectedReturnDate) < new Date())
       .sort((a, b) => daysSince(a.expectedReturnDate!) - daysSince(b.expectedReturnDate!)).reverse(),
-  []);
-  const recentlyReturned = useMemo(() => kegs.filter(k => k.status === 'returned-dirty' || k.status === 'cleaning'), []);
+  [kegs]);
+  const recentlyReturned = useMemo(() => kegs.filter(k => k.status === 'returned-dirty' || k.status === 'cleaning'), [kegs]);
 
   return (
     <div className="space-y-6">
@@ -410,20 +414,21 @@ function ReturnsTab({ onSelectKeg }: { onSelectKeg: (k: Keg) => void }) {
 
 // ──── ANALYTICS TAB ────
 function AnalyticsTab() {
+  const { kegs } = useData();
   // Fleet status donut
   const statusData = useMemo(() => {
     const counts: Record<string, number> = {};
     kegs.forEach(k => { counts[k.status] = (counts[k.status] || 0) + 1; });
     const colors: Record<string, string> = { 'clean-empty': '#34d399', 'filled': '#f59e0b', 'on-tap': '#3b82f6', 'deployed': '#a855f7', 'returned-dirty': '#eab308', 'cleaning': '#22d3ee', 'maintenance': '#6b7280', 'missing': '#ef4444', 'retired': '#4b5563' };
     return Object.entries(counts).map(([status, count]) => ({ name: statusLabels[status] || status, value: count, fill: colors[status] || '#6b7280' }));
-  }, []);
+  }, [kegs]);
 
   // Size distribution
   const sizeData = useMemo(() => {
     const counts: Record<string, number> = {};
     kegs.forEach(k => { counts[k.size] = (counts[k.size] || 0) + 1; });
     return Object.entries(counts).map(([size, count]) => ({ name: sizeLabels[size], count, fill: size === '1/2' ? '#f59e0b' : size === '1/4' ? '#3b82f6' : '#a855f7' }));
-  }, []);
+  }, [kegs]);
 
   // Top accounts by kegs deployed
   const accountData = useMemo(() => {
@@ -433,7 +438,7 @@ function AnalyticsTab() {
       counts[name] = (counts[name] || 0) + 1;
     });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, count]) => ({ name: name.length > 15 ? name.slice(0, 15) + '…' : name, kegs: count }));
-  }, []);
+  }, [kegs]);
 
   // Monthly activity (mock 6 months)
   const monthlyData = useMemo(() => [

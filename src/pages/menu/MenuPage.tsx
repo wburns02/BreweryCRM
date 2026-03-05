@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { UtensilsCrossed, TrendingUp, Baby, Eye } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { menuItems } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 
 const categories = ['all', 'appetizer', 'entree', 'side', 'dessert', 'kids', 'beverage-na', 'merchandise'] as const;
 const categoryLabels: Record<string, string> = { all: 'All Items', appetizer: 'Appetizers', entree: 'Entrees', side: 'Sides', dessert: 'Desserts', kids: 'Kids Menu', 'beverage-na': 'NA Beverages', merchandise: 'Merchandise' };
 
 export default function MenuPage() {
+  const { menuItems } = useData();
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
   const filtered = activeCategory === 'all' ? menuItems : menuItems.filter(m => m.category === activeCategory);

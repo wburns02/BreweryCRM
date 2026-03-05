@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { ArrowLeft, Search, Beaker, DollarSign, BarChart3, Award, Play, Check, Timer } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
-import { detailedRecipes } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 import type { DetailedRecipe } from '../../types';
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
@@ -498,6 +498,7 @@ function BrewDayModal({ recipe, onClose }: { recipe: DetailedRecipe; onClose: ()
 
 // ──── MAIN PAGE ────
 export default function RecipesPage() {
+  const { detailedRecipes } = useData();
   const [selectedRecipe, setSelectedRecipe] = useState<DetailedRecipe | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'grains' | 'hops' | 'yeast-water' | 'history'>('overview');
   const [filter, setFilter] = useState<string>('all');

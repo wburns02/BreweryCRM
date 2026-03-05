@@ -1,13 +1,14 @@
 import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
-import { wholesaleAccounts } from '../../data/mockData';
+import { useData } from '../../context/DataContext';
 
 const typeColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'gray'> = {
   bar: 'purple', restaurant: 'amber', 'bottle-shop': 'green', grocery: 'blue', 'event-venue': 'red',
 };
 
 export default function DistributionPage() {
+  const { wholesaleAccounts } = useData();
   const active = wholesaleAccounts.filter(a => a.status === 'active');
   const totalRevenue = wholesaleAccounts.reduce((s, a) => s + a.totalRevenue, 0);
   const totalKegsOut = wholesaleAccounts.reduce((s, a) => s + a.kegsOut, 0);

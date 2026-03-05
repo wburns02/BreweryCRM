@@ -12,8 +12,8 @@ import { useToast } from '../../components/ui/ToastProvider';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import SlidePanel from '../../components/ui/SlidePanel';
-import type { FloorTable, ServiceAlert } from '../../types';
-import { customers, staff, orderTimelines } from '../../data/mockData';
+import type { FloorTable, ServiceAlert, StaffMember } from '../../types';
+import { useData } from '../../context/DataContext';
 
 // --- Constants ---
 type ZoneId = 'all' | FloorTable['zone'];
@@ -69,7 +69,7 @@ const OCCUPANCY_DATA = [
   { hour: '11pm', pct: 15 },
 ];
 
-const servers = staff.filter(s => ['bartender', 'server'].includes(s.role) && s.status === 'active');
+// servers computed inside component
 
 function minutesAgo(isoString: string): number {
   return Math.max(0, Math.round((Date.now() - new Date(isoString).getTime()) / 60000));
@@ -100,7 +100,9 @@ const ZONE_BOUNDS: Record<FloorTable['zone'], { x: number; y: number; w: number;
 
 // --- Main Component ---
 export default function FloorPlanPage() {
+  const { customers, staff: staffData, orderTimelines } = useData();
   const { floorTables, serviceAlerts, tabs, updateTable, dismissAlert, seatGuests, clearTable } = useBrewery();
+  const servers = useMemo(() => staffData.filter((s: StaffMember) => ['bartender', 'server'].includes(s.role) && s.status === 'active'), [staffData]);
   const { toast } = useToast();
 
   const [activeZone, setActiveZone] = useState<ZoneId>('all');
