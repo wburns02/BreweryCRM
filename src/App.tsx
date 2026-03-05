@@ -21,6 +21,7 @@ import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import POSPage from './pages/pos/POSPage';
 import FloorPlanPage from './pages/floor-plan/FloorPlanPage';
+import ProductionPage from './pages/production/ProductionPage';
 import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
 import { DataProvider } from './context/DataContext';
@@ -51,6 +52,7 @@ const pageTitles: Record<PageId, string> = {
   settings: 'Settings & Compliance',
   pos: 'Taproom POS',
   'floor-plan': 'Floor Plan & Table Management',
+  production: 'Production Dashboard',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -74,6 +76,7 @@ const pages: Record<PageId, React.ComponentType> = {
   settings: SettingsPage,
   pos: POSPage,
   'floor-plan': FloorPlanPage,
+  production: ProductionPage,
 };
 
 function App() {

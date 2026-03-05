@@ -712,4 +712,103 @@ export interface OrderTimelineEntry {
   description: string;
 }
 
-export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan';
+export interface FermentationVessel {
+  id: string;
+  name: string;
+  vesselType: string;
+  capacityBbl: number;
+  currentBatchId?: string;
+  status: 'empty' | 'fermenting' | 'conditioning' | 'carbonating' | 'cleaning' | 'out_of_service';
+  temperatureF?: number;
+  pressurePsi?: number;
+  notes: string;
+  createdAt?: string;
+  updatedAt?: string;
+  batchName?: string;
+  batchStatus?: string;
+  batchBeerName?: string;
+  batchBrewDate?: string;
+  batchStyle?: string;
+}
+
+export interface BrewDayLog {
+  id: string;
+  batchId: string;
+  scheduledDate: string;
+  actualStart?: string;
+  actualEnd?: string;
+  brewerId?: string;
+  brewerName: string;
+  mashTempF?: number;
+  mashDurationMin?: number;
+  boilDurationMin: number;
+  preBoilGravity?: number;
+  originalGravity?: number;
+  postBoilVolumeGal?: number;
+  notes: string;
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  createdAt?: string;
+  batchBeerName?: string;
+  batchNumber?: string;
+}
+
+export interface QualityCheckEntry {
+  id: string;
+  batchId: string;
+  checkType: string;
+  value: string;
+  checkedBy: string;
+  checkedAt?: string;
+  notes: string;
+  passFail: 'pass' | 'fail' | 'warning' | 'na';
+}
+
+export interface ProductionOverview {
+  activeBatchesCount: number;
+  activeBatches: {
+    id: string;
+    batchNumber: string;
+    beerName: string;
+    style: string;
+    status: string;
+    brewDate: string;
+    volume: number;
+    tankId: string;
+  }[];
+  vesselsTotal: number;
+  vesselsInUse: number;
+  vesselsAvailable: number;
+  upcomingBrewDays: {
+    id: string;
+    scheduledDate: string;
+    status: string;
+    brewerName: string;
+    batchBeerName: string;
+    batchNumber: string;
+  }[];
+  nextBrewDay?: {
+    id: string;
+    scheduledDate: string;
+    batchBeerName: string;
+  };
+  batchesReadyToPackage: number;
+  avgDaysInFermenter: number;
+  productionThisMonthBbl: number;
+}
+
+export interface BatchTimelineEntry {
+  id: string;
+  batchNumber: string;
+  beerName: string;
+  style: string;
+  status: string;
+  brewDate: string;
+  volume: number;
+  vesselName: string;
+  progressPct: number;
+  daysInCurrentPhase: number;
+  estimatedPhaseDays: number;
+  estimatedCompletion?: string;
+}
+
+export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production';
