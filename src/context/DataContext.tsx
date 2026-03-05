@@ -91,20 +91,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         api.get<Record<string, unknown>[]>('/reservations/').catch(() => []),
         api.get<Record<string, unknown>[]>('/events/').catch(() => []),
         api.get<Record<string, unknown>[]>('/performers/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/financials/daily-sales/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/financials/monthly/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/settings/compliance/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/financials/daily-sales').catch(() => []),
+        api.get<Record<string, unknown>[]>('/financials/monthly').catch(() => []),
+        api.get<Record<string, unknown>[]>('/settings/compliance').catch(() => []),
         api.get<Record<string, unknown>[]>('/inventory/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/menu/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/menu-items/').catch(() => []),
         api.get<Record<string, unknown>[]>('/staff/').catch(() => []),
         api.get<Record<string, unknown>[]>('/distribution/accounts/').catch(() => []),
         api.get<Record<string, unknown>[]>('/mug-club/members/').catch(() => []),
         api.get<Record<string, unknown>[]>('/marketing/campaigns/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/recipes/detailed/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/detailed-recipes/').catch(() => []),
         api.get<Record<string, unknown>[]>('/kegs/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/floor-plan/tables/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/floor-plan/alerts/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/floor-plan/timelines/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/floor-plan/tables').catch(() => []),
+        api.get<Record<string, unknown>[]>('/floor-plan/alerts').catch(() => []),
+        Promise.resolve([]), // order timelines loaded per-table, not in bulk
       ]);
 
       setBeers(mapArray<Beer>(results[0]));
