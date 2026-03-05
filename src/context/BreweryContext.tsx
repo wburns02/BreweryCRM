@@ -110,8 +110,8 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
         api.get<Record<string, unknown>[]>('/customers/').catch(() => []),
         api.get<Record<string, unknown>[]>('/reservations/').catch(() => []),
         api.get<Record<string, unknown>[]>('/events/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/marketing/campaigns/').catch(() => []),
-        api.get<Record<string, unknown>[]>('/mug-club/members/').catch(() => []),
+        api.get<Record<string, unknown>[]>('/marketing/campaigns').catch(() => []),
+        api.get<Record<string, unknown>[]>('/mug-club/').catch(() => []),
         api.get<Record<string, unknown>[]>('/inventory/').catch(() => []),
         api.get<Record<string, unknown>>('/settings/').catch(() => null),
       ]);
@@ -345,13 +345,13 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const addCampaign = useCallback((campaign: Omit<EmailCampaign, 'id'>) => {
     const tempId = `camp-${Date.now()}`;
     setEmailCampaigns(prev => [...prev, { ...campaign, id: tempId }]);
-    api.post('/marketing/campaigns/', campaign).then(() => fetchAll()).catch(console.error);
+    api.post('/marketing/campaigns', campaign).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const addMugClubMember = useCallback((member: Omit<MugClubMember, 'id'>) => {
     const tempId = `mc-${Date.now()}`;
     setMugClubMembers(prev => [...prev, { ...member, id: tempId }]);
-    api.post('/mug-club/members/', member).then(() => fetchAll()).catch(console.error);
+    api.post('/mug-club/', member).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateInventoryItem = useCallback((id: string, updates: Partial<InventoryItem>) => {
