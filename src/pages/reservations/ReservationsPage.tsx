@@ -29,7 +29,7 @@ export default function ReservationsPage() {
   // Form fields
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [date, setDate] = useState('2026-03-05');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('');
   const [partySize, setPartySize] = useState('2');
   const [section, setSection] = useState<'taproom' | 'patio' | 'beer-garden' | 'private-room'>('taproom');
@@ -37,7 +37,8 @@ export default function ReservationsPage() {
   const [isHighChairNeeded, setIsHighChairNeeded] = useState(false);
 
   const occupiedTables = reservations.filter(r => r.status === 'seated' || r.status === 'confirmed').map(r => r.tableId).filter(Boolean);
-  const today = reservations.filter(r => r.date === '2026-03-05');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const today = reservations.filter(r => r.date === todayStr);
   const confirmed = today.filter(r => r.status === 'confirmed').length;
   const seated = today.filter(r => r.status === 'seated').length;
   const waitlisted = today.filter(r => r.status === 'waitlist').length;
@@ -45,7 +46,7 @@ export default function ReservationsPage() {
   const resetForm = () => {
     setCustomerName('');
     setCustomerPhone('');
-    setDate('2026-03-05');
+    setDate(new Date().toISOString().split('T')[0]);
     setTime('');
     setPartySize('2');
     setSection('taproom');

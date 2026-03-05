@@ -29,7 +29,7 @@ const upcomingEvents = events.filter(e => e.status === 'upcoming').slice(0, 4);
 const activeTaps = tapLines.filter(t => t.status === 'active');
 const lowKegs = activeTaps.filter(t => t.kegLevel < 25);
 const complianceDue = complianceItems.filter(c => c.status === 'due-soon' || c.status === 'overdue');
-const todayReservations = reservations.filter(r => r.date === '2026-03-04');
+const todayReservations = reservations.filter(r => r.date === new Date().toISOString().split('T')[0]);
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
   if (!active || !payload) return null;

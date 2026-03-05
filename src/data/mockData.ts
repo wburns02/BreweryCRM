@@ -79,12 +79,14 @@ export const events: BreweryEvent[] = [
   { id: '8', title: 'Private Event: Henderson Wedding Reception', type: 'private', date: '2026-03-29', startTime: '17:00', endTime: '23:00', description: 'Wedding reception for 120 guests. Open bar, plated dinner, live band.', capacity: 120, ticketsSold: 120, ticketPrice: 150, isTicketed: true, isFamilyFriendly: true, location: 'event-hall', status: 'upcoming', revenue: 18000 },
 ];
 
+const todayStr = new Date().toISOString().split('T')[0];
+
 export const reservations: Reservation[] = [
-  { id: '1', customerName: 'Jake Morrison', customerPhone: '(830) 555-0101', customerEmail: 'jake@email.com', date: '2026-03-04', time: '18:00', partySize: 4, tableId: 'T-12', section: 'taproom', status: 'confirmed', notes: 'Birthday celebration', specialRequests: ['Birthday dessert'], isHighChairNeeded: false },
-  { id: '2', customerName: 'Diane Foster', customerPhone: '(830) 555-0105', customerEmail: 'diane.f@email.com', date: '2026-03-04', time: '17:30', partySize: 5, tableId: 'P-3', section: 'patio', status: 'confirmed', notes: '3 kids, need play area access', specialRequests: ['High chairs x2', 'Near play area'], isHighChairNeeded: true },
-  { id: '3', customerName: 'Smith Party', customerPhone: '(830) 555-0201', customerEmail: 'smith@email.com', date: '2026-03-04', time: '19:00', partySize: 12, section: 'beer-garden', status: 'confirmed', notes: 'Office celebration', specialRequests: ['Combined tables'], isHighChairNeeded: false },
-  { id: '4', customerName: 'Carlos Rivera', customerPhone: '(210) 555-0301', customerEmail: 'carlos.r@email.com', date: '2026-03-04', time: '18:30', partySize: 2, tableId: 'T-5', section: 'taproom', status: 'seated', notes: '', specialRequests: [], isHighChairNeeded: false },
-  { id: '5', customerName: 'Walk-in Party', customerPhone: '', customerEmail: '', date: '2026-03-04', time: '17:45', partySize: 3, section: 'patio', status: 'waitlist', notes: '', specialRequests: [], isHighChairNeeded: false },
+  { id: '1', customerName: 'Jake Morrison', customerPhone: '(830) 555-0101', customerEmail: 'jake@email.com', date: todayStr, time: '18:00', partySize: 4, tableId: 'T-12', section: 'taproom', status: 'confirmed', notes: 'Birthday celebration', specialRequests: ['Birthday dessert'], isHighChairNeeded: false },
+  { id: '2', customerName: 'Diane Foster', customerPhone: '(830) 555-0105', customerEmail: 'diane.f@email.com', date: todayStr, time: '17:30', partySize: 5, tableId: 'P-3', section: 'patio', status: 'confirmed', notes: '3 kids, need play area access', specialRequests: ['High chairs x2', 'Near play area'], isHighChairNeeded: true },
+  { id: '3', customerName: 'Smith Party', customerPhone: '(830) 555-0201', customerEmail: 'smith@email.com', date: todayStr, time: '19:00', partySize: 12, section: 'beer-garden', status: 'confirmed', notes: 'Office celebration', specialRequests: ['Combined tables'], isHighChairNeeded: false },
+  { id: '4', customerName: 'Carlos Rivera', customerPhone: '(210) 555-0301', customerEmail: 'carlos.r@email.com', date: todayStr, time: '18:30', partySize: 2, tableId: 'T-5', section: 'taproom', status: 'seated', notes: '', specialRequests: [], isHighChairNeeded: false },
+  { id: '5', customerName: 'Walk-in Party', customerPhone: '', customerEmail: '', date: todayStr, time: '17:45', partySize: 3, section: 'patio', status: 'waitlist', notes: '', specialRequests: [], isHighChairNeeded: false },
 ];
 
 export const menuItems: MenuItem[] = [
