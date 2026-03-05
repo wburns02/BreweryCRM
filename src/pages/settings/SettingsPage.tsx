@@ -30,7 +30,7 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-brewery-400 mb-1">Business Name</label>
-                <input type="text" defaultValue="Bulverde Brew Works" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                <input type="text" defaultValue="Bearded Hop Brewery" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-brewery-400 mb-1">Address</label>
@@ -43,7 +43,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-brewery-400 mb-1">Email</label>
-                  <input type="text" defaultValue="hello@bulverdebrewworks.com" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                  <input type="text" defaultValue="hello@beardedhopbrewery.com" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

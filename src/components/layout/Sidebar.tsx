@@ -1,4 +1,4 @@
-import { Beer, LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map } from 'lucide-react';
+import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -49,12 +49,10 @@ export default function Sidebar({ currentPage, onNavigate, collapsed, onToggle, 
       )}>
         {/* Logo */}
         <div className={clsx('flex items-center gap-3 px-4 h-16 border-b border-brewery-700/30', collapsed && 'justify-center')}>
-          <div className="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center flex-shrink-0">
-            <Beer className="w-5 h-5 text-white" />
-          </div>
+          <img src="/logo.jpeg" alt="Bearded Hop" className="w-8 h-8 rounded-full flex-shrink-0 object-cover" />
           {!collapsed && (
             <div className="overflow-hidden">
-              <h1 className="text-sm font-bold text-brewery-50 whitespace-nowrap" style={{ fontFamily: 'var(--font-display)' }}>Bulverde Brew Works</h1>
+              <h1 className="text-sm font-bold text-brewery-50 whitespace-nowrap" style={{ fontFamily: 'var(--font-display)' }}>Bearded Hop</h1>
               <p className="text-[10px] text-brewery-400 -mt-0.5">Brewery CRM</p>
             </div>
           )}

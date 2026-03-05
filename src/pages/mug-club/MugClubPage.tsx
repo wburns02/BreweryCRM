@@ -17,7 +17,7 @@ export default function MugClubPage() {
       <div className="bg-gradient-to-r from-amber-900/40 via-purple-900/30 to-brewery-900 border border-amber-500/20 rounded-2xl p-6 md:p-8">
         <div className="flex items-center gap-3 mb-2">
           <Crown className="w-8 h-8 text-amber-400" />
-          <h2 className="text-2xl font-bold text-brewery-50" style={{ fontFamily: 'var(--font-display)' }}>Bulverde Brew Society</h2>
+          <h2 className="text-2xl font-bold text-brewery-50" style={{ fontFamily: 'var(--font-display)' }}>Bearded Hop Mug Club</h2>
         </div>
         <p className="text-sm text-brewery-300 max-w-2xl">Exclusive mug club membership program. Members enjoy oversized pours, discounts, member-only releases, and VIP access to special events.</p>
       </div>

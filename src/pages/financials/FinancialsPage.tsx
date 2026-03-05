@@ -276,7 +276,7 @@ function PnlTab() {
     <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl overflow-hidden">
       <div className="p-5 border-b border-brewery-700/30">
         <h3 className="text-sm font-semibold text-brewery-200">Profit & Loss Statement</h3>
-        <p className="text-xs text-brewery-500 mt-0.5">Bulverde Brew Works — {curr.monthLabel} 2026</p>
+        <p className="text-xs text-brewery-500 mt-0.5">Bearded Hop Brewery — {curr.monthLabel} 2026</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

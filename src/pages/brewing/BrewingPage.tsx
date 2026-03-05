@@ -10,12 +10,12 @@ const statusColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'gray
 };
 
 const tanks = [
-  { id: 'FV-1', name: 'Fermenter 1', capacity: 7, status: 'in-use', batch: 'BBW-2026-001' },
+  { id: 'FV-1', name: 'Fermenter 1', capacity: 7, status: 'in-use', batch: 'BH-2026-001' },
   { id: 'FV-2', name: 'Fermenter 2', capacity: 7, status: 'available', batch: null },
-  { id: 'FV-3', name: 'Fermenter 3', capacity: 7, status: 'in-use', batch: 'BBW-2026-014' },
+  { id: 'FV-3', name: 'Fermenter 3', capacity: 7, status: 'in-use', batch: 'BH-2026-014' },
   { id: 'FV-4', name: 'Fermenter 4', capacity: 14, status: 'available', batch: null },
-  { id: 'BT-1', name: 'Brite Tank 1', capacity: 7, status: 'in-use', batch: 'BBW-2026-015' },
-  { id: 'BT-2', name: 'Brite Tank 2', capacity: 14, status: 'in-use', batch: 'BBW-2026-016' },
+  { id: 'BT-1', name: 'Brite Tank 1', capacity: 7, status: 'in-use', batch: 'BH-2026-015' },
+  { id: 'BT-2', name: 'Brite Tank 2', capacity: 14, status: 'in-use', batch: 'BH-2026-016' },
   { id: 'BT-3', name: 'Brite Tank 3', capacity: 7, status: 'available', batch: null },
 ];
 

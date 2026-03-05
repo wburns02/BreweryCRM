@@ -29,7 +29,7 @@ import { clsx } from 'clsx';
 const pageTitles: Record<PageId, string> = {
   dashboard: 'Dashboard',
   customers: 'Customer Management',
-  'mug-club': 'Bulverde Brew Society',
+  'mug-club': 'Bearded Hop Mug Club',
   taps: 'Tap Management',
   brewing: 'Production & Brewing',
   recipes: 'Recipe Lab',
