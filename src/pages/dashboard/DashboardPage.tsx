@@ -6,7 +6,11 @@ import { useData } from '../../context/DataContext';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 
 export default function DashboardPage() {
-  const { dailySales, tapLines, events, batches, reservations, complianceItems, beers } = useData();
+  const { dailySales, tapLines, events, batches, reservations, complianceItems, beers, loading } = useData();
+
+if (loading || dailySales.length === 0) {
+  return <div className="text-center py-20 text-brewery-400">Loading dashboard data...</div>;
+}
 
 const todaySales = dailySales[dailySales.length - 1];
 const lastWeekSales = dailySales[dailySales.length - 8];
