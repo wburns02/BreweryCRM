@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Package, Truck, Building2, Wrench, AlertTriangle, Search, Clock, RotateCcw, ChevronDown } from 'lucide-react';
+import { Package, Truck, Building2, Wrench, AlertTriangle, Search, Clock, RotateCcw, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { useData } from '../../context/DataContext';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 import type { Keg, KegEvent } from '../../types';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -156,7 +158,7 @@ function KegCard({ keg, onClick }: { keg: Keg; onClick: () => void }) {
 }
 
 // ──── KEG DETAIL MODAL ────
-function KegDetailModal({ keg, onClose }: { keg: Keg; onClose: () => void }) {
+function KegDetailModal({ keg, onClose, onDelete }: { keg: Keg; onClose: () => void; onDelete: (id: string) => void }) {
   const lifetimeDays = daysSince(keg.purchaseDate);
   return (
     <Modal open={true} title={`Keg ${keg.kegNumber}`} onClose={onClose} size="lg">
@@ -198,8 +200,8 @@ function KegDetailModal({ keg, onClose }: { keg: Keg; onClose: () => void }) {
           <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-3">Lifecycle Timeline</h4>
           <div className="space-y-0 relative pl-5">
             <div className="absolute left-[7px] top-2 bottom-2 w-px border-l border-dashed border-brewery-700/40" />
-            {keg.history.map((evt) => (
-              <div key={evt.id} className="relative flex items-start gap-3 py-2">
+            {keg.history.map((evt, idx) => (
+              <div key={evt.id || idx} className="relative flex items-start gap-3 py-2">
                 <div className={`absolute left-[-13px] top-3 w-3 h-3 rounded-full ${eventDotColors[evt.type]} ring-2 ring-brewery-950 z-10`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -216,7 +218,150 @@ function KegDetailModal({ keg, onClose }: { keg: Keg; onClose: () => void }) {
         </div>
 
         {keg.notes && <p className="text-xs text-brewery-300 italic border-t border-brewery-700/20 pt-3">"{keg.notes}"</p>}
+
+        {/* Delete Button */}
+        <div className="border-t border-brewery-700/20 pt-4">
+          <button
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to delete keg ${keg.kegNumber}? This action cannot be undone.`)) {
+                onDelete(keg.id);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/30 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-900/50 hover:border-red-500/50 transition-all"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Keg
+          </button>
+        </div>
       </div>
+    </Modal>
+  );
+}
+
+// ──── ADD KEG MODAL ────
+function AddKegModal({ onClose, onAdd }: { onClose: () => void; onAdd: (keg: Omit<Keg, 'id'>) => void }) {
+  const [kegNumber, setKegNumber] = useState('');
+  const [size, setSize] = useState<'1/2' | '1/4' | '1/6'>('1/2');
+  const [status, setStatus] = useState('clean-empty');
+  const [location, setLocation] = useState('brewery-cold-room');
+  const [purchaseCost, setPurchaseCost] = useState(150);
+  const [deposit, setDeposit] = useState(50);
+
+  const inputClass = "w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!kegNumber.trim()) return;
+    const today = new Date().toISOString().split('T')[0];
+    onAdd({
+      kegNumber: kegNumber.trim(),
+      size,
+      status: status as Keg['status'],
+      location: location as Keg['location'],
+      currentBeerName: '',
+      currentBeerId: '',
+      fillCount: 0,
+      fillDate: '',
+      purchaseDate: today,
+      purchaseCost,
+      deposit,
+      depositStatus: 'none' as const,
+      history: [],
+      notes: '',
+      lastCleaned: today,
+    });
+  };
+
+  return (
+    <Modal open={true} title="Add Keg" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Keg Number */}
+        <div>
+          <label className="block text-xs font-medium text-brewery-400 mb-1">Keg Number</label>
+          <input
+            type="text"
+            value={kegNumber}
+            onChange={e => setKegNumber(e.target.value)}
+            placeholder="e.g. BH-016"
+            className={inputClass}
+            required
+          />
+        </div>
+
+        {/* Size */}
+        <div>
+          <label className="block text-xs font-medium text-brewery-400 mb-1">Size</label>
+          <select value={size} onChange={e => setSize(e.target.value as '1/2' | '1/4' | '1/6')} className={inputClass}>
+            <option value="1/2">1/2 bbl (Half Barrel)</option>
+            <option value="1/4">1/4 bbl (Quarter Barrel)</option>
+            <option value="1/6">1/6 bbl (Sixth Barrel)</option>
+          </select>
+        </div>
+
+        {/* Status */}
+        <div>
+          <label className="block text-xs font-medium text-brewery-400 mb-1">Status</label>
+          <select value={status} onChange={e => setStatus(e.target.value)} className={inputClass}>
+            <option value="clean-empty">Clean/Empty</option>
+            <option value="filled">Filled</option>
+            <option value="on-tap">On Tap</option>
+            <option value="deployed">Deployed</option>
+            <option value="returned-dirty">Returned (Dirty)</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+
+        {/* Location */}
+        <div>
+          <label className="block text-xs font-medium text-brewery-400 mb-1">Location</label>
+          <input
+            type="text"
+            value={location}
+            onChange={e => setLocation(e.target.value)}
+            placeholder="e.g. brewery-cold-room"
+            className={inputClass}
+          />
+        </div>
+
+        {/* Cost & Deposit */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-brewery-400 mb-1">Purchase Cost ($)</label>
+            <input
+              type="number"
+              value={purchaseCost}
+              onChange={e => setPurchaseCost(Number(e.target.value))}
+              min={0}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-brewery-400 mb-1">Deposit ($)</label>
+            <input
+              type="number"
+              value={deposit}
+              onChange={e => setDeposit(Number(e.target.value))}
+              min={0}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-brewery-400 hover:text-brewery-200 transition-colors">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Keg
+          </button>
+        </div>
+      </form>
     </Modal>
   );
 }
@@ -570,16 +715,41 @@ function AnalyticsTab() {
 export default function KegsPage() {
   const [activeTab, setActiveTab] = useState<'fleet' | 'deployed' | 'returns' | 'analytics'>('fleet');
   const [selectedKeg, setSelectedKeg] = useState<Keg | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const { addKeg, deleteKeg } = useBrewery();
+  const { addToast } = useToast();
   const summary = useFleetSummary();
+
+  const handleAddKeg = (keg: Omit<Keg, 'id'>) => {
+    addKeg(keg);
+    addToast(`Keg ${keg.kegNumber} added to fleet`, 'success');
+    setShowAddModal(false);
+  };
+
+  const handleDeleteKeg = (id: string) => {
+    const kegNumber = selectedKeg?.kegNumber || '';
+    deleteKeg(id);
+    addToast(`Keg ${kegNumber} deleted`, 'success');
+    setSelectedKeg(null);
+  };
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Total Fleet" value={summary.totalKegs} subtitle={`${summary.totalKegs - summary.missingCount} active`} icon={Package} color="amber" />
-        <KpiCard label="Deployed" value={summary.deployed} subtitle={`$${summary.depositsOutstanding} deposits held`} icon={Truck} color="purple" />
-        <KpiCard label="Missing Kegs" value={summary.missingCount} subtitle={summary.missingCount > 0 ? `~$${summary.missingValue} exposure` : 'All accounted for'} icon={AlertTriangle} color="red" danger={summary.missingCount > 0} />
-        <KpiCard label="Avg Turnaround" value={`${summary.avgTurnaroundDays}d`} subtitle={`${summary.fillsThisMonth} fills this month`} icon={Clock} color="blue" />
+      {/* KPI Cards + Add Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard label="Total Fleet" value={summary.totalKegs} subtitle={`${summary.totalKegs - summary.missingCount} active`} icon={Package} color="amber" />
+          <KpiCard label="Deployed" value={summary.deployed} subtitle={`$${summary.depositsOutstanding} deposits held`} icon={Truck} color="purple" />
+          <KpiCard label="Missing Kegs" value={summary.missingCount} subtitle={summary.missingCount > 0 ? `~$${summary.missingValue} exposure` : 'All accounted for'} icon={AlertTriangle} color="red" danger={summary.missingCount > 0} />
+          <KpiCard label="Avg Turnaround" value={`${summary.avgTurnaroundDays}d`} subtitle={`${summary.fillsThisMonth} fills this month`} icon={Clock} color="blue" />
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="ml-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors shadow-lg shadow-amber-600/20 shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          Add Keg
+        </button>
       </div>
 
       {/* Tabs */}
@@ -597,7 +767,8 @@ export default function KegsPage() {
       {activeTab === 'returns' && <ReturnsTab onSelectKeg={setSelectedKeg} />}
       {activeTab === 'analytics' && <AnalyticsTab />}
 
-      {selectedKeg && <KegDetailModal keg={selectedKeg} onClose={() => setSelectedKeg(null)} />}
+      {selectedKeg && <KegDetailModal keg={selectedKeg} onClose={() => setSelectedKeg(null)} onDelete={handleDeleteKeg} />}
+      {showAddModal && <AddKegModal onClose={() => setShowAddModal(false)} onAdd={handleAddKeg} />}
     </div>
   );
 }

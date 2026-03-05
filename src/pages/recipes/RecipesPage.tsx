@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, Search, Beaker, DollarSign, BarChart3, Award, Play, Check, Timer } from 'lucide-react';
+import { ArrowLeft, Search, Beaker, DollarSign, BarChart3, Award, Play, Check, Timer, Plus, Trash2 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { useData } from '../../context/DataContext';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 import type { DetailedRecipe } from '../../types';
 import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
@@ -504,11 +506,58 @@ function BrewDayModal({ recipe, onClose }: { recipe: DetailedRecipe; onClose: ()
 // ──── MAIN PAGE ────
 export default function RecipesPage() {
   const { detailedRecipes } = useData();
+  const { addDetailedRecipe, deleteDetailedRecipe } = useBrewery();
+  const { toast } = useToast();
   const [selectedRecipe, setSelectedRecipe] = useState<DetailedRecipe | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'grains' | 'hops' | 'yeast-water' | 'history'>('overview');
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [brewDayRecipe, setBrewDayRecipe] = useState<DetailedRecipe | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newRecipe, setNewRecipe] = useState({ name: '', style: '', category: 'flagship' as DetailedRecipe['category'], targetOG: 1.050, targetFG: 1.012, targetABV: 5.0, targetIBU: 30, targetSRM: 6, batchSize: 7, boilTime: 60, mashTemp: 152, mashTime: 60 });
+
+  const handleAddRecipe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRecipe.name.trim()) return;
+    addDetailedRecipe({
+      name: newRecipe.name.trim(),
+      style: newRecipe.style.trim(),
+      category: newRecipe.category,
+      version: 1,
+      targetOG: newRecipe.targetOG,
+      targetFG: newRecipe.targetFG,
+      targetABV: newRecipe.targetABV,
+      targetIBU: newRecipe.targetIBU,
+      targetSRM: newRecipe.targetSRM,
+      batchSize: newRecipe.batchSize,
+      boilTime: newRecipe.boilTime,
+      mashTemp: newRecipe.mashTemp,
+      mashTime: newRecipe.mashTime,
+      grainBill: [],
+      hopSchedule: [],
+      yeast: null as unknown as DetailedRecipe['yeast'],
+      waterProfile: { calcium: 0, magnesium: 0, sodium: 0, sulfate: 0, chloride: 0, bicarbonate: 0 },
+      waterAdjustments: [],
+      brewDaySteps: [],
+      brewHistory: [],
+      totalCost: 0,
+      costPerBarrel: 0,
+      costPerPint: 0,
+      totalBatches: 0,
+      lastBrewed: '',
+      notes: '',
+    });
+    toast('success', `Recipe "${newRecipe.name}" created`);
+    setShowAddModal(false);
+    setNewRecipe({ name: '', style: '', category: 'flagship', targetOG: 1.050, targetFG: 1.012, targetABV: 5.0, targetIBU: 30, targetSRM: 6, batchSize: 7, boilTime: 60, mashTemp: 152, mashTime: 60 });
+  };
+
+  const handleDeleteRecipe = (recipe: DetailedRecipe) => {
+    if (!window.confirm(`Delete recipe "${recipe.name}"? This cannot be undone.`)) return;
+    deleteDetailedRecipe(recipe.id);
+    toast('success', `Recipe "${recipe.name}" deleted`);
+    setSelectedRecipe(null);
+  };
 
   const recipes = detailedRecipes;
 
@@ -557,6 +606,9 @@ export default function RecipesPage() {
               <Badge variant={categoryBadge[r.category]}>{r.category}</Badge>
             </div>
           </div>
+          <button onClick={() => handleDeleteRecipe(r)} className="bg-red-600/80 hover:bg-red-500 text-white font-semibold px-3 py-2 rounded-lg text-sm flex items-center gap-1.5">
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
           <button onClick={() => setBrewDayRecipe(r)} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20">
             <Play className="w-4 h-4" /> Start Brew Day
           </button>
@@ -594,6 +646,13 @@ export default function RecipesPage() {
         <Kpi label="Avg QC Score" value={String(avgQc)} icon={Award} color="purple" />
       </div>
 
+      {/* Add Button */}
+      <div className="flex justify-end">
+        <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-amber-600/20">
+          <Plus className="w-4 h-4" /> New Recipe
+        </button>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
         {['all', 'flagship', 'seasonal', 'limited', 'experimental'].map(f => (
@@ -614,6 +673,56 @@ export default function RecipesPage() {
         {filtered.map(r => <RecipeCard key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />)}
       </div>
       {filtered.length === 0 && <p className="text-center text-sm text-brewery-500 py-8">No recipes match your filters.</p>}
+
+      {/* Add Recipe Modal */}
+      <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="New Recipe">
+        <form onSubmit={handleAddRecipe} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Recipe Name *</label>
+              <input type="text" value={newRecipe.name} onChange={e => setNewRecipe(p => ({ ...p, name: e.target.value }))} required placeholder="e.g. Summer Wheat"
+                className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Style *</label>
+              <input type="text" value={newRecipe.style} onChange={e => setNewRecipe(p => ({ ...p, style: e.target.value }))} required placeholder="e.g. American Wheat"
+                className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Category</label>
+            <select value={newRecipe.category} onChange={e => setNewRecipe(p => ({ ...p, category: e.target.value as DetailedRecipe['category'] }))}
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30">
+              <option value="flagship">Flagship</option>
+              <option value="seasonal">Seasonal</option>
+              <option value="limited">Limited</option>
+              <option value="experimental">Experimental</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-5 gap-3">
+            {([['OG', 'targetOG', 1.050], ['FG', 'targetFG', 1.012], ['ABV %', 'targetABV', 5.0], ['IBU', 'targetIBU', 30], ['SRM', 'targetSRM', 6]] as const).map(([label, key]) => (
+              <div key={key}>
+                <label className="block text-xs font-semibold text-brewery-300 mb-1.5">{label}</label>
+                <input type="number" step={key.includes('OG') || key.includes('FG') ? '0.001' : key === 'targetABV' ? '0.1' : '1'} value={(newRecipe as Record<string, number>)[key]} onChange={e => setNewRecipe(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
+                  className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {([['Batch (bbl)', 'batchSize'], ['Boil (min)', 'boilTime'], ['Mash Temp (°F)', 'mashTemp'], ['Mash (min)', 'mashTime']] as const).map(([label, key]) => (
+              <div key={key}>
+                <label className="block text-xs font-semibold text-brewery-300 mb-1.5">{label}</label>
+                <input type="number" value={(newRecipe as Record<string, number>)[key]} onChange={e => setNewRecipe(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
+                  className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 text-sm font-medium text-brewery-300 hover:text-brewery-100 transition-colors">Cancel</button>
+            <button type="submit" className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-2 rounded-lg text-sm shadow-lg shadow-amber-600/20 transition-colors">Create Recipe</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
