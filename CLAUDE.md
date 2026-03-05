@@ -101,7 +101,7 @@ Two context providers wrap the app:
 
 ## Production Deployment
 
-- **Frontend**: https://bearded-hop-frontend-production.up.railway.app
+- **Frontend**: https://brewery-frontend-production.up.railway.app
 - **Backend API**: https://bearded-hop-api-production.up.railway.app/api/v1
 - **Platform**: Railway
 - **Build command**: `tsc -b && vite build` (outputs to `dist/`)
