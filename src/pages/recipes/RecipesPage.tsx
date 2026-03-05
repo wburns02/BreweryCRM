@@ -45,6 +45,9 @@ const hopTypeBadge: Record<string, 'amber' | 'green' | 'blue' | 'purple'> = {
 
 const tooltipStyle = { background: '#24180b', border: '1px solid #5c3e1940', borderRadius: 8, fontSize: 11 };
 
+/** Safe number — returns 0 for undefined/null/NaN */
+const n = (v: unknown): number => (typeof v === 'number' && !Number.isNaN(v) ? v : 0);
+
 // ──── KPI STAT ────
 function Kpi({ label, value, icon: Icon, color }: { label: string; value: string; icon: React.ElementType; color: string }) {
   const c: Record<string, string> = { amber: 'text-amber-400', blue: 'text-blue-400', emerald: 'text-emerald-400', purple: 'text-purple-400' };
@@ -75,11 +78,11 @@ function RecipeCard({ recipe, onClick }: { recipe: DetailedRecipe; onClick: () =
       </div>
       <div className="grid grid-cols-5 gap-1.5 my-3">
         {[
-          ['OG', recipe.targetOG.toFixed(3)],
-          ['FG', recipe.targetFG.toFixed(3)],
-          ['ABV', `${recipe.targetABV}%`],
-          ['IBU', String(recipe.targetIBU)],
-          ['SRM', String(recipe.targetSRM)],
+          ['OG', n(recipe.targetOG).toFixed(3)],
+          ['FG', n(recipe.targetFG).toFixed(3)],
+          ['ABV', `${n(recipe.targetABV)}%`],
+          ['IBU', String(n(recipe.targetIBU))],
+          ['SRM', String(n(recipe.targetSRM))],
         ].map(([label, val]) => (
           <div key={label} className="text-center p-1.5 rounded bg-brewery-800/30">
             <p className="text-[10px] font-bold text-brewery-200">{val}</p>
@@ -88,7 +91,7 @@ function RecipeCard({ recipe, onClick }: { recipe: DetailedRecipe; onClick: () =
         ))}
       </div>
       <div className="flex items-center justify-between text-[10px] text-brewery-400">
-        <span>${recipe.costPerPint.toFixed(2)}/pint · ${recipe.costPerBarrel.toFixed(0)}/bbl</span>
+        <span>${n(recipe.costPerPint).toFixed(2)}/pint · ${n(recipe.costPerBarrel).toFixed(0)}/bbl</span>
         <span>{recipe.totalBatches} batches · {recipe.lastBrewed}</span>
       </div>
     </div>
@@ -97,10 +100,10 @@ function RecipeCard({ recipe, onClick }: { recipe: DetailedRecipe; onClick: () =
 
 // ──── OVERVIEW TAB ────
 function OverviewTab({ r }: { r: DetailedRecipe }) {
-  const grainCost = r.grainBill.reduce((s, g) => s + g.amount * g.costPerLb, 0);
-  const hopCost = r.hopSchedule.reduce((s, h) => s + h.amount * h.costPerOz, 0);
-  const yeastCost = r.yeast.costPerPack * r.yeast.packsNeeded;
-  const otherCost = r.totalCost - grainCost - hopCost - yeastCost;
+  const grainCost = (r.grainBill || []).reduce((s, g) => s + n(g.amount) * n(g.costPerLb), 0);
+  const hopCost = (r.hopSchedule || []).reduce((s, h) => s + n(h.amount) * n(h.costPerOz), 0);
+  const yeastCost = r.yeast ? n(r.yeast.costPerPack) * n(r.yeast.packsNeeded) : 0;
+  const otherCost = n(r.totalCost) - grainCost - hopCost - yeastCost;
   const costData = [
     { name: 'Grain', value: Math.round(grainCost), fill: '#f59e0b' },
     { name: 'Hops', value: Math.round(hopCost), fill: '#34d399' },
@@ -116,9 +119,9 @@ function OverviewTab({ r }: { r: DetailedRecipe }) {
       {/* Vitals grid */}
       <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
         {[
-          ['OG', r.targetOG.toFixed(3)], ['FG', r.targetFG.toFixed(3)], ['ABV', `${r.targetABV}%`],
-          ['IBU', String(r.targetIBU)], ['SRM', String(r.targetSRM)], ['Batch', `${r.batchSize} bbl`],
-          ['Boil', `${r.boilTime} min`], ['Mash', `${r.mashTemp}°F`], ['Time', `${r.mashTime} min`],
+          ['OG', n(r.targetOG).toFixed(3)], ['FG', n(r.targetFG).toFixed(3)], ['ABV', `${n(r.targetABV)}%`],
+          ['IBU', String(n(r.targetIBU))], ['SRM', String(n(r.targetSRM))], ['Batch', `${n(r.batchSize)} bbl`],
+          ['Boil', `${n(r.boilTime)} min`], ['Mash', `${n(r.mashTemp)}°F`], ['Time', `${n(r.mashTime)} min`],
         ].map(([label, val]) => (
           <div key={label} className="text-center p-2.5 rounded-lg bg-brewery-800/30 border border-brewery-700/20">
             <p className="text-xs font-bold text-brewery-200">{val}</p>
@@ -140,9 +143,9 @@ function OverviewTab({ r }: { r: DetailedRecipe }) {
             </PieChart>
           </ResponsiveContainer>
           <div className="flex-1 grid grid-cols-3 gap-3">
-            <div className="text-center"><p className="text-lg font-bold text-amber-400">${r.totalCost.toFixed(0)}</p><p className="text-[10px] text-brewery-500">Total Cost</p></div>
-            <div className="text-center"><p className="text-lg font-bold text-brewery-200">${r.costPerBarrel.toFixed(0)}</p><p className="text-[10px] text-brewery-500">Cost/BBL</p></div>
-            <div className="text-center"><p className="text-lg font-bold text-emerald-400">${r.costPerPint.toFixed(2)}</p><p className="text-[10px] text-brewery-500">Cost/Pint</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-amber-400">${n(r.totalCost).toFixed(0)}</p><p className="text-[10px] text-brewery-500">Total Cost</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-brewery-200">${n(r.costPerBarrel).toFixed(0)}</p><p className="text-[10px] text-brewery-500">Cost/BBL</p></div>
+            <div className="text-center"><p className="text-lg font-bold text-emerald-400">${n(r.costPerPint).toFixed(2)}</p><p className="text-[10px] text-brewery-500">Cost/Pint</p></div>
           </div>
           <div className="flex flex-wrap gap-2">
             {costData.map(c => (
@@ -162,7 +165,7 @@ function OverviewTab({ r }: { r: DetailedRecipe }) {
 
 // ──── GRAIN BILL TAB ────
 function GrainBillTab({ r }: { r: DetailedRecipe }) {
-  const totalWeight = r.grainBill.reduce((s, g) => s + g.amount, 0);
+  const totalWeight = (r.grainBill || []).reduce((s, g) => s + n(g.amount), 0);
   return (
     <div className="space-y-4">
       {/* Percentage stacked bar */}
@@ -202,8 +205,8 @@ function GrainBillTab({ r }: { r: DetailedRecipe }) {
                 <td className="text-right px-2 text-brewery-300">{g.percentage}%</td>
                 <td className="text-right px-2 text-brewery-400">{g.color}</td>
                 <td className="text-right px-2 text-brewery-400">{g.ppg}</td>
-                <td className="text-right px-2 text-brewery-400">${g.costPerLb.toFixed(2)}</td>
-                <td className="text-right px-2 text-amber-400 font-medium">${(g.amount * g.costPerLb).toFixed(0)}</td>
+                <td className="text-right px-2 text-brewery-400">${n(g.costPerLb).toFixed(2)}</td>
+                <td className="text-right px-2 text-amber-400 font-medium">${(n(g.amount) * n(g.costPerLb)).toFixed(0)}</td>
               </tr>
             ))}
           </tbody>
@@ -211,7 +214,7 @@ function GrainBillTab({ r }: { r: DetailedRecipe }) {
             <tr className="border-t border-brewery-700/30 font-semibold">
               <td className="py-2 px-2 text-brewery-200">Total</td><td /><td className="text-right px-2 text-brewery-200">{totalWeight} lbs</td>
               <td className="text-right px-2 text-brewery-200">100%</td><td /><td /><td />
-              <td className="text-right px-2 text-amber-400">${r.grainBill.reduce((s, g) => s + g.amount * g.costPerLb, 0).toFixed(0)}</td>
+              <td className="text-right px-2 text-amber-400">${(r.grainBill || []).reduce((s, g) => s + n(g.amount) * n(g.costPerLb), 0).toFixed(0)}</td>
             </tr>
           </tfoot>
         </table>
@@ -222,15 +225,16 @@ function GrainBillTab({ r }: { r: DetailedRecipe }) {
 
 // ──── HOP SCHEDULE TAB ────
 function HopScheduleTab({ r }: { r: DetailedRecipe }) {
-  const ibuData = r.hopSchedule.map(h => ({ name: `${h.name} @${h.time >= 0 ? h.time + 'min' : 'DH'}`, ibu: h.ibuContribution, fill: h.type === 'bittering' ? '#f59e0b' : h.type === 'flavor' ? '#34d399' : h.type === 'aroma' ? '#3b82f6' : '#a855f7' }));
-  const totalHopCost = r.hopSchedule.reduce((s, h) => s + h.amount * h.costPerOz, 0);
+  const hops = r.hopSchedule || [];
+  const ibuData = hops.map(h => ({ name: `${h.name} @${n(h.time) >= 0 ? n(h.time) + 'min' : 'DH'}`, ibu: n(h.ibuContribution), fill: h.type === 'bittering' ? '#f59e0b' : h.type === 'flavor' ? '#34d399' : h.type === 'aroma' ? '#3b82f6' : '#a855f7' }));
+  const totalHopCost = hops.reduce((s, h) => s + n(h.amount) * n(h.costPerOz), 0);
 
   return (
     <div className="space-y-5">
       {/* Timeline */}
       <div className="relative pl-6">
         <div className="absolute left-[9px] top-2 bottom-2 w-px border-l-2 border-dashed border-brewery-700/40" />
-        {r.hopSchedule.map((h, i) => (
+        {hops.map((h, i) => (
           <div key={i} className="relative flex items-start gap-4 py-3">
             <div className={`absolute left-[-15px] top-4 w-3.5 h-3.5 rounded-full ring-2 ring-brewery-950 z-10 ${h.type === 'bittering' ? 'bg-amber-400' : h.type === 'flavor' ? 'bg-emerald-400' : h.type === 'aroma' ? 'bg-blue-400' : 'bg-purple-400'}`} />
             <div className="flex-1 bg-brewery-800/20 border border-brewery-700/20 rounded-lg p-3">
@@ -239,13 +243,13 @@ function HopScheduleTab({ r }: { r: DetailedRecipe }) {
                   <span className="text-sm font-semibold text-brewery-100">{h.name}</span>
                   <Badge variant={hopTypeBadge[h.type]}>{h.type}</Badge>
                 </div>
-                <span className="text-xs font-mono text-brewery-400">{h.time >= 0 ? `@${h.time} min` : 'Dry Hop'}</span>
+                <span className="text-xs font-mono text-brewery-400">{n(h.time) >= 0 ? `@${n(h.time)} min` : 'Dry Hop'}</span>
               </div>
               <div className="flex gap-4 text-[10px] text-brewery-400">
-                <span>{h.amount} oz</span>
-                <span>α {h.alphaAcid}%</span>
-                <span className="text-amber-400">{h.ibuContribution} IBU</span>
-                <span>${(h.amount * h.costPerOz).toFixed(2)}</span>
+                <span>{n(h.amount)} oz</span>
+                <span>α {n(h.alphaAcid)}%</span>
+                <span className="text-amber-400">{n(h.ibuContribution)} IBU</span>
+                <span>${(n(h.amount) * n(h.costPerOz)).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -276,16 +280,16 @@ function HopScheduleTab({ r }: { r: DetailedRecipe }) {
 
 // ──── YEAST & WATER TAB ────
 function YeastWaterTab({ r }: { r: DetailedRecipe }) {
-  const wp = r.waterProfile;
+  const wp = r.waterProfile || { calcium: 0, magnesium: 0, sodium: 0, sulfate: 0, chloride: 0, bicarbonate: 0 };
   const radarData = [
-    { axis: 'Ca', value: wp.calcium },
-    { axis: 'Mg', value: wp.magnesium },
-    { axis: 'Na', value: wp.sodium },
-    { axis: 'SO4', value: wp.sulfate },
-    { axis: 'Cl', value: wp.chloride },
-    { axis: 'HCO3', value: wp.bicarbonate },
+    { axis: 'Ca', value: n(wp.calcium) },
+    { axis: 'Mg', value: n(wp.magnesium) },
+    { axis: 'Na', value: n(wp.sodium) },
+    { axis: 'SO4', value: n(wp.sulfate) },
+    { axis: 'Cl', value: n(wp.chloride) },
+    { axis: 'HCO3', value: n(wp.bicarbonate) },
   ];
-  const clSo4Ratio = wp.sulfate > 0 ? wp.chloride / wp.sulfate : 99;
+  const clSo4Ratio = n(wp.sulfate) > 0 ? n(wp.chloride) / n(wp.sulfate) : 99;
   const ratioLabel = clSo4Ratio > 2 ? 'Malty' : clSo4Ratio > 1.2 ? 'Balanced-Malty' : clSo4Ratio > 0.8 ? 'Balanced' : clSo4Ratio > 0.5 ? 'Balanced-Hoppy' : 'Hoppy';
   const ratioPct = Math.min(100, Math.max(0, ((clSo4Ratio - 0.2) / 3.0) * 100));
 
@@ -295,14 +299,14 @@ function YeastWaterTab({ r }: { r: DetailedRecipe }) {
       <div className="bg-brewery-900/60 border border-brewery-700/20 rounded-xl p-4">
         <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-3">Yeast Profile</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div><p className="text-[10px] text-brewery-500">Strain</p><p className="text-xs font-semibold text-brewery-200">{r.yeast.lab} {r.yeast.strain}</p></div>
-          <div><p className="text-[10px] text-brewery-500">Name</p><p className="text-xs font-semibold text-brewery-200">{r.yeast.name}</p></div>
-          <div><p className="text-[10px] text-brewery-500">Attenuation</p><p className="text-xs font-semibold text-brewery-200">{r.yeast.attenuationMin}–{r.yeast.attenuationMax}%</p></div>
-          <div><p className="text-[10px] text-brewery-500">Flocculation</p><p className="text-xs font-semibold text-brewery-200 capitalize">{r.yeast.flocculation}</p></div>
-          <div><p className="text-[10px] text-brewery-500">Temp Range</p><p className="text-xs font-semibold text-brewery-200">{r.yeast.tempMin}–{r.yeast.tempMax}°F</p></div>
-          <div><p className="text-[10px] text-brewery-500">Pitch Rate</p><p className="text-xs font-semibold text-brewery-200">{r.yeast.pitchRate}M cells/mL/°P</p></div>
-          <div><p className="text-[10px] text-brewery-500">Starter</p><Badge variant={r.yeast.starterNeeded ? 'amber' : 'green'}>{r.yeast.starterNeeded ? 'Required' : 'Not Needed'}</Badge></div>
-          <div><p className="text-[10px] text-brewery-500">Cost</p><p className="text-xs font-semibold text-amber-400">${(r.yeast.costPerPack * r.yeast.packsNeeded).toFixed(2)} ({r.yeast.packsNeeded} packs)</p></div>
+          <div><p className="text-[10px] text-brewery-500">Strain</p><p className="text-xs font-semibold text-brewery-200">{r.yeast?.lab} {r.yeast?.strain}</p></div>
+          <div><p className="text-[10px] text-brewery-500">Name</p><p className="text-xs font-semibold text-brewery-200">{r.yeast?.name}</p></div>
+          <div><p className="text-[10px] text-brewery-500">Attenuation</p><p className="text-xs font-semibold text-brewery-200">{n(r.yeast?.attenuationMin)}–{n(r.yeast?.attenuationMax)}%</p></div>
+          <div><p className="text-[10px] text-brewery-500">Flocculation</p><p className="text-xs font-semibold text-brewery-200 capitalize">{r.yeast?.flocculation}</p></div>
+          <div><p className="text-[10px] text-brewery-500">Temp Range</p><p className="text-xs font-semibold text-brewery-200">{n(r.yeast?.tempMin)}–{n(r.yeast?.tempMax)}°F</p></div>
+          <div><p className="text-[10px] text-brewery-500">Pitch Rate</p><p className="text-xs font-semibold text-brewery-200">{n(r.yeast?.pitchRate)}M cells/mL/°P</p></div>
+          <div><p className="text-[10px] text-brewery-500">Starter</p><Badge variant={r.yeast?.starterNeeded ? 'amber' : 'green'}>{r.yeast?.starterNeeded ? 'Required' : 'Not Needed'}</Badge></div>
+          <div><p className="text-[10px] text-brewery-500">Cost</p><p className="text-xs font-semibold text-amber-400">${(n(r.yeast?.costPerPack) * n(r.yeast?.packsNeeded)).toFixed(2)} ({n(r.yeast?.packsNeeded)} packs)</p></div>
         </div>
       </div>
 
@@ -329,14 +333,14 @@ function YeastWaterTab({ r }: { r: DetailedRecipe }) {
               <div className="absolute top-0 h-full w-1 bg-white rounded-full shadow-lg" style={{ left: `${ratioPct}%` }} />
             </div>
             <div className="flex justify-between text-[9px] text-brewery-500 mt-1"><span>Hoppy (SO4)</span><span>Balanced</span><span>Malty (Cl)</span></div>
-            <p className="text-xs text-brewery-300 mt-2">Cl:SO4 = {wp.chloride}:{wp.sulfate} ({clSo4Ratio.toFixed(2)})</p>
+            <p className="text-xs text-brewery-300 mt-2">Cl:SO4 = {n(wp.chloride)}:{n(wp.sulfate)} ({clSo4Ratio.toFixed(2)})</p>
           </div>
 
           {/* Water adjustments */}
           <div className="bg-brewery-900/60 border border-brewery-700/20 rounded-xl p-4">
             <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Water Adjustments</h4>
             <div className="space-y-2">
-              {r.waterAdjustments.map((a, i) => (
+              {(r.waterAdjustments || []).map((a, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
                   <span className="text-brewery-200">{a.mineral}</span>
                   <span className="text-brewery-400">{a.amount} {a.unit}</span>
@@ -353,8 +357,9 @@ function YeastWaterTab({ r }: { r: DetailedRecipe }) {
 
 // ──── BREW HISTORY TAB ────
 function BrewHistoryTab({ r }: { r: DetailedRecipe }) {
-  const chartData = [...r.brewHistory].reverse().map(b => ({ batch: b.batchNumber.split('-').pop(), qc: b.qcScore, date: b.date }));
-  const scores = r.brewHistory.map(b => b.qcScore);
+  const history = r.brewHistory || [];
+  const chartData = [...history].reverse().map(b => ({ batch: (b.batchNumber || '').split('-').pop(), qc: n(b.qcScore), date: b.date }));
+  const scores = history.map(b => n(b.qcScore));
   const best = Math.max(...scores);
   const worst = Math.min(...scores);
   const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
@@ -402,12 +407,12 @@ function BrewHistoryTab({ r }: { r: DetailedRecipe }) {
             </tr>
           </thead>
           <tbody>
-            {r.brewHistory.map((b, i) => (
+            {history.map((b, i) => (
               <tr key={i} className="border-b border-brewery-700/10 hover:bg-brewery-800/20">
                 <td className="py-2 px-2 text-brewery-200 font-mono">{b.batchNumber}</td>
                 <td className="px-2 text-brewery-300">{b.date}</td>
-                <td className="text-right px-2 text-brewery-300">{b.actualOG.toFixed(3)}</td>
-                <td className="text-right px-2 text-brewery-300">{b.actualFG.toFixed(3)}</td>
+                <td className="text-right px-2 text-brewery-300">{n(b.actualOG).toFixed(3)}</td>
+                <td className="text-right px-2 text-brewery-300">{n(b.actualFG).toFixed(3)}</td>
                 <td className="text-right px-2">
                   <span className={`font-bold ${b.qcScore >= 90 ? 'text-emerald-400' : b.qcScore >= 80 ? 'text-amber-400' : 'text-red-400'}`}>{b.qcScore}</span>
                 </td>
@@ -423,7 +428,7 @@ function BrewHistoryTab({ r }: { r: DetailedRecipe }) {
 
 // ──── BREW DAY MODAL ────
 function BrewDayModal({ recipe, onClose }: { recipe: DetailedRecipe; onClose: () => void }) {
-  const [steps, setSteps] = useState(recipe.brewDaySteps.map(s => ({ ...s })));
+  const [steps, setSteps] = useState((recipe.brewDaySteps || []).map(s => ({ ...s })));
   const [startTime] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
   const completed = steps.filter(s => s.completed).length;
@@ -519,9 +524,9 @@ export default function RecipesPage() {
   }, [recipes, filter, search]);
 
   // KPIs
-  const avgCostBbl = recipes.length ? Math.round(recipes.reduce((s, r) => s + r.costPerBarrel, 0) / recipes.length) : 0;
-  const totalBatches = recipes.reduce((s, r) => s + r.totalBatches, 0);
-  const allQc = recipes.flatMap(r => r.brewHistory.map(b => b.qcScore));
+  const avgCostBbl = recipes.length ? Math.round(recipes.reduce((s, r) => s + n(r.costPerBarrel), 0) / recipes.length) : 0;
+  const totalBatches = recipes.reduce((s, r) => s + n(r.totalBatches), 0);
+  const allQc = recipes.flatMap(r => (r.brewHistory || []).map(b => n(b.qcScore)));
   const avgQc = allQc.length ? Math.round(allQc.reduce((a, b) => a + b, 0) / allQc.length) : 0;
 
   if (selectedRecipe) {

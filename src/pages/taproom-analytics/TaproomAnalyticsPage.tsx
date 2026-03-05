@@ -63,7 +63,7 @@ function LiveShiftTab() {
 
   const todayDay = DAY_NAMES[now.getDay()];
   const onShiftStaff = useMemo(() =>
-    staff.filter(s => s.status === 'active' && s.schedule.some(sh => sh.day === todayDay.slice(0, 3))),
+    staff.filter(s => s.status === 'active' && (s.schedule || []).some(sh => sh.day === todayDay.slice(0, 3))),
   [todayDay]);
 
   const topSeller = onShiftStaff.length > 0 ? onShiftStaff.reduce((best, s) => s.salesThisWeek > (best?.salesThisWeek ?? 0) ? s : best, onShiftStaff[0]) : null;
@@ -228,7 +228,7 @@ function PourTab() {
     return activeTaps.map(tap => {
       const beer = beers.find(b => b.id === tap.beerId);
       const poursPerDay = tap.totalPours / 30;
-      const pintPrice = tap.pourSizes.find(p => p.name === 'Pint')?.price ?? 7;
+      const pintPrice = (tap.pourSizes || []).find(p => p.name === 'Pint')?.price ?? 7;
       const dailyRev = poursPerDay * pintPrice;
       const gallonsPerKeg = tap.kegSize === '1/2' ? 15.5 : tap.kegSize === '1/4' ? 7.75 : 5.17;
       const pintsPerKeg = gallonsPerKeg * 10.67;
