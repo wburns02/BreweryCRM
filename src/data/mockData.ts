@@ -147,10 +147,10 @@ export const wholesaleAccounts: WholesaleAccount[] = [
 ];
 
 export const mugClubMembers: MugClubMember[] = [
-  { id: '1', customerId: '5', customerName: 'Bobby Whitfield', tier: 'Founding', memberSince: '2025-12-20', renewalDate: '2026-12-20', mugNumber: 1, mugLocation: 'Shelf A-1', totalSaved: 486.00, visitsAsMemeber: 38, referrals: 5, status: 'active', benefits: ['20oz at pint price', '15% off merchandise', 'Member-only releases', 'Annual appreciation night', 'Founding member plaque'] },
-  { id: '2', customerId: '1', customerName: 'Jake Morrison', tier: 'Premium', memberSince: '2026-01-15', renewalDate: '2027-01-15', mugNumber: 8, mugLocation: 'Shelf A-8', totalSaved: 224.50, visitsAsMemeber: 24, referrals: 2, status: 'active', benefits: ['20oz at pint price', '10% off merchandise', 'Member-only releases'] },
-  { id: '3', customerId: '2', customerName: 'Maria Gonzalez', tier: 'Standard', memberSince: '2026-02-01', renewalDate: '2027-02-01', mugNumber: 15, mugLocation: 'Shelf B-3', totalSaved: 112.25, visitsAsMemeber: 16, referrals: 1, status: 'active', benefits: ['20oz at pint price', 'Birthday free pint'] },
-  { id: '4', customerId: '7', customerName: 'Carlos Rivera', tier: 'Standard', memberSince: '2026-02-10', renewalDate: '2027-02-10', mugNumber: 22, mugLocation: 'Shelf B-10', totalSaved: 98.00, visitsAsMemeber: 10, referrals: 0, status: 'active', benefits: ['20oz at pint price', 'Birthday free pint'] },
+  { id: '1', customerId: '5', customerName: 'Bobby Whitfield', tier: 'Founding', memberSince: '2025-12-20', renewalDate: '2026-12-20', mugNumber: 1, mugLocation: 'Shelf A-1', totalSaved: 486.00, visitsAsMember: 38, referrals: 5, status: 'active', benefits: ['20oz at pint price', '15% off merchandise', 'Member-only releases', 'Annual appreciation night', 'Founding member plaque'] },
+  { id: '2', customerId: '1', customerName: 'Jake Morrison', tier: 'Premium', memberSince: '2026-01-15', renewalDate: '2027-01-15', mugNumber: 8, mugLocation: 'Shelf A-8', totalSaved: 224.50, visitsAsMember: 24, referrals: 2, status: 'active', benefits: ['20oz at pint price', '10% off merchandise', 'Member-only releases'] },
+  { id: '3', customerId: '2', customerName: 'Maria Gonzalez', tier: 'Standard', memberSince: '2026-02-01', renewalDate: '2027-02-01', mugNumber: 15, mugLocation: 'Shelf B-3', totalSaved: 112.25, visitsAsMember: 16, referrals: 1, status: 'active', benefits: ['20oz at pint price', 'Birthday free pint'] },
+  { id: '4', customerId: '7', customerName: 'Carlos Rivera', tier: 'Standard', memberSince: '2026-02-10', renewalDate: '2027-02-10', mugNumber: 22, mugLocation: 'Shelf B-10', totalSaved: 98.00, visitsAsMember: 10, referrals: 0, status: 'active', benefits: ['20oz at pint price', 'Birthday free pint'] },
 ];
 
 export const emailCampaigns: EmailCampaign[] = [

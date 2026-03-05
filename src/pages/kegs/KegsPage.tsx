@@ -256,6 +256,7 @@ function AddKegModal({ onClose, onAdd }: { onClose: () => void; onAdd: (keg: Omi
     onAdd({
       kegNumber: kegNumber.trim(),
       size,
+      gallons: size === '1/2' ? 15.5 : size === '1/4' ? 7.75 : 5.16,
       status: status as Keg['status'],
       location: location as Keg['location'],
       currentBeerName: '',
@@ -265,7 +266,7 @@ function AddKegModal({ onClose, onAdd }: { onClose: () => void; onAdd: (keg: Omi
       purchaseDate: today,
       purchaseCost,
       deposit,
-      depositStatus: 'none' as const,
+      depositStatus: 'not-applicable',
       history: [],
       notes: '',
       lastCleaned: today,
@@ -717,19 +718,19 @@ export default function KegsPage() {
   const [selectedKeg, setSelectedKeg] = useState<Keg | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const { addKeg, deleteKeg } = useBrewery();
-  const { addToast } = useToast();
+  const { toast } = useToast();
   const summary = useFleetSummary();
 
   const handleAddKeg = (keg: Omit<Keg, 'id'>) => {
     addKeg(keg);
-    addToast(`Keg ${keg.kegNumber} added to fleet`, 'success');
+    toast('success', `Keg ${keg.kegNumber} added to fleet`);
     setShowAddModal(false);
   };
 
   const handleDeleteKeg = (id: string) => {
     const kegNumber = selectedKeg?.kegNumber || '';
     deleteKeg(id);
-    addToast(`Keg ${kegNumber} deleted`, 'success');
+    toast('success', `Keg ${kegNumber} deleted`);
     setSelectedKeg(null);
   };
 

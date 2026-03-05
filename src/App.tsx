@@ -85,7 +85,7 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
+  const [, setDemoMode] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   useEffect(() => {
@@ -162,7 +162,7 @@ function App() {
   const PageComponent = pages[currentPage];
 
   return (
-    <DataProvider demoMode={demoMode}>
+    <DataProvider>
     <BreweryProvider>
     <ToastProvider>
     <div className="min-h-screen bg-brewery-950">

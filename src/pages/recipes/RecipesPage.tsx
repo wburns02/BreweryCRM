@@ -520,6 +520,8 @@ export default function RecipesPage() {
     e.preventDefault();
     if (!newRecipe.name.trim()) return;
     addDetailedRecipe({
+      beerId: '',
+      createdDate: new Date().toISOString().split('T')[0],
       name: newRecipe.name.trim(),
       style: newRecipe.style.trim(),
       category: newRecipe.category,
@@ -703,7 +705,7 @@ export default function RecipesPage() {
             {([['OG', 'targetOG', 1.050], ['FG', 'targetFG', 1.012], ['ABV %', 'targetABV', 5.0], ['IBU', 'targetIBU', 30], ['SRM', 'targetSRM', 6]] as const).map(([label, key]) => (
               <div key={key}>
                 <label className="block text-xs font-semibold text-brewery-300 mb-1.5">{label}</label>
-                <input type="number" step={key.includes('OG') || key.includes('FG') ? '0.001' : key === 'targetABV' ? '0.1' : '1'} value={(newRecipe as Record<string, number>)[key]} onChange={e => setNewRecipe(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
+                <input type="number" step={key.includes('OG') || key.includes('FG') ? '0.001' : key === 'targetABV' ? '0.1' : '1'} value={(newRecipe as unknown as Record<string, number>)[key]} onChange={e => setNewRecipe(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
                   className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
               </div>
             ))}
@@ -712,7 +714,7 @@ export default function RecipesPage() {
             {([['Batch (bbl)', 'batchSize'], ['Boil (min)', 'boilTime'], ['Mash Temp (°F)', 'mashTemp'], ['Mash (min)', 'mashTime']] as const).map(([label, key]) => (
               <div key={key}>
                 <label className="block text-xs font-semibold text-brewery-300 mb-1.5">{label}</label>
-                <input type="number" value={(newRecipe as Record<string, number>)[key]} onChange={e => setNewRecipe(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
+                <input type="number" value={(newRecipe as unknown as Record<string, number>)[key]} onChange={e => setNewRecipe(p => ({ ...p, [key]: parseFloat(e.target.value) || 0 }))}
                   className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
               </div>
             ))}
