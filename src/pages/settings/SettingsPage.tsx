@@ -2,9 +2,33 @@ import { useState } from 'react';
 import { Settings, Shield, Bell, Database, AlertTriangle, CheckCircle } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { complianceItems } from '../../data/mockData';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export default function SettingsPage() {
+  const { settings, updateSettings } = useBrewery();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'general' | 'compliance' | 'integrations' | 'notifications'>('general');
+  const [businessName, setBusinessName] = useState(settings.businessName);
+  const [address, setAddress] = useState(settings.address);
+  const [phone, setPhone] = useState(settings.phone);
+  const [email, setEmail] = useState(settings.email);
+  const [taxRate, setTaxRate] = useState(settings.taxRate);
+  const [timezone, setTimezone] = useState(settings.timezone);
+  const [notificationPrefs, setNotificationPrefs] = useState<Record<string, boolean>>({
+    'Low keg alerts': true,
+    'Inventory reorder alerts': true,
+    'Compliance due dates': true,
+    'New reservation notifications': false,
+    'Daily sales summary': true,
+    'TABC revenue split alert': true,
+    'Staff overtime alert': true,
+  });
+
+  const handleSaveSettings = () => {
+    updateSettings({ businessName, address, phone, email, taxRate, timezone });
+    toast('success', 'Settings saved successfully');
+  };
 
   return (
     <div className="space-y-6">
@@ -30,33 +54,33 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-brewery-400 mb-1">Business Name</label>
-                <input type="text" defaultValue="Bearded Hop Brewery" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                <input type="text" value={businessName} onChange={e => setBusinessName(e.target.value)} className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-brewery-400 mb-1">Address</label>
-                <input type="text" defaultValue="123 Main Street, Bulverde, TX 78163" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                <input type="text" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-brewery-400 mb-1">Phone</label>
-                  <input type="text" defaultValue="(830) 555-BREW" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                  <input type="text" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-brewery-400 mb-1">Email</label>
-                  <input type="text" defaultValue="hello@beardedhopbrewery.com" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                  <input type="text" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-brewery-400 mb-1">Tax Rate</label>
-                  <input type="text" defaultValue="8.25%" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                  <input type="text" value={taxRate} onChange={e => setTaxRate(e.target.value)} className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-brewery-400 mb-1">Timezone</label>
-                  <input type="text" defaultValue="America/Chicago (CST)" className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                  <input type="text" value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                 </div>
               </div>
-              <button className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-amber-600/20">Save Changes</button>
+              <button onClick={handleSaveSettings} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-amber-600/20">Save Changes</button>
             </div>
           </div>
 
@@ -149,20 +173,23 @@ export default function SettingsPage() {
             <h3 className="text-sm font-semibold text-brewery-200 mb-4">Alert Preferences</h3>
             <div className="space-y-4">
               {[
-                { label: 'Low keg alerts', desc: 'Notify when a keg drops below 15%', enabled: true },
-                { label: 'Inventory reorder alerts', desc: 'Notify when items hit reorder point', enabled: true },
-                { label: 'Compliance due dates', desc: 'Reminder 14 days before due', enabled: true },
-                { label: 'New reservation notifications', desc: 'Push notification for each new reservation', enabled: false },
-                { label: 'Daily sales summary', desc: 'End-of-day revenue report at 11pm', enabled: true },
-                { label: 'TABC revenue split alert', desc: 'Alert if beer exceeds 55% of revenue', enabled: true },
-                { label: 'Staff overtime alert', desc: 'Alert when staff approaches 40 hours', enabled: true },
+                { label: 'Low keg alerts', desc: 'Notify when a keg drops below 15%' },
+                { label: 'Inventory reorder alerts', desc: 'Notify when items hit reorder point' },
+                { label: 'Compliance due dates', desc: 'Reminder 14 days before due' },
+                { label: 'New reservation notifications', desc: 'Push notification for each new reservation' },
+                { label: 'Daily sales summary', desc: 'End-of-day revenue report at 11pm' },
+                { label: 'TABC revenue split alert', desc: 'Alert if beer exceeds 55% of revenue' },
+                { label: 'Staff overtime alert', desc: 'Alert when staff approaches 40 hours' },
               ].map(pref => (
                 <div key={pref.label} className="flex items-center justify-between p-3 rounded-lg bg-brewery-800/30">
                   <div>
                     <p className="text-sm text-brewery-200">{pref.label}</p>
                     <p className="text-xs text-brewery-400">{pref.desc}</p>
                   </div>
-                  <div className={`w-10 h-6 rounded-full transition-colors cursor-pointer flex items-center ${pref.enabled ? 'bg-amber-600 justify-end' : 'bg-brewery-700 justify-start'}`}>
+                  <div onClick={() => {
+                    setNotificationPrefs(prev => ({ ...prev, [pref.label]: !prev[pref.label] }));
+                    toast('info', `${pref.label} ${notificationPrefs[pref.label] ? 'disabled' : 'enabled'}`);
+                  }} className={`w-10 h-6 rounded-full transition-colors cursor-pointer flex items-center ${notificationPrefs[pref.label] ? 'bg-amber-600 justify-end' : 'bg-brewery-700 justify-start'}`}>
                     <div className="w-4 h-4 bg-white rounded-full mx-1 shadow" />
                   </div>
                 </div>

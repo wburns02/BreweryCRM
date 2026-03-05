@@ -2,15 +2,23 @@ import { useState } from 'react';
 import { Warehouse, AlertTriangle, Package, ShoppingCart } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
-import { inventoryItems } from '../../data/mockData';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 
 const categories = ['all', 'grain', 'hops', 'yeast', 'adjunct', 'chemical', 'packaging', 'food', 'na-beverage', 'merchandise', 'supplies'] as const;
 
 export default function InventoryPage() {
+  const { inventoryItems, updateInventoryItem } = useBrewery();
+  const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const filtered = activeCategory === 'all' ? inventoryItems : inventoryItems.filter(i => i.category === activeCategory);
   const lowStock = inventoryItems.filter(i => i.currentStock <= i.reorderPoint);
   const totalValue = inventoryItems.reduce((s, i) => s + (i.currentStock * i.costPerUnit), 0);
+
+  const handleReorder = (item: typeof inventoryItems[0]) => {
+    updateInventoryItem(item.id, { currentStock: item.parLevel });
+    toast('success', `${item.name} restocked to par level (${item.parLevel} ${item.unit})`);
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +65,7 @@ export default function InventoryPage() {
                   <p className="text-xs font-medium text-brewery-100">{item.name}</p>
                   <p className="text-[10px] text-brewery-400">{item.currentStock} {item.unit} left (par: {item.parLevel})</p>
                 </div>
-                <button className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg font-medium">Reorder</button>
+                <button onClick={() => handleReorder(item)} className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg font-medium">Reorder</button>
               </div>
             ))}
           </div>

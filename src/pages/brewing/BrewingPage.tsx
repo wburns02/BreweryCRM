@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { FlaskConical, Thermometer, Droplets, Plus, CheckCircle } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
-import { batches, beers } from '../../data/mockData';
+import Modal from '../../components/ui/Modal';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
+import { beers } from '../../data/mockData';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const statusColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'gray' | 'red'> = {
@@ -20,7 +23,49 @@ const tanks = [
 ];
 
 export default function BrewingPage() {
+  const { batches, addBatch } = useBrewery();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'batches' | 'tanks' | 'recipes'>('batches');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [beerName, setBeerName] = useState('');
+  const [style, setStyle] = useState('');
+  const [targetOG, setTargetOG] = useState('');
+  const [volume, setVolume] = useState('');
+  const [tankId, setTankId] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!beerName.trim() || !style.trim()) return;
+
+    const batchNumber = `BH-2026-${String(batches.length + 17).padStart(3, '0')}`;
+    const today = new Date().toISOString().split('T')[0];
+
+    addBatch({
+      batchNumber,
+      beerId: `beer-${Date.now()}`,
+      beerName: beerName.trim(),
+      style: style.trim(),
+      status: 'planned',
+      brewDate: today,
+      targetOG: parseFloat(targetOG) || 1.050,
+      targetFG: parseFloat(targetOG) ? parseFloat(targetOG) * 0.75 : 1.012,
+      tankId: tankId || 'TBD',
+      volume: parseFloat(volume) || 7,
+      notes: notes.trim(),
+      gravityReadings: [],
+      temperatureLog: [],
+    });
+
+    toast('success', `Batch ${batchNumber} (${beerName}) created successfully`);
+    setShowAddModal(false);
+    setBeerName('');
+    setStyle('');
+    setTargetOG('');
+    setVolume('');
+    setTankId('');
+    setNotes('');
+  };
 
   return (
     <div className="space-y-6">
@@ -56,7 +101,7 @@ export default function BrewingPage() {
       {activeTab === 'batches' && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20">
+            <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20">
               <Plus className="w-4 h-4" /> New Batch
             </button>
           </div>
@@ -171,6 +216,66 @@ export default function BrewingPage() {
           ))}
         </div>
       )}
+
+      {/* New Batch Modal */}
+      <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="New Brew Batch">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Beer Name *</label>
+            <input type="text" value={beerName} onChange={e => setBeerName(e.target.value)} required
+              placeholder="e.g. Hop Beard IPA"
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Style *</label>
+            <input type="text" value={style} onChange={e => setStyle(e.target.value)} required
+              placeholder="e.g. American IPA"
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Target OG</label>
+              <input type="text" value={targetOG} onChange={e => setTargetOG(e.target.value)}
+                placeholder="1.065"
+                className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Volume (bbl)</label>
+              <input type="text" value={volume} onChange={e => setVolume(e.target.value)}
+                placeholder="7"
+                className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Assign Tank</label>
+            <select value={tankId} onChange={e => setTankId(e.target.value)}
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30">
+              <option value="">Select tank...</option>
+              {tanks.map(t => (
+                <option key={t.id} value={t.id} disabled={t.status !== 'available'}>
+                  {t.name} ({t.capacity} bbl) {t.status !== 'available' ? '- In Use' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Notes</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+              placeholder="Brew day notes, recipe adjustments, etc."
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 resize-none" />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setShowAddModal(false)}
+              className="px-4 py-2 text-sm font-medium text-brewery-300 hover:text-brewery-100 transition-colors">
+              Cancel
+            </button>
+            <button type="submit"
+              className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-2 rounded-lg text-sm shadow-lg shadow-amber-600/20 transition-colors">
+              Create Batch
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

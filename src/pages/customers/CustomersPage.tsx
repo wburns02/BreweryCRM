@@ -1,18 +1,33 @@
 import { useState, useMemo } from 'react';
 import { Search, Plus, Crown, ArrowUpDown, ChevronRight } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { customers } from '../../data/mockData';
+import Modal from '../../components/ui/Modal';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 import CustomerDetailPage from './CustomerDetailPage';
 
 const tierColors = { Bronze: 'gray' as const, Silver: 'blue' as const, Gold: 'amber' as const, Platinum: 'purple' as const };
 
 type SortKey = 'name' | 'ltv' | 'lastVisit' | 'visits' | 'points';
 
+const inputClass = 'w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50';
+const labelClass = 'block text-xs font-medium text-brewery-400 mb-1';
+
 export default function CustomersPage() {
+  const { customers, addCustomer } = useBrewery();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortKey>('name');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form state
+  const [formFirstName, setFormFirstName] = useState('');
+  const [formLastName, setFormLastName] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [formNotes, setFormNotes] = useState('');
 
   const filtered = useMemo(() => {
     let list = customers.filter(c => {
@@ -30,9 +45,44 @@ export default function CustomersPage() {
       }
     });
     return list;
-  }, [search, filterTag, sortBy]);
+  }, [customers, search, filterTag, sortBy]);
 
   const tags = ['all', 'regular', 'vip', 'mug-club', 'family', 'na-drinker', 'new'];
+
+  const resetForm = () => {
+    setFormFirstName('');
+    setFormLastName('');
+    setFormEmail('');
+    setFormPhone('');
+    setFormNotes('');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const today = new Date().toISOString().split('T')[0];
+    addCustomer({
+      firstName: formFirstName.trim(),
+      lastName: formLastName.trim(),
+      email: formEmail.trim(),
+      phone: formPhone.trim(),
+      firstVisit: today,
+      lastVisit: today,
+      totalVisits: 0,
+      totalSpent: 0,
+      avgTicket: 0,
+      favoriteBeers: [],
+      dietaryRestrictions: [],
+      tags: ['new'],
+      loyaltyPoints: 0,
+      loyaltyTier: 'Bronze',
+      mugClubMember: false,
+      notes: formNotes.trim(),
+      source: 'walk-in',
+    });
+    toast('success', `${formFirstName} ${formLastName} added as a new guest!`);
+    resetForm();
+    setShowAddModal(false);
+  };
 
   if (selectedId) {
     return <CustomerDetailPage customerId={selectedId} onBack={() => setSelectedId(null)} />;
@@ -57,7 +107,7 @@ export default function CustomersPage() {
               <option value="points">Loyalty Points</option>
             </select>
           </div>
-          <button className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20">
+          <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20">
             <Plus className="w-4 h-4" /> Add Guest
           </button>
         </div>
@@ -134,6 +184,42 @@ export default function CustomersPage() {
           </div>
         ))}
       </div>
+
+      {/* Add Guest Modal */}
+      <Modal open={showAddModal} onClose={() => { resetForm(); setShowAddModal(false); }} title="Add New Guest">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>First Name *</label>
+              <input type="text" required value={formFirstName} onChange={e => setFormFirstName(e.target.value)} className={inputClass} placeholder="John" />
+            </div>
+            <div>
+              <label className={labelClass}>Last Name *</label>
+              <input type="text" required value={formLastName} onChange={e => setFormLastName(e.target.value)} className={inputClass} placeholder="Doe" />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Email</label>
+            <input type="email" value={formEmail} onChange={e => setFormEmail(e.target.value)} className={inputClass} placeholder="john@example.com" />
+          </div>
+          <div>
+            <label className={labelClass}>Phone</label>
+            <input type="tel" value={formPhone} onChange={e => setFormPhone(e.target.value)} className={inputClass} placeholder="(555) 123-4567" />
+          </div>
+          <div>
+            <label className={labelClass}>Notes</label>
+            <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} rows={3} className={inputClass} placeholder="Any preferences, allergies, or special notes..." />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => { resetForm(); setShowAddModal(false); }} className="px-4 py-2 rounded-lg text-sm text-brewery-400 hover:text-brewery-200 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
+              Add Guest
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

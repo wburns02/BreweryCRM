@@ -3,15 +3,81 @@ import { Calendar, Music, DollarSign, Plus, MapPin, Clock, Ticket, Star } from '
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import StatCard from '../../components/ui/StatCard';
-import { events, performers } from '../../data/mockData';
+import { performers } from '../../data/mockData';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 import type { BreweryEvent, Performer } from '../../types';
 
 const typeIcons: Record<string, string> = { 'live-music': '🎵', trivia: '🧠', 'beer-release': '🍺', 'tap-takeover': '🍻', 'pairing-dinner': '🍽️', private: '🔒', family: '👨‍👩‍👧‍👦', tour: '🏭', holiday: '🎄', fundraiser: '❤️' };
 
+const eventTypes: BreweryEvent['type'][] = ['live-music', 'trivia', 'beer-release', 'tap-takeover', 'pairing-dinner', 'private', 'family', 'tour', 'holiday', 'fundraiser'];
+const locationOptions: BreweryEvent['location'][] = ['taproom', 'patio', 'beer-garden', 'event-hall', 'outdoor'];
+
+const inputClass = 'w-full bg-brewery-800/50 border border-brewery-600/30 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30';
+const labelClass = 'block text-xs font-medium text-brewery-300 mb-1';
+
 export default function EventsPage() {
+  const { events, addEvent } = useBrewery();
+  const { toast } = useToast();
+
   const [activeTab, setActiveTab] = useState<'calendar' | 'performers'>('calendar');
   const [selectedEvent, setSelectedEvent] = useState<BreweryEvent | null>(null);
   const [selectedPerformer, setSelectedPerformer] = useState<Performer | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form state
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState<BreweryEvent['type']>('live-music');
+  const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [location, setLocation] = useState<BreweryEvent['location']>('taproom');
+  const [description, setDescription] = useState('');
+  const [capacity, setCapacity] = useState(50);
+  const [isTicketed, setIsTicketed] = useState(false);
+  const [ticketPrice, setTicketPrice] = useState(0);
+  const [isFamilyFriendly, setIsFamilyFriendly] = useState(false);
+
+  const resetForm = () => {
+    setTitle('');
+    setType('live-music');
+    setDate('');
+    setStartTime('');
+    setEndTime('');
+    setLocation('taproom');
+    setDescription('');
+    setCapacity(50);
+    setIsTicketed(false);
+    setTicketPrice(0);
+    setIsFamilyFriendly(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !date || !startTime || !endTime) {
+      toast('error', 'Please fill in all required fields');
+      return;
+    }
+    addEvent({
+      title: title.trim(),
+      type,
+      date,
+      startTime,
+      endTime,
+      location,
+      description: description.trim(),
+      capacity,
+      isTicketed,
+      ticketPrice: isTicketed ? ticketPrice : 0,
+      isFamilyFriendly,
+      status: 'upcoming',
+      ticketsSold: 0,
+      revenue: 0,
+    });
+    toast('success', `Event "${title.trim()}" created successfully`);
+    resetForm();
+    setShowAddModal(false);
+  };
 
   const upcoming = events.filter(e => e.status === 'upcoming');
   const totalTicketRevenue = events.reduce((s, e) => s + e.revenue, 0);
@@ -35,7 +101,7 @@ export default function EventsPage() {
             </button>
           ))}
         </div>
-        <button className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20 mb-1">
+        <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20 mb-1">
           <Plus className="w-4 h-4" /> New Event
         </button>
       </div>
@@ -170,6 +236,97 @@ export default function EventsPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Add Event Modal */}
+      <Modal open={showAddModal} onClose={() => { resetForm(); setShowAddModal(false); }} title="New Event" size="lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title */}
+          <div>
+            <label className={labelClass}>Event Title *</label>
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Summer Brew Fest" className={inputClass} />
+          </div>
+
+          {/* Type + Date row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Event Type</label>
+              <select value={type} onChange={e => setType(e.target.value as BreweryEvent['type'])} className={inputClass}>
+                {eventTypes.map(t => (
+                  <option key={t} value={t}>{typeIcons[t]} {t.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Date *</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputClass} />
+            </div>
+          </div>
+
+          {/* Time row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Start Time *</label>
+              <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>End Time *</label>
+              <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inputClass} />
+            </div>
+          </div>
+
+          {/* Location + Capacity */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Location</label>
+              <select value={location} onChange={e => setLocation(e.target.value as BreweryEvent['location'])} className={inputClass}>
+                {locationOptions.map(loc => (
+                  <option key={loc} value={loc}>{loc.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Capacity</label>
+              <input type="number" min={1} value={capacity} onChange={e => setCapacity(Number(e.target.value))} className={inputClass} />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className={labelClass}>Description</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Describe the event..." className={inputClass} />
+          </div>
+
+          {/* Checkboxes */}
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={isTicketed} onChange={e => setIsTicketed(e.target.checked)} className="w-4 h-4 rounded border-brewery-600 bg-brewery-800 text-amber-500 focus:ring-amber-500/30" />
+              <span className="text-sm text-brewery-200">Ticketed Event</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={isFamilyFriendly} onChange={e => setIsFamilyFriendly(e.target.checked)} className="w-4 h-4 rounded border-brewery-600 bg-brewery-800 text-amber-500 focus:ring-amber-500/30" />
+              <span className="text-sm text-brewery-200">Family Friendly</span>
+            </label>
+          </div>
+
+          {/* Ticket Price (conditional) */}
+          {isTicketed && (
+            <div className="max-w-xs">
+              <label className={labelClass}>Ticket Price ($)</label>
+              <input type="number" min={0} step={0.01} value={ticketPrice} onChange={e => setTicketPrice(Number(e.target.value))} className={inputClass} />
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-2 border-t border-brewery-700/30">
+            <button type="button" onClick={() => { resetForm(); setShowAddModal(false); }} className="px-4 py-2 text-sm font-medium text-brewery-300 hover:text-brewery-100 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-2 rounded-lg text-sm shadow-lg shadow-amber-600/20 transition-colors">
+              Create Event
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

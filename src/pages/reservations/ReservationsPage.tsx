@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { BookOpen, Clock, Users, Phone, MapPin, Plus, Armchair, Baby } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { reservations } from '../../data/mockData';
+import Modal from '../../components/ui/Modal';
+import { useBrewery } from '../../context/BreweryContext';
+import { useToast } from '../../components/ui/ToastProvider';
 
 const statusColors: Record<string, 'green' | 'blue' | 'amber' | 'red' | 'gray'> = {
   confirmed: 'green', seated: 'blue', completed: 'gray', cancelled: 'red', 'no-show': 'red', waitlist: 'amber',
@@ -14,14 +16,66 @@ const tables = {
   'private-room': ['PR-1', 'PR-2'],
 };
 
-const occupiedTables = reservations.filter(r => r.status === 'seated' || r.status === 'confirmed').map(r => r.tableId).filter(Boolean);
+const inputClasses = 'w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50';
+const labelClasses = 'block text-xs font-medium text-brewery-400 mb-1';
 
 export default function ReservationsPage() {
+  const { reservations, addReservation, updateReservation } = useBrewery();
+  const { toast } = useToast();
+
   const [activeSection, setActiveSection] = useState<'reservations' | 'floor-plan'>('reservations');
-  const today = reservations.filter(r => r.date === '2026-03-04');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form fields
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [date, setDate] = useState('2026-03-05');
+  const [time, setTime] = useState('');
+  const [partySize, setPartySize] = useState('2');
+  const [section, setSection] = useState<'taproom' | 'patio' | 'beer-garden' | 'private-room'>('taproom');
+  const [notes, setNotes] = useState('');
+  const [isHighChairNeeded, setIsHighChairNeeded] = useState(false);
+
+  const occupiedTables = reservations.filter(r => r.status === 'seated' || r.status === 'confirmed').map(r => r.tableId).filter(Boolean);
+  const today = reservations.filter(r => r.date === '2026-03-05');
   const confirmed = today.filter(r => r.status === 'confirmed').length;
   const seated = today.filter(r => r.status === 'seated').length;
   const waitlisted = today.filter(r => r.status === 'waitlist').length;
+
+  const resetForm = () => {
+    setCustomerName('');
+    setCustomerPhone('');
+    setDate('2026-03-05');
+    setTime('');
+    setPartySize('2');
+    setSection('taproom');
+    setNotes('');
+    setIsHighChairNeeded(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerName.trim() || !time.trim()) {
+      toast('error', 'Please fill in customer name and time');
+      return;
+    }
+    addReservation({
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      customerEmail: '',
+      date,
+      time,
+      partySize: parseInt(partySize) || 2,
+      section,
+      status: 'confirmed',
+      notes: notes.trim(),
+      specialRequests: [],
+      isHighChairNeeded,
+    });
+    toast('success', `Reservation created for ${customerName.trim()}`);
+    resetForm();
+    setShowAddModal(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -51,7 +105,10 @@ export default function ReservationsPage() {
           <button onClick={() => setActiveSection('reservations')} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${activeSection === 'reservations' ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>Reservations</button>
           <button onClick={() => setActiveSection('floor-plan')} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${activeSection === 'floor-plan' ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>Floor Plan</button>
         </div>
-        <button className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2 mb-1 shadow-lg shadow-amber-600/20">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2 mb-1 shadow-lg shadow-amber-600/20"
+        >
           <Plus className="w-4 h-4" /> New Reservation
         </button>
       </div>
@@ -83,8 +140,22 @@ export default function ReservationsPage() {
                 </div>
                 <div className="flex items-center gap-2 mt-3 md:mt-0">
                   <Badge variant={statusColors[res.status]}>{res.status}</Badge>
-                  {res.status === 'confirmed' && <button className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">Seat</button>}
-                  {res.status === 'waitlist' && <button className="text-xs bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">Notify</button>}
+                  {res.status === 'confirmed' && (
+                    <button
+                      onClick={() => { updateReservation(res.id, { status: 'seated' }); toast('success', `${res.customerName} has been seated`); }}
+                      className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                    >
+                      Seat
+                    </button>
+                  )}
+                  {res.status === 'waitlist' && (
+                    <button
+                      onClick={() => { toast('info', `Notification sent to ${res.customerName}`); }}
+                      className="text-xs bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                    >
+                      Notify
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -94,9 +165,9 @@ export default function ReservationsPage() {
 
       {activeSection === 'floor-plan' && (
         <div className="space-y-6">
-          {(Object.entries(tables) as [string, string[]][]).map(([section, tableList]) => (
-            <div key={section}>
-              <h3 className="text-sm font-semibold text-brewery-200 mb-3 capitalize">{section.replace('-', ' ')}</h3>
+          {(Object.entries(tables) as [string, string[]][]).map(([sectionKey, tableList]) => (
+            <div key={sectionKey}>
+              <h3 className="text-sm font-semibold text-brewery-200 mb-3 capitalize">{sectionKey.replace('-', ' ')}</h3>
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                 {tableList.map(table => {
                   const isOccupied = occupiedTables.includes(table);
@@ -120,6 +191,123 @@ export default function ReservationsPage() {
           </div>
         </div>
       )}
+
+      {/* Add Reservation Modal */}
+      <Modal open={showAddModal} onClose={() => { resetForm(); setShowAddModal(false); }} title="New Reservation" size="md">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClasses}>Customer Name *</label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                placeholder="John Smith"
+                className={inputClasses}
+                required
+              />
+            </div>
+            <div>
+              <label className={labelClasses}>Phone</label>
+              <input
+                type="tel"
+                value={customerPhone}
+                onChange={e => setCustomerPhone(e.target.value)}
+                placeholder="(555) 123-4567"
+                className={inputClasses}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className={labelClasses}>Date *</label>
+              <input
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                className={inputClasses}
+                required
+              />
+            </div>
+            <div>
+              <label className={labelClasses}>Time *</label>
+              <input
+                type="time"
+                value={time}
+                onChange={e => setTime(e.target.value)}
+                className={inputClasses}
+                required
+              />
+            </div>
+            <div>
+              <label className={labelClasses}>Party Size</label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={partySize}
+                onChange={e => setPartySize(e.target.value)}
+                className={inputClasses}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelClasses}>Section</label>
+            <select
+              value={section}
+              onChange={e => setSection(e.target.value as typeof section)}
+              className={inputClasses}
+            >
+              <option value="taproom">Taproom</option>
+              <option value="patio">Patio</option>
+              <option value="beer-garden">Beer Garden</option>
+              <option value="private-room">Private Room</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={labelClasses}>Notes</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Any special requests or notes..."
+              rows={2}
+              className={inputClasses}
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsHighChairNeeded(!isHighChairNeeded)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${isHighChairNeeded ? 'bg-amber-500' : 'bg-brewery-700'}`}
+            >
+              <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${isHighChairNeeded ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+            </button>
+            <label className="text-xs font-medium text-brewery-400 flex items-center gap-1.5">
+              <Baby className="w-3.5 h-3.5" /> High chair needed
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2 border-t border-brewery-700/30">
+            <button
+              type="button"
+              onClick={() => { resetForm(); setShowAddModal(false); }}
+              className="px-4 py-2 text-sm font-medium text-brewery-400 hover:text-brewery-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-lg shadow-amber-600/20 transition-colors"
+            >
+              Create Reservation
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
