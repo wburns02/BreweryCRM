@@ -1,9 +1,20 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Component } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
 import { Activity, Users, TrendingUp, TrendingDown, Star, Clock, Droplets, Crown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, LineChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area, LineChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { useData } from '../../context/DataContext';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
+
+class ChartErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.warn('Chart render error:', error.message, info.componentStack); }
+  render() {
+    if (this.state.hasError) return <div className="p-8 text-center text-brewery-400 text-sm">Chart rendering error. Try refreshing the page.</div>;
+    return this.props.children;
+  }
+}
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString();
 
@@ -289,57 +300,59 @@ function PourTab() {
 
   return (
     <div className="space-y-6">
-      {/* Pour Velocity */}
+      {/* Pour Velocity — CSS bars */}
       <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
         <h3 className="text-sm font-semibold text-brewery-200 mb-4">Pour Velocity — Pours per Day</h3>
-        <ResponsiveContainer width="100%" height={Math.max(200, velocityData.length * 32)}>
-          <BarChart data={velocityData} layout="vertical" margin={{ left: 120, right: 30 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#5c3e1920" horizontal={false} />
-            <XAxis type="number" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis type="category" dataKey="beerName" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
-            <Tooltip content={({ active, payload }) => {
-              if (!active || !payload?.[0]) return null;
-              const d = payload[0].payload;
-              return <div style={TOOLTIP_STYLE} className="px-3 py-2"><p className="text-brewery-200 text-xs font-bold">{d.beerName}</p><p className="text-brewery-400 text-[11px]">{d.poursPerDay} pours/day &middot; {fmt(d.dailyRev)}/day</p></div>;
-            }} />
-            <Bar dataKey="poursPerDay" radius={[0, 4, 4, 0]} barSize={18}>
-              {velocityData.map((d, i) => <Cell key={i} fill={CAT_COLORS[d.category] || '#d97706'} />)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="space-y-2">
+          {velocityData.map(d => {
+            const max = velocityData[0]?.poursPerDay || 1;
+            return (
+              <div key={d.tapNumber} className="flex items-center gap-3 group">
+                <span className="text-brewery-400 text-xs w-28 truncate text-right">{d.beerName}</span>
+                <div className="flex-1 h-5 bg-brewery-800/40 rounded overflow-hidden relative">
+                  <div className="h-full rounded transition-all" style={{ width: `${(d.poursPerDay / max) * 100}%`, backgroundColor: CAT_COLORS[d.category] || '#d97706' }} />
+                </div>
+                <span className="text-brewery-300 text-xs font-mono w-12 text-right">{d.poursPerDay}</span>
+                <span className="text-brewery-500 text-[10px] w-16 text-right">{fmt(d.dailyRev)}/d</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Two-Column: Radar + Revenue per Tap */}
+      {/* Two-Column: Style + Revenue per Tap — CSS bars */}
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-brewery-200 mb-4">Style Popularity</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <RadarChart data={styleMap}>
-              <PolarGrid stroke="#5c3e1930" />
-              <PolarAngleAxis dataKey="style" tick={{ fill: '#8b7355', fontSize: 10 }} />
-              <PolarRadiusAxis tick={false} axisLine={false} domain={[0, 100]} />
-              <Radar dataKey="value" stroke="#d97706" fill="#d97706" fillOpacity={0.25} strokeWidth={2} />
-            </RadarChart>
-          </ResponsiveContainer>
+          <div className="space-y-2">
+            {styleMap.map(s => (
+              <div key={s.style} className="flex items-center gap-3">
+                <span className="text-brewery-400 text-xs w-24 truncate text-right">{s.style}</span>
+                <div className="flex-1 h-4 bg-brewery-800/40 rounded overflow-hidden">
+                  <div className="h-full bg-amber-600 rounded transition-all" style={{ width: `${s.value}%` }} />
+                </div>
+                <span className="text-brewery-300 text-xs font-mono w-10 text-right">{s.value}%</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-brewery-200 mb-4">Daily Revenue per Tap</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={revenueByTap} margin={{ left: 10, right: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#5c3e1920" />
-              <XAxis dataKey="beerName" tick={{ fill: '#8b7355', fontSize: 9 }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" height={60} interval={0} />
-              <YAxis tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${v}`} />
-              <Tooltip content={({ active, payload }) => {
-                if (!active || !payload?.[0]) return null;
-                const d = payload[0].payload;
-                return <div style={TOOLTIP_STYLE} className="px-3 py-2"><p className="text-brewery-200 text-xs">{d.beerName}: {fmt(d.dailyRev)}/day</p></div>;
-              }} />
-              <Bar dataKey="dailyRev" radius={[4, 4, 0, 0]} barSize={20}>
-                {revenueByTap.map((d, i) => <Cell key={i} fill={d.dailyRev < 50 ? '#ef4444' : '#d97706'} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="space-y-2">
+            {revenueByTap.map(d => {
+              const max = revenueByTap[0]?.dailyRev || 1;
+              return (
+                <div key={d.tapNumber} className="flex items-center gap-3">
+                  <span className="text-brewery-400 text-xs w-28 truncate text-right">{d.beerName}</span>
+                  <div className="flex-1 h-4 bg-brewery-800/40 rounded overflow-hidden">
+                    <div className="h-full rounded transition-all" style={{ width: `${(d.dailyRev / max) * 100}%`, backgroundColor: d.dailyRev < 50 ? '#ef4444' : '#d97706' }} />
+                  </div>
+                  <span className="text-brewery-300 text-xs font-mono w-12 text-right">{fmt(d.dailyRev)}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -382,35 +395,27 @@ function PourTab() {
         </div>
       </div>
 
-      {/* Category Revenue Donut */}
+      {/* Category Revenue */}
+      <ChartErrorBoundary>
       <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
         <h3 className="text-sm font-semibold text-brewery-200 mb-4">Revenue by Category</h3>
-        <div className="flex items-center gap-8 justify-center">
-          <div className="w-[180px] h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="revenue" stroke="none">
-                  {categoryData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip content={({ active, payload }) => {
-                  if (!active || !payload?.[0]) return null;
-                  const d = payload[0].payload;
-                  return <div style={TOOLTIP_STYLE} className="px-3 py-2"><span className="text-brewery-200 text-xs capitalize">{d.name}: {fmt(d.revenue)} &middot; {d.pours.toLocaleString()} pours</span></div>;
-                }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-2">
-            {categoryData.map(c => (
-              <div key={c.name} className="flex items-center gap-2 text-xs">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                <span className="text-brewery-400 capitalize w-24">{c.name}</span>
-                <span className="text-brewery-200 font-mono">{fmt(c.revenue)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ResponsiveContainer width="100%" height={Math.max(120, categoryData.length * 36)}>
+          <BarChart data={categoryData} layout="vertical" margin={{ left: 80, right: 30 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#5c3e1920" horizontal={false} />
+            <XAxis type="number" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
+            <YAxis type="category" dataKey="name" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
+            <Tooltip content={({ active, payload }) => {
+              if (!active || !payload?.[0]) return null;
+              const d = payload[0].payload;
+              return <div style={TOOLTIP_STYLE} className="px-3 py-2"><span className="text-brewery-200 text-xs capitalize">{d.name}: {fmt(d.revenue)} &middot; {d.pours.toLocaleString()} pours</span></div>;
+            }} />
+            <Bar dataKey="revenue" radius={[0, 4, 4, 0]} barSize={18}>
+              {categoryData.map((e, i) => <Cell key={i} fill={e.color} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
+      </ChartErrorBoundary>
     </div>
   );
 }
@@ -560,31 +565,21 @@ function GuestTab() {
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-brewery-200 mb-4">Acquisition Sources</h3>
-          <div className="flex items-center gap-4">
-            <div className="w-[160px] h-[160px] flex-shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={sourceData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" stroke="none">
-                    {sourceData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                  </Pie>
-                  <Tooltip content={({ active, payload }) => {
-                    if (!active || !payload?.[0]) return null;
-                    const d = payload[0].payload;
-                    return <div style={TOOLTIP_STYLE} className="px-3 py-2"><span className="text-brewery-200 text-xs">{d.name}: {d.value}</span></div>;
-                  }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-1.5 flex-1">
-              {sourceData.map(s => (
-                <div key={s.name} className="flex items-center gap-2 text-xs">
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-                  <span className="text-brewery-400 truncate">{s.name}</span>
-                  <span className="text-brewery-200 ml-auto font-mono">{s.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ResponsiveContainer width="100%" height={Math.max(140, sourceData.length * 28)}>
+            <BarChart data={sourceData} layout="vertical" margin={{ left: 100, right: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#5c3e1920" horizontal={false} />
+              <XAxis type="number" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#8b7355', fontSize: 10 }} axisLine={false} tickLine={false} width={90} />
+              <Tooltip content={({ active, payload }) => {
+                if (!active || !payload?.[0]) return null;
+                const d = payload[0].payload;
+                return <div style={TOOLTIP_STYLE} className="px-3 py-2"><span className="text-brewery-200 text-xs">{d.name}: {d.value}</span></div>;
+              }} />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={14}>
+                {sourceData.map((e, i) => <Cell key={i} fill={e.color} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
@@ -865,10 +860,12 @@ export default function TaproomAnalyticsPage() {
         })}
       </div>
 
-      {activeTab === 'live' && <LiveShiftTab />}
-      {activeTab === 'pour' && <PourTab />}
-      {activeTab === 'guests' && <GuestTab />}
-      {activeTab === 'trends' && <TrendTab />}
+      <ChartErrorBoundary key={activeTab}>
+        {activeTab === 'live' && <LiveShiftTab />}
+        {activeTab === 'pour' && <PourTab />}
+        {activeTab === 'guests' && <GuestTab />}
+        {activeTab === 'trends' && <TrendTab />}
+      </ChartErrorBoundary>
     </div>
   );
 }
