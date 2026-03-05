@@ -1,4 +1,4 @@
-import { Beer, LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, Settings, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Beer, LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -18,10 +18,13 @@ const navItems: { id: PageId; label: string; icon: React.ElementType; group: str
   { id: 'reservations', label: 'Reservations', icon: BookOpen, group: 'Guests' },
   { id: 'taps', label: 'Tap Management', icon: GlassWater, group: 'Brewery' },
   { id: 'brewing', label: 'Production', icon: FlaskConical, group: 'Brewery' },
+  { id: 'recipes', label: 'Recipe Lab', icon: Beaker, group: 'Brewery' },
+  { id: 'kegs', label: 'Keg Tracking', icon: Package, group: 'Brewery' },
   { id: 'menu', label: 'Food & Menu', icon: UtensilsCrossed, group: 'Operations' },
   { id: 'inventory', label: 'Inventory', icon: Warehouse, group: 'Operations' },
   { id: 'events', label: 'Events', icon: Calendar, group: 'Marketing' },
   { id: 'marketing', label: 'Marketing', icon: Megaphone, group: 'Marketing' },
+  { id: 'financials', label: 'Financials', icon: DollarSign, group: 'Finance' },
   { id: 'staff', label: 'Staff', icon: UserCog, group: 'Management' },
   { id: 'distribution', label: 'Distribution', icon: Truck, group: 'Management' },
   { id: 'reports', label: 'Reports', icon: BarChart3, group: 'Management' },

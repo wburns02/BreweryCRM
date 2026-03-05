@@ -92,6 +92,7 @@ export interface Batch {
   beerId: string;
   beerName: string;
   style: string;
+  recipeId?: string;
   status: 'planned' | 'mashing' | 'boiling' | 'fermenting' | 'conditioning' | 'carbonating' | 'ready' | 'packaged';
   brewDate: string;
   targetOG: number;
@@ -320,4 +321,169 @@ export interface ComplianceItem {
   notes: string;
 }
 
-export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'events' | 'reservations' | 'menu' | 'inventory' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings';
+export interface GrainAddition {
+  name: string;
+  type: 'base' | 'specialty' | 'adjunct';
+  amount: number;
+  unit: string;
+  percentage: number;
+  color: number;
+  ppg: number;
+  costPerLb: number;
+}
+
+export interface HopScheduleEntry {
+  name: string;
+  amount: number;
+  unit: string;
+  alphaAcid: number;
+  time: number;
+  type: 'bittering' | 'flavor' | 'aroma' | 'dry-hop';
+  ibuContribution: number;
+  costPerOz: number;
+}
+
+export interface YeastProfile {
+  name: string;
+  lab: string;
+  strain: string;
+  attenuationMin: number;
+  attenuationMax: number;
+  flocculation: 'low' | 'medium' | 'medium-high' | 'high';
+  tempMin: number;
+  tempMax: number;
+  pitchRate: number;
+  starterNeeded: boolean;
+  costPerPack: number;
+  packsNeeded: number;
+}
+
+export interface WaterProfile {
+  calcium: number;
+  magnesium: number;
+  sodium: number;
+  sulfate: number;
+  chloride: number;
+  bicarbonate: number;
+}
+
+export interface WaterAdjustment {
+  mineral: string;
+  amount: number;
+  unit: string;
+  purpose: string;
+}
+
+export interface BrewDayStep {
+  id: string;
+  order: number;
+  name: string;
+  description: string;
+  targetValue?: string;
+  unit?: string;
+  notes: string;
+  completed: boolean;
+  timestamp?: string;
+}
+
+export interface BrewHistory {
+  batchNumber: string;
+  date: string;
+  actualOG: number;
+  actualFG: number;
+  qcScore: number;
+  status: string;
+}
+
+export interface DetailedRecipe {
+  id: string;
+  beerId: string;
+  name: string;
+  style: string;
+  category: 'flagship' | 'seasonal' | 'limited' | 'experimental';
+  version: number;
+  batchSize: number;
+  targetOG: number;
+  targetFG: number;
+  targetABV: number;
+  targetIBU: number;
+  targetSRM: number;
+  boilTime: number;
+  mashTemp: number;
+  mashTime: number;
+  grainBill: GrainAddition[];
+  hopSchedule: HopScheduleEntry[];
+  yeast: YeastProfile;
+  waterProfile: WaterProfile;
+  waterAdjustments: WaterAdjustment[];
+  brewDaySteps: BrewDayStep[];
+  totalCost: number;
+  costPerBarrel: number;
+  costPerPint: number;
+  lastBrewed: string;
+  totalBatches: number;
+  brewHistory: BrewHistory[];
+  notes: string;
+  createdDate: string;
+}
+
+export interface Keg {
+  id: string;
+  kegNumber: string;
+  size: '1/2' | '1/4' | '1/6' | 'slim-1/4';
+  gallons: number;
+  status: 'clean-empty' | 'filled' | 'on-tap' | 'deployed' | 'returned-dirty' | 'cleaning' | 'maintenance' | 'missing' | 'retired';
+  currentBeerId?: string;
+  currentBeerName?: string;
+  batchId?: string;
+  location: 'brewery-cold-room' | 'brewery-taproom' | 'deployed' | 'returned' | 'maintenance-bay';
+  deployedTo?: string;
+  deployedToName?: string;
+  deployedDate?: string;
+  expectedReturnDate?: string;
+  fillDate?: string;
+  fillCount: number;
+  lastCleaned?: string;
+  deposit: number;
+  depositStatus: 'not-applicable' | 'held' | 'returned' | 'forfeited';
+  purchaseDate: string;
+  purchaseCost: number;
+  notes: string;
+  history: KegEvent[];
+}
+
+export interface KegEvent {
+  id: string;
+  date: string;
+  type: 'filled' | 'tapped' | 'deployed' | 'returned' | 'cleaned' | 'maintenance' | 'retired' | 'marked-missing';
+  description: string;
+  accountName?: string;
+  beerName?: string;
+  performedBy?: string;
+}
+
+export interface MonthlyFinancial {
+  month: string;
+  monthLabel: string;
+  beerRevenue: number;
+  foodRevenue: number;
+  naRevenue: number;
+  merchandiseRevenue: number;
+  eventRevenue: number;
+  wholesaleRevenue: number;
+  totalRevenue: number;
+  cogs: number;
+  laborCost: number;
+  rent: number;
+  utilities: number;
+  marketing: number;
+  insurance: number;
+  licenses: number;
+  supplies: number;
+  misc: number;
+  totalExpenses: number;
+  netProfit: number;
+  netMarginPct: number;
+}
+
+export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings';

@@ -6,6 +6,9 @@ import CustomersPage from './pages/customers/CustomersPage';
 import MugClubPage from './pages/mug-club/MugClubPage';
 import TapsPage from './pages/taps/TapsPage';
 import BrewingPage from './pages/brewing/BrewingPage';
+import RecipesPage from './pages/recipes/RecipesPage';
+import KegsPage from './pages/kegs/KegsPage';
+import FinancialsPage from './pages/financials/FinancialsPage';
 import EventsPage from './pages/events/EventsPage';
 import ReservationsPage from './pages/reservations/ReservationsPage';
 import MenuPage from './pages/menu/MenuPage';
@@ -24,6 +27,9 @@ const pageTitles: Record<PageId, string> = {
   'mug-club': 'Bulverde Brew Society',
   taps: 'Tap Management',
   brewing: 'Production & Brewing',
+  recipes: 'Recipe Lab',
+  kegs: 'Keg Tracking',
+  financials: 'Financial Command Center',
   events: 'Events & Entertainment',
   reservations: 'Reservations & Tables',
   menu: 'Food & Menu Engineering',
@@ -41,6 +47,9 @@ const pages: Record<PageId, React.ComponentType> = {
   'mug-club': MugClubPage,
   taps: TapsPage,
   brewing: BrewingPage,
+  recipes: RecipesPage,
+  kegs: KegsPage,
+  financials: FinancialsPage,
   events: EventsPage,
   reservations: ReservationsPage,
   menu: MenuPage,
