@@ -8,9 +8,17 @@ import type {
   OrderTimelineEntry,
 } from '../types';
 
-// Snake_case → camelCase
+// Snake_case → camelCase with abbreviation support
+const ABBREVIATIONS: Record<string, string> = {
+  targetOg: 'targetOG', targetFg: 'targetFG', targetAbv: 'targetABV',
+  targetIbu: 'targetIBU', targetSrm: 'targetSRM', actualOg: 'actualOG',
+  actualFg: 'actualFG', isNa: 'isNA', naRevenue: 'naRevenue',
+  ibuContribution: 'ibuContribution', alphaAcid: 'alphaAcid',
+};
+
 function toCamel(s: string): string {
-  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  const camel = s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  return ABBREVIATIONS[camel] || camel;
 }
 
 function mapKeys(obj: Record<string, unknown>): Record<string, unknown> {
