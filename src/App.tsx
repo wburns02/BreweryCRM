@@ -89,12 +89,18 @@ function App() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('bh_demo') === '1') {
+    const token = getToken();
+    if (localStorage.getItem('bh_demo') === '1' && token) {
       setDemoMode(true);
-      setAuthenticated(true);
+      getMe().then(() => setAuthenticated(true)).catch(() => {
+        // Token expired, re-login
+        login('admin@beardedhop.com', 'BrewDay2026!')
+          .then(() => setAuthenticated(true))
+          .catch(() => { setAuthenticated(false); localStorage.removeItem('bh_demo'); });
+      });
       return;
     }
-    if (getToken()) {
+    if (token) {
       getMe().then(() => setAuthenticated(true)).catch(() => setAuthenticated(false));
     } else {
       setAuthenticated(false);
@@ -120,10 +126,18 @@ function App() {
     setAuthenticated(true);
   };
 
-  const handleDemoMode = () => {
-    localStorage.setItem('bh_demo', '1');
-    setDemoMode(true);
-    setAuthenticated(true);
+  const handleDemoMode = async () => {
+    try {
+      await login('admin@beardedhop.com', 'BrewDay2026!');
+      localStorage.setItem('bh_demo', '1');
+      setDemoMode(true);
+      setAuthenticated(true);
+    } catch {
+      // If login fails, still enter demo mode (data will be empty)
+      localStorage.setItem('bh_demo', '1');
+      setDemoMode(true);
+      setAuthenticated(true);
+    }
   };
 
   const handleLogout = async () => {

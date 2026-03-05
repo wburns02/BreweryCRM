@@ -16,9 +16,15 @@ function toCamel(s: string): string {
 function mapKeys(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
-    out[toCamel(k)] = v;
+    out[toCamel(k)] = deepCamel(v);
   }
   return out;
+}
+
+function deepCamel(val: unknown): unknown {
+  if (Array.isArray(val)) return val.map(deepCamel);
+  if (val !== null && typeof val === 'object') return mapKeys(val as Record<string, unknown>);
+  return val;
 }
 
 function mapArray<T>(arr: Record<string, unknown>[]): T[] {
