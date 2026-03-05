@@ -278,7 +278,7 @@ export interface MugClubMember {
   mugNumber: number;
   mugLocation: string;
   totalSaved: number;
-  visitsAsMemeber: number;
+  visitsAsMember: number;
   referrals: number;
   status: 'active' | 'expiring-soon' | 'expired' | 'cancelled';
   benefits: string[];

@@ -1,4 +1,4 @@
-import { api, setToken } from './client';
+import { api, setToken, setSuppressAuthRedirect } from './client';
 
 interface LoginResponse {
   access_token: string;
@@ -15,9 +15,14 @@ interface User {
 }
 
 export async function login(email: string, password: string): Promise<User> {
-  const data = await api.post<LoginResponse>('/auth/login', { email, password });
-  setToken(data.access_token);
-  return getMe();
+  setSuppressAuthRedirect(true);
+  try {
+    const data = await api.post<LoginResponse>('/auth/login', { email, password });
+    setToken(data.access_token);
+    return getMe();
+  } finally {
+    setSuppressAuthRedirect(false);
+  }
 }
 
 export async function getMe(): Promise<User> {

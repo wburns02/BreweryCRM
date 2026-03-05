@@ -80,6 +80,14 @@ function mapArray<T>(arr: Record<string, unknown>[]): T[] {
   return arr.map(item => mapKeys(item) as T);
 }
 
+function toSnakeKeys(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)] = v;
+  }
+  return out;
+}
+
 export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const [tabs, setTabs] = useState<OpenTab[]>([]);
   const [tapLineState, setTapLines] = useState<TapLine[]>([]);
@@ -309,7 +317,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const addCustomer = useCallback((customer: Omit<Customer, 'id'>) => {
     const tempId = `c-${Date.now()}`;
     setCustomers(prev => [...prev, { ...customer, id: tempId }]);
-    api.post('/customers/', customer).then(() => fetchAll()).catch(console.error);
+    api.post('/customers/', toSnakeKeys(customer as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateCustomer = useCallback((id: string, updates: Partial<Customer>) => {
@@ -324,7 +332,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const addReservation = useCallback((reservation: Omit<Reservation, 'id'>) => {
     const tempId = `res-${Date.now()}`;
     setReservations(prev => [...prev, { ...reservation, id: tempId }]);
-    api.post('/reservations/', reservation).then(() => fetchAll()).catch(console.error);
+    api.post('/reservations/', toSnakeKeys(reservation as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateReservation = useCallback((id: string, updates: Partial<Reservation>) => {
@@ -339,19 +347,19 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const addEvent = useCallback((event: Omit<BreweryEvent, 'id'>) => {
     const tempId = `evt-${Date.now()}`;
     setEvents(prev => [...prev, { ...event, id: tempId }]);
-    api.post('/events/', event).then(() => fetchAll()).catch(console.error);
+    api.post('/events/', toSnakeKeys(event as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const addCampaign = useCallback((campaign: Omit<EmailCampaign, 'id'>) => {
     const tempId = `camp-${Date.now()}`;
     setEmailCampaigns(prev => [...prev, { ...campaign, id: tempId }]);
-    api.post('/marketing/campaigns', campaign).then(() => fetchAll()).catch(console.error);
+    api.post('/marketing/campaigns', toSnakeKeys(campaign as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const addMugClubMember = useCallback((member: Omit<MugClubMember, 'id'>) => {
     const tempId = `mc-${Date.now()}`;
     setMugClubMembers(prev => [...prev, { ...member, id: tempId }]);
-    api.post('/mug-club/', member).then(() => fetchAll()).catch(console.error);
+    api.post('/mug-club/', toSnakeKeys(member as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateInventoryItem = useCallback((id: string, updates: Partial<InventoryItem>) => {

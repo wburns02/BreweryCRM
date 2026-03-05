@@ -1,6 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 let authToken: string | null = localStorage.getItem('bh_token');
+let suppressAuthRedirect = false;
 
 export function setToken(token: string | null) {
   authToken = token;
@@ -10,6 +11,10 @@ export function setToken(token: string | null) {
 
 export function getToken() {
   return authToken;
+}
+
+export function setSuppressAuthRedirect(suppress: boolean) {
+  suppressAuthRedirect = suppress;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -25,7 +30,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (res.status === 401) {
     setToken(null);
-    window.location.reload();
+    if (!suppressAuthRedirect) {
+      window.location.reload();
+    }
     throw new Error('Unauthorized');
   }
 

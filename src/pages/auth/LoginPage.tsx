@@ -3,9 +3,10 @@ import { Beer } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>;
+  onDemoMode: () => void;
 }
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage({ onLogin, onDemoMode }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -71,6 +72,23 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-brewery-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-brewery-900 text-brewery-500">or</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onDemoMode}
+            className="w-full py-2.5 bg-brewery-800 hover:bg-brewery-700 text-brewery-300 hover:text-white font-medium rounded-lg transition-colors border border-brewery-700"
+          >
+            Explore Demo
           </button>
         </form>
       </div>

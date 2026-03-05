@@ -3,9 +3,10 @@ import { Menu, Bell, Search, User } from 'lucide-react';
 interface TopBarProps {
   onMenuToggle: () => void;
   pageTitle: string;
+  onSearchClick?: () => void;
 }
 
-export default function TopBar({ onMenuToggle, pageTitle }: TopBarProps) {
+export default function TopBar({ onMenuToggle, pageTitle, onSearchClick }: TopBarProps) {
   return (
     <header className="h-16 border-b border-brewery-700/30 bg-brewery-900/60 backdrop-blur-lg flex items-center justify-between px-4 lg:px-6">
       <div className="flex items-center gap-4">
@@ -15,15 +16,14 @@ export default function TopBar({ onMenuToggle, pageTitle }: TopBarProps) {
         <h2 className="text-lg font-semibold text-brewery-50" style={{ fontFamily: 'var(--font-display)' }}>{pageTitle}</h2>
       </div>
       <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-1.5 gap-2">
+        <button
+          onClick={onSearchClick}
+          className="hidden md:flex items-center bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-1.5 gap-2 hover:bg-brewery-800/80 hover:border-brewery-600/50 transition-colors cursor-pointer"
+        >
           <Search className="w-4 h-4 text-brewery-500" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-transparent text-sm text-brewery-200 placeholder-brewery-500 outline-none w-48"
-          />
+          <span className="text-sm text-brewery-500 w-48 text-left">Search...</span>
           <kbd className="text-[10px] text-brewery-500 bg-brewery-700/50 px-1.5 py-0.5 rounded">⌘K</kbd>
-        </div>
+        </button>
         <button className="relative p-2 text-brewery-400 hover:text-brewery-100 hover:bg-brewery-800/50 rounded-lg transition-colors">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full" />

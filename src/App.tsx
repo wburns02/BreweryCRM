@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
+import CommandPalette from './components/CommandPalette';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CustomersPage from './pages/customers/CustomersPage';
 import MugClubPage from './pages/mug-club/MugClubPage';
@@ -84,8 +85,15 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [demoMode, setDemoMode] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   useEffect(() => {
+    if (localStorage.getItem('bh_demo') === '1') {
+      setDemoMode(true);
+      setAuthenticated(true);
+      return;
+    }
     if (getToken()) {
       getMe().then(() => setAuthenticated(true)).catch(() => setAuthenticated(false));
     } else {
@@ -93,13 +101,35 @@ function App() {
     }
   }, []);
 
+  // Global Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
+
   const handleLogin = async (email: string, password: string) => {
     await login(email, password);
     setAuthenticated(true);
   };
 
+  const handleDemoMode = () => {
+    localStorage.setItem('bh_demo', '1');
+    setDemoMode(true);
+    setAuthenticated(true);
+  };
+
   const handleLogout = async () => {
     await logout();
+    localStorage.removeItem('bh_demo');
+    setDemoMode(false);
     setAuthenticated(false);
   };
 
@@ -112,13 +142,13 @@ function App() {
   }
 
   if (!authenticated) {
-    return <LoginPage onLogin={handleLogin} />;
+    return <LoginPage onLogin={handleLogin} onDemoMode={handleDemoMode} />;
   }
 
   const PageComponent = pages[currentPage];
 
   return (
-    <DataProvider>
+    <DataProvider demoMode={demoMode}>
     <BreweryProvider>
     <ToastProvider>
     <div className="min-h-screen bg-brewery-950">
@@ -132,11 +162,16 @@ function App() {
         onLogout={handleLogout}
       />
       <div className={clsx('transition-all duration-300', sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]')}>
-        <TopBar onMenuToggle={() => setMobileOpen(true)} pageTitle={pageTitles[currentPage]} />
+        <TopBar onMenuToggle={() => setMobileOpen(true)} pageTitle={pageTitles[currentPage]} onSearchClick={openCommandPalette} />
         <main className="p-4 lg:p-6">
           <PageComponent />
         </main>
       </div>
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onNavigate={setCurrentPage}
+      />
     </div>
     </ToastProvider>
     </BreweryProvider>

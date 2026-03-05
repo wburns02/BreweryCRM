@@ -66,7 +66,7 @@ function LiveShiftTab() {
     staff.filter(s => s.status === 'active' && s.schedule.some(sh => sh.day === todayDay.slice(0, 3))),
   [todayDay]);
 
-  const topSeller = onShiftStaff.reduce((best, s) => s.salesThisWeek > (best?.salesThisWeek ?? 0) ? s : best, onShiftStaff[0]);
+  const topSeller = onShiftStaff.length > 0 ? onShiftStaff.reduce((best, s) => s.salesThisWeek > (best?.salesThisWeek ?? 0) ? s : best, onShiftStaff[0]) : null;
 
   // Floor plan sections
   const sections = [
@@ -449,7 +449,7 @@ function GuestTab() {
       tier, count: d.count, avgSpend: d.count > 0 ? d.totalSpent / d.count : 0, color: TIER_COLORS[tier],
     }));
   }, []);
-  const maxTierCount = Math.max(...tierData.map(t => t.count));
+  const maxTierCount = tierData.length > 0 ? Math.max(...tierData.map(t => t.count), 1) : 1;
 
   // Top 10 by spend
   const topGuests = useMemo(() =>
@@ -477,7 +477,7 @@ function GuestTab() {
     });
     return { tiers, brackets, grid };
   }, []);
-  const maxCell = Math.max(...spendingGrid.grid.flat());
+  const maxCell = Math.max(...spendingGrid.grid.flat(), 1);
 
   return (
     <div className="space-y-6">
@@ -684,8 +684,9 @@ function TrendTab() {
   }, []);
 
   // Best/Worst days
-  const bestDay = useMemo(() => dailySales.reduce((best, d) => d.totalRevenue > best.totalRevenue ? d : best, dailySales[0]), []);
-  const worstDay = useMemo(() => dailySales.reduce((worst, d) => d.totalRevenue < worst.totalRevenue ? d : worst, dailySales[0]), []);
+  const defaultDay = { date: '', totalRevenue: 0, customerCount: 0, avgTicket: 0, beerRevenue: 0, foodRevenue: 0, naRevenue: 0, merchandiseRevenue: 0, eventRevenue: 0 };
+  const bestDay = useMemo(() => dailySales.length > 0 ? dailySales.reduce((best, d) => d.totalRevenue > best.totalRevenue ? d : best, dailySales[0]) : defaultDay, []);
+  const worstDay = useMemo(() => dailySales.length > 0 ? dailySales.reduce((worst, d) => d.totalRevenue < worst.totalRevenue ? d : worst, dailySales[0]) : defaultDay, []);
 
   return (
     <div className="space-y-6">

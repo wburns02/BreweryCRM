@@ -41,7 +41,7 @@ export default function MugClubPage() {
       mugNumber: mugNumber ? parseInt(mugNumber) : mugClubMembers.length + 1,
       mugLocation: 'Top Shelf - Section A',
       totalSaved: 0,
-      visitsAsMemeber: 0,
+      visitsAsMember: 0,
       referrals: 0,
       status: 'active',
       benefits: tier === 'Founding'
@@ -159,7 +159,7 @@ export default function MugClubPage() {
                   <td className="px-4 py-3"><Badge variant={tierColors[member.tier]}>{member.tier}</Badge></td>
                   <td className="px-4 py-3 text-sm text-brewery-300">{member.memberSince}</td>
                   <td className="px-4 py-3 text-sm text-brewery-300">{member.renewalDate}</td>
-                  <td className="px-4 py-3 text-sm text-brewery-200 text-right">{member.visitsAsMemeber}</td>
+                  <td className="px-4 py-3 text-sm text-brewery-200 text-right">{member.visitsAsMember}</td>
                   <td className="px-4 py-3 text-sm text-emerald-400 text-right font-medium">${member.totalSaved.toFixed(0)}</td>
                   <td className="px-4 py-3 text-sm text-brewery-200 text-right">{member.referrals}</td>
                   <td className="px-4 py-3"><Badge variant={member.status === 'active' ? 'green' : member.status === 'expiring-soon' ? 'amber' : 'red'}>{member.status}</Badge></td>

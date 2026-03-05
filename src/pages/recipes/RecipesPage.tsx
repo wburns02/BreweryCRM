@@ -519,7 +519,7 @@ export default function RecipesPage() {
   }, [recipes, filter, search]);
 
   // KPIs
-  const avgCostBbl = Math.round(recipes.reduce((s, r) => s + r.costPerBarrel, 0) / recipes.length);
+  const avgCostBbl = recipes.length ? Math.round(recipes.reduce((s, r) => s + r.costPerBarrel, 0) / recipes.length) : 0;
   const totalBatches = recipes.reduce((s, r) => s + r.totalBatches, 0);
   const allQc = recipes.flatMap(r => r.brewHistory.map(b => b.qcScore));
   const avgQc = allQc.length ? Math.round(allQc.reduce((a, b) => a + b, 0) / allQc.length) : 0;
