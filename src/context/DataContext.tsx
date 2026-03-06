@@ -88,8 +88,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [emailCampaigns, setEmailCampaigns] = useState<EmailCampaign[]>([]);
   const [detailedRecipes, setDetailedRecipes] = useState<DetailedRecipe[]>([]);
   const [kegs, setKegs] = useState<Keg[]>([]);
-  const [visitHistory] = useState<Record<string, VisitRecord[]>>({});
-  const [customerNotes] = useState<Record<string, CustomerNote[]>>({});
+  const [visitHistory, setVisitHistory] = useState<Record<string, VisitRecord[]>>({});
+  const [customerNotes, setCustomerNotes] = useState<Record<string, CustomerNote[]>>({});
   const [floorTables, setFloorTables] = useState<FloorTable[]>([]);
   const [serviceAlerts, setServiceAlerts] = useState<ServiceAlert[]>([]);
   const [orderTimelines, setOrderTimelines] = useState<OrderTimelineEntry[]>([]);
@@ -118,7 +118,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         api.get<Record<string, unknown>[]>('/kegs/').catch(() => []),
         api.get<Record<string, unknown>[]>('/floor-plan/tables').catch(() => []),
         api.get<Record<string, unknown>[]>('/floor-plan/alerts').catch(() => []),
-        Promise.resolve([]), // order timelines loaded per-table, not in bulk
+        api.get<Record<string, unknown>[]>('/floor-plan/timeline').catch(() => []),
+        api.get<Record<string, unknown>[]>('/customers/all-visits').catch(() => []),
+        api.get<Record<string, unknown>[]>('/customers/all-notes').catch(() => []),
       ]);
 
       setBeers(mapArray<Beer>(results[0]));
@@ -142,6 +144,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setFloorTables(mapArray<FloorTable>(results[18]));
       setServiceAlerts(mapArray<ServiceAlert>(results[19]));
       setOrderTimelines(mapArray<OrderTimelineEntry>(results[20]));
+
+      // Group visit records by customer ID
+      const allVisits = mapArray<VisitRecord & { customerId: string }>(results[21]);
+      const visitMap: Record<string, VisitRecord[]> = {};
+      for (const v of allVisits) {
+        if (!visitMap[v.customerId]) visitMap[v.customerId] = [];
+        visitMap[v.customerId].push(v);
+      }
+      setVisitHistory(visitMap);
+
+      // Group customer notes by customer ID
+      const allNotes = mapArray<CustomerNote & { customerId: string }>(results[22]);
+      const noteMap: Record<string, CustomerNote[]> = {};
+      for (const n of allNotes) {
+        if (!noteMap[n.customerId]) noteMap[n.customerId] = [];
+        noteMap[n.customerId].push(n);
+      }
+      setCustomerNotes(noteMap);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
