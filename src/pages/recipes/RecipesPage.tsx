@@ -537,7 +537,7 @@ export default function RecipesPage() {
       mashTime: newRecipe.mashTime,
       grainBill: [],
       hopSchedule: [],
-      yeast: null as unknown as DetailedRecipe['yeast'],
+      yeast: { name: '', lab: '', strain: '', attenuationMin: 70, attenuationMax: 80, flocculation: 'medium' as const, tempMin: 64, tempMax: 72, pitchRate: 0.75, starterNeeded: false, costPerPack: 0, packsNeeded: 1 },
       waterProfile: { calcium: 0, magnesium: 0, sodium: 0, sulfate: 0, chloride: 0, bicarbonate: 0 },
       waterAdjustments: [],
       brewDaySteps: [],
