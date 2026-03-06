@@ -520,7 +520,7 @@ export default function RecipesPage() {
     e.preventDefault();
     if (!newRecipe.name.trim()) return;
     addDetailedRecipe({
-      beerId: '',
+      beerId: null as unknown as string,
       createdDate: new Date().toISOString().split('T')[0],
       name: newRecipe.name.trim(),
       style: newRecipe.style.trim(),

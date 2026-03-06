@@ -29,6 +29,9 @@ export default function SlidePanel({ isOpen, onClose, title, children, width = '
         onClick={onClose}
       />
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="slide-panel-title"
         className={clsx(
           'fixed top-0 right-0 h-full z-[95] flex flex-col bg-brewery-900 border-l border-brewery-700/30 shadow-2xl transition-transform duration-300',
           width,
@@ -36,7 +39,7 @@ export default function SlidePanel({ isOpen, onClose, title, children, width = '
         )}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-brewery-700/30 flex-shrink-0">
-          <h3 className="text-lg font-semibold text-brewery-50" style={{ fontFamily: 'var(--font-display)' }}>{title}</h3>
+          <h3 id="slide-panel-title" className="text-lg font-semibold text-brewery-50" style={{ fontFamily: 'var(--font-display)' }}>{title}</h3>
           <button onClick={onClose} className="text-brewery-400 hover:text-brewery-100 p-1.5 rounded-lg hover:bg-brewery-800 transition-colors">
             <X className="w-5 h-5" />
           </button>

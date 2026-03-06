@@ -50,7 +50,7 @@ export default function BrewingPage() {
       status: 'planned',
       brewDate: today,
       targetOG: parseFloat(targetOG) || 1.050,
-      targetFG: parseFloat(targetOG) ? parseFloat(targetOG) * 0.75 : 1.012,
+      targetFG: parseFloat(targetOG) ? parseFloat(targetOG) - (parseFloat(targetOG) - 1) * 0.75 : 1.012,
       tankId: tankId || 'TBD',
       volume: parseFloat(volume) || 7,
       notes: notes.trim(),

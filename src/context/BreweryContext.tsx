@@ -244,7 +244,10 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const addBatch = useCallback((batch: Omit<Batch, 'id'>) => {
     const tempId = `batch-${Date.now()}`;
     setBatches(prev => [...prev, { ...batch, id: tempId }]);
-    api.post('/batches/', batch).then(() => fetchAll()).catch(console.error);
+    const payload = toSnakeKeys(batch as unknown as Record<string, unknown>);
+    // Remove fake beer_id — API will auto-generate
+    if (payload.beer_id && String(payload.beer_id).startsWith('beer-')) delete payload.beer_id;
+    api.post('/batches/', payload).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const addGravityReading = useCallback((batchId: string, reading: GravityReading) => {
@@ -382,8 +385,11 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
 
   const addMugClubMember = useCallback((member: Omit<MugClubMember, 'id'>) => {
     const tempId = `mc-${Date.now()}`;
-    setMugClubMembers(prev => [...prev, { ...member, id: tempId }]);
-    api.post('/mug-club/', toSnakeKeys(member as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
+    setMugClubMembers(prev => [...prev, { ...member, id: tempId, customerId: member.customerId || tempId }]);
+    const payload = toSnakeKeys(member as unknown as Record<string, unknown>);
+    // Remove null/empty customer_id — API will auto-generate
+    if (!payload.customer_id) delete payload.customer_id;
+    api.post('/mug-club/', payload).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateInventoryItem = useCallback((id: string, updates: Partial<InventoryItem>) => {
@@ -432,7 +438,10 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const addKeg = useCallback((keg: Omit<Keg, 'id'>) => {
     const tempId = `keg-${Date.now()}`;
     setKegs(prev => [...prev, { ...keg, id: tempId }]);
-    api.post('/kegs/', toSnakeKeys(keg as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
+    const payload = toSnakeKeys(keg as unknown as Record<string, unknown>);
+    // Remove null/empty current_beer_id — new kegs may not have beer assigned
+    if (!payload.current_beer_id) delete payload.current_beer_id;
+    api.post('/kegs/', payload).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateKeg = useCallback((id: string, updates: Partial<Keg>) => {
@@ -452,8 +461,11 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   // ──── Detailed Recipe CRUD ────
   const addDetailedRecipe = useCallback((recipe: Omit<DetailedRecipe, 'id'>) => {
     const tempId = `dr-${Date.now()}`;
-    setDetailedRecipes(prev => [...prev, { ...recipe, id: tempId }]);
-    api.post('/detailed-recipes/', toSnakeKeys(recipe as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
+    setDetailedRecipes(prev => [...prev, { ...recipe, id: tempId, beerId: recipe.beerId || tempId }]);
+    const payload = toSnakeKeys(recipe as unknown as Record<string, unknown>);
+    // Remove null/empty beer_id — API will auto-generate
+    if (!payload.beer_id) delete payload.beer_id;
+    api.post('/detailed-recipes/', payload).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
   const updateDetailedRecipe = useCallback((id: string, updates: Partial<DetailedRecipe>) => {

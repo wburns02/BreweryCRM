@@ -260,7 +260,7 @@ function AddKegModal({ onClose, onAdd }: { onClose: () => void; onAdd: (keg: Omi
       status: status as Keg['status'],
       location: location as Keg['location'],
       currentBeerName: '',
-      currentBeerId: '',
+      currentBeerId: null as unknown as string,
       fillCount: 0,
       fillDate: '',
       purchaseDate: today,

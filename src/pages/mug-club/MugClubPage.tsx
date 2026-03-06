@@ -33,7 +33,7 @@ export default function MugClubPage() {
     const renewalDate = renewal.toISOString().split('T')[0];
 
     addMugClubMember({
-      customerId: `cust-${Date.now()}`,
+      customerId: null as unknown as string,
       customerName: customerName.trim(),
       tier,
       memberSince: today,
