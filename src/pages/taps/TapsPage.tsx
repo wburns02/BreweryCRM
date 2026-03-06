@@ -9,6 +9,7 @@ import type { Beer } from '../../types';
 export default function TapsPage() {
   const { tapLines, beers } = useData();
   const [selectedBeer, setSelectedBeer] = useState<Beer | null>(null);
+  const [selectedTapInfo, setSelectedTapInfo] = useState<{ tapNumber: number; beerName: string; style: string; abv: number; kegLevel: number } | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const activeTaps = tapLines.filter(t => t.status === 'active');
@@ -64,7 +65,7 @@ export default function TapsPage() {
             return (
               <div
                 key={tap.tapNumber}
-                onClick={() => beer && setSelectedBeer(beer)}
+                onClick={() => beer ? setSelectedBeer(beer) : setSelectedTapInfo({ tapNumber: tap.tapNumber, beerName: tap.beerName || 'Unknown', style: tap.style || '', abv: tap.abv || 0, kegLevel: tap.kegLevel })}
                 className={`bg-brewery-900/80 border rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-lg ${
                   tap.kegLevel < 15 ? 'border-red-500/40 hover:border-red-400/60 hover:shadow-red-500/10' :
                   tap.kegLevel < 35 ? 'border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-500/10' :
@@ -121,7 +122,7 @@ export default function TapsPage() {
             </thead>
             <tbody className="divide-y divide-brewery-700/20">
               {tapLines.map(tap => (
-                <tr key={tap.tapNumber} className="hover:bg-brewery-800/30 transition-colors cursor-pointer" onClick={() => { const b = beers.find(b2 => b2.id === tap.beerId); b && setSelectedBeer(b); }}>
+                <tr key={tap.tapNumber} className="hover:bg-brewery-800/30 transition-colors cursor-pointer" onClick={() => { const b = beers.find(b2 => b2.id === tap.beerId); b ? setSelectedBeer(b) : setSelectedTapInfo({ tapNumber: tap.tapNumber, beerName: tap.beerName || 'Unknown', style: tap.style || '', abv: tap.abv || 0, kegLevel: tap.kegLevel }); }}>
                   <td className="px-4 py-3 text-sm font-bold text-amber-400">#{tap.tapNumber}</td>
                   <td className="px-4 py-3 text-sm text-brewery-100">{tap.beerName}</td>
                   <td className="px-4 py-3 text-sm text-brewery-300">{tap.style}</td>
@@ -135,6 +136,26 @@ export default function TapsPage() {
           </table>
         </div>
       )}
+
+      {/* Tap Info Modal (when beer details unavailable) */}
+      <Modal open={!!selectedTapInfo} onClose={() => setSelectedTapInfo(null)} title={`Tap #${selectedTapInfo?.tapNumber}`} size="sm">
+        {selectedTapInfo && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-brewery-100">{selectedTapInfo.beerName}</h3>
+            <p className="text-sm text-brewery-400">{selectedTapInfo.style}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-3 rounded-lg bg-brewery-800/30">
+                <p className="text-xl font-bold text-amber-400">{selectedTapInfo.abv}%</p>
+                <p className="text-[10px] text-brewery-400">ABV</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-brewery-800/30">
+                <p className="text-xl font-bold text-brewery-100">{selectedTapInfo.kegLevel}%</p>
+                <p className="text-[10px] text-brewery-400">Keg Level</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Beer Detail Modal */}
       <Modal open={!!selectedBeer} onClose={() => setSelectedBeer(null)} title={selectedBeer?.name || ''} size="lg">

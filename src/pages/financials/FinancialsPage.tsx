@@ -5,7 +5,8 @@ import { useData } from '../../context/DataContext';
 import { clsx } from 'clsx';
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString();
-const fmtPct = (n: number) => n.toFixed(1) + '%';
+const fmtPct = (n: number) => (isFinite(n) ? n.toFixed(1) : '0.0') + '%';
+const safeDivide = (a: number, b: number, fallback = 0) => b === 0 ? fallback : a / b;
 const pctChange = (curr: number, prev: number) => prev === 0 ? 0 : ((curr - prev) / prev) * 100;
 
 const CHART_COLORS = {
@@ -67,6 +68,7 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 // ═══════════════════════════════════════════════
 function OverviewTab() {
   const { monthlyFinancials } = useData();
+  if (monthlyFinancials.length < 2) return <p className="text-sm text-brewery-400">Insufficient financial data to display overview.</p>;
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytd = monthlyFinancials.reduce((s, m) => s + m.totalRevenue, 0);
@@ -167,7 +169,7 @@ function OverviewTab() {
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: r.color }} />
                   <span className="text-brewery-400 truncate">{r.name}</span>
                   <span className="text-brewery-200 ml-auto font-medium">{fmt(r.value)}</span>
-                  <span className="text-brewery-500 w-10 text-right">{fmtPct((r.value / curr.totalRevenue) * 100)}</span>
+                  <span className="text-brewery-500 w-10 text-right">{fmtPct(safeDivide(r.value, curr.totalRevenue) * 100)}</span>
                 </div>
               ))}
             </div>
@@ -231,6 +233,7 @@ function OverviewTab() {
 // ═══════════════════════════════════════════════
 function PnlTab() {
   const { monthlyFinancials } = useData();
+  if (monthlyFinancials.length < 2) return <p className="text-sm text-brewery-400">Insufficient financial data to display P&L.</p>;
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytdSum = (fn: (m: typeof curr) => number) => monthlyFinancials.reduce((s, m) => s + fn(m), 0);
@@ -238,9 +241,9 @@ function PnlTab() {
   const grossProfit = curr.totalRevenue - curr.cogs;
   const prevGrossProfit = prev.totalRevenue - prev.cogs;
   const ytdGrossProfit = ytdSum(m => m.totalRevenue - m.cogs);
-  const grossMargin = (grossProfit / curr.totalRevenue) * 100;
-  const prevGrossMargin = (prevGrossProfit / prev.totalRevenue) * 100;
-  const ytdGrossMargin = (ytdGrossProfit / ytdSum(m => m.totalRevenue)) * 100;
+  const grossMargin = safeDivide(grossProfit, curr.totalRevenue) * 100;
+  const prevGrossMargin = safeDivide(prevGrossProfit, prev.totalRevenue) * 100;
+  const ytdGrossMargin = safeDivide(ytdGrossProfit, ytdSum(m => m.totalRevenue)) * 100;
 
   const totalOpex = curr.totalExpenses - curr.cogs;
   const prevTotalOpex = prev.totalExpenses - prev.cogs;
@@ -271,7 +274,7 @@ function PnlTab() {
     { label: 'TOTAL OPERATING EXPENSES', curr: totalOpex, prev: prevTotalOpex, ytd: ytdTotalOpex, isTotal: true },
     { label: 'TOTAL EXPENSES', curr: curr.totalExpenses, prev: prev.totalExpenses, ytd: ytdSum(m => m.totalExpenses), isTotal: true },
     { label: 'NET PROFIT', curr: curr.netProfit, prev: prev.netProfit, ytd: ytdSum(m => m.netProfit), isTotal: true },
-    { label: 'Net Margin', curr: curr.netMarginPct, prev: prev.netMarginPct, ytd: (ytdSum(m => m.netProfit) / ytdSum(m => m.totalRevenue)) * 100, isPct: true, indent: true },
+    { label: 'Net Margin', curr: curr.netMarginPct, prev: prev.netMarginPct, ytd: safeDivide(ytdSum(m => m.netProfit), ytdSum(m => m.totalRevenue)) * 100, isPct: true, indent: true },
   ];
 
   return (
@@ -337,13 +340,15 @@ function BeerTab() {
       const costPerPint = recipe?.costPerPint ?? 0.18;
       const sellPrice = CATEGORY_PRICES[b.category] ?? 7;
       const marginPerPint = sellPrice - costPerPint;
-      const marginPct = (marginPerPint / sellPrice) * 100;
+      const marginPct = safeDivide(marginPerPint, sellPrice) * 100;
       const monthlyPours = Math.round(b.totalPours / 3);
       const monthlyRev = monthlyPours * sellPrice;
       const monthlyProfit = monthlyPours * marginPerPint;
       return { id: b.id, name: b.name, style: b.style, category: b.category, costPerPint, sellPrice, marginPerPint, marginPct, monthlyPours, monthlyRev, monthlyProfit };
     }).sort((a, b) => b.marginPct - a.marginPct);
-  }, []);
+  }, [beers, detailedRecipes]);
+
+  if (beerData.length === 0) return <p className="text-sm text-brewery-400">No on-tap beers to analyze.</p>;
 
   const best = beerData.reduce((a, b) => b.marginPct > a.marginPct ? b : a, beerData[0]);
   const volumeLeader = beerData.reduce((a, b) => b.monthlyPours > a.monthlyPours ? b : a, beerData[0]);
@@ -451,25 +456,26 @@ function BeerTab() {
 // ═══════════════════════════════════════════════
 function LaborTab() {
   const { staff, monthlyFinancials } = useData();
+  if (monthlyFinancials.length === 0) return <p className="text-sm text-brewery-400">No financial data available.</p>;
   const activeStaff = staff.filter(s => s.status === 'active');
   const totalWeeklyLabor = activeStaff.reduce((s, m) => s + m.hourlyRate * m.hoursThisWeek, 0);
   const totalWeeklyHours = activeStaff.reduce((s, m) => s + m.hoursThisWeek, 0);
   const annualizedLabor = totalWeeklyLabor * 52;
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
-  const laborPctOfRevenue = (curr.laborCost / curr.totalRevenue) * 100;
-  const revPerLaborHour = curr.totalRevenue / (totalWeeklyHours * 4.33);
+  const laborPctOfRevenue = safeDivide(curr.laborCost, curr.totalRevenue) * 100;
+  const revPerLaborHour = safeDivide(curr.totalRevenue, totalWeeklyHours * 4.33);
 
   const staffData = activeStaff.map(s => ({
     name: `${s.firstName} ${s.lastName}`, role: s.role, hours: s.hoursThisWeek, rate: s.hourlyRate,
     weeklyCost: s.hourlyRate * s.hoursThisWeek, sales: s.salesThisWeek,
-    revPerHour: s.salesThisWeek > 0 ? s.salesThisWeek / s.hoursThisWeek : 0,
+    revPerHour: safeDivide(s.salesThisWeek, s.hoursThisWeek),
   })).sort((a, b) => b.revPerHour - a.revPerHour);
 
   const fixedCosts = curr.rent + curr.insurance + curr.licenses;
   const variableCosts = curr.cogs + curr.laborCost + curr.utilities + curr.marketing + curr.supplies + curr.misc;
-  const variableRatio = variableCosts / curr.totalRevenue;
-  const breakEven = fixedCosts / (1 - variableRatio);
-  const aboveBreakEven = ((curr.totalRevenue - breakEven) / breakEven) * 100;
+  const variableRatio = safeDivide(variableCosts, curr.totalRevenue);
+  const breakEven = safeDivide(fixedCosts, 1 - variableRatio);
+  const aboveBreakEven = safeDivide(curr.totalRevenue - breakEven, breakEven) * 100;
 
   const overheadData = [
     { name: 'Fixed', value: fixedCosts, color: '#60a5fa' },

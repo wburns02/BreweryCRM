@@ -79,7 +79,7 @@ export default function POSPage() {
     subtotal: 0,
   });
 
-  const activeTab = activeTabId ? tabs.find(t => t.id === activeTabId) || workingTab : workingTab;
+  const activeTab = workingTab;
   const isExistingTab = activeTabId !== null && tabs.some(t => t.id === activeTabId);
 
   const subtotal = activeTab.items.reduce((s, i) => s + i.price * i.qty, 0);
@@ -114,15 +114,14 @@ export default function POSPage() {
 
     if (isExistingTab && activeTabId) {
       addToTab(activeTabId, item);
-    } else {
-      setWorkingTab(prev => {
-        const existing = prev.items.find(i => i.name === item.name && i.size === item.size);
-        const items = existing
-          ? prev.items.map(i => i.name === item.name && i.size === item.size ? { ...i, qty: i.qty + 1 } : i)
-          : [...prev.items, item];
-        return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
-      });
     }
+    setWorkingTab(prev => {
+      const existing = prev.items.find(i => i.name === item.name && i.size === item.size);
+      const items = existing
+        ? prev.items.map(i => i.name === item.name && i.size === item.size ? { ...i, qty: i.qty + 1 } : i)
+        : [...prev.items, item];
+      return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
+    });
     setShowPourModal(false);
     setSelectedBeerForPour(null);
     toast('success', `Added ${selectedBeerForPour.name} (${size.name})`);
@@ -132,36 +131,31 @@ export default function POSPage() {
     const item = { name, size: '', price, qty: 1 };
     if (isExistingTab && activeTabId) {
       addToTab(activeTabId, item);
-    } else {
-      setWorkingTab(prev => {
-        const existing = prev.items.find(i => i.name === item.name);
-        const items = existing
-          ? prev.items.map(i => i.name === item.name ? { ...i, qty: i.qty + 1 } : i)
-          : [...prev.items, item];
-        return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
-      });
     }
+    setWorkingTab(prev => {
+      const existing = prev.items.find(i => i.name === item.name);
+      const items = existing
+        ? prev.items.map(i => i.name === item.name ? { ...i, qty: i.qty + 1 } : i)
+        : [...prev.items, item];
+      return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
+    });
     toast('success', `Added ${name}`);
   }
 
   function updateItemQty(idx: number, delta: number) {
-    if (isExistingTab) return; // Only works on working tab for simplicity
-    setWorkingTab(prev => {
-      const items = prev.items.map((item, i) => {
-        if (i !== idx) return item;
-        const newQty = item.qty + delta;
-        return newQty > 0 ? { ...item, qty: newQty } : item;
-      }).filter((item, i) => !(i === idx && item.qty + delta <= 0));
-      return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
-    });
+    const newItems = workingTab.items
+      .map((item, i) => i === idx ? { ...item, qty: item.qty + delta } : item)
+      .filter(item => item.qty > 0);
+    const updated = { ...workingTab, items: newItems, subtotal: newItems.reduce((s, i) => s + i.price * i.qty, 0) };
+    setWorkingTab(updated);
+    if (isExistingTab) holdTab(updated);
   }
 
   function removeItem(idx: number) {
-    if (isExistingTab) return;
-    setWorkingTab(prev => {
-      const items = prev.items.filter((_, i) => i !== idx);
-      return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
-    });
+    const newItems = workingTab.items.filter((_, i) => i !== idx);
+    const updated = { ...workingTab, items: newItems, subtotal: newItems.reduce((s, i) => s + i.price * i.qty, 0) };
+    setWorkingTab(updated);
+    if (isExistingTab) holdTab(updated);
   }
 
   function handleHoldTab() {

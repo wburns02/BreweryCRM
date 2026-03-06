@@ -174,7 +174,16 @@ export default function ReservationsPage() {
                   const isOccupied = occupiedTables.includes(table);
                   const reservation = reservations.find(r => r.tableId === table);
                   return (
-                    <div key={table} className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                    <div
+                      key={table}
+                      onClick={() => {
+                        if (reservation) {
+                          toast('info', `${table}: ${reservation.customerName} — ${reservation.partySize} guests, ${reservation.time}, ${reservation.status}`);
+                        } else {
+                          toast('info', `${table}: Available`);
+                        }
+                      }}
+                      className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${
                       isOccupied ? 'bg-amber-600/20 border-amber-500/40 hover:border-amber-400' : 'bg-brewery-800/30 border-brewery-700/30 hover:border-emerald-500/40'
                     }`}>
                       <span className="text-xs font-bold text-brewery-200">{table}</span>
