@@ -1,19 +1,30 @@
+import { useState } from 'react';
 import { DollarSign, Users, TrendingUp, Percent, Download } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import { useData } from '../../context/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
+const RANGES = [
+  { label: '7 Days', days: 7 },
+  { label: '30 Days', days: 30 },
+  { label: '90 Days', days: 90 },
+  { label: 'All Time', days: 0 },
+];
+
 export default function ReportsPage() {
   const { dailySales, beers, customers } = useData();
+  const [rangeDays, setRangeDays] = useState(30);
 
-  const totalRevenue = dailySales.reduce((s, d) => s + d.totalRevenue, 0);
-  const totalCustomers = dailySales.reduce((s, d) => s + d.customerCount, 0);
-  const avgDaily = dailySales.length > 0 ? Math.round(totalRevenue / dailySales.length) : 0;
-  const beerPct = totalRevenue > 0 ? Math.round((dailySales.reduce((s, d) => s + d.beerRevenue, 0) / totalRevenue) * 100) : 0;
+  const filteredSales = rangeDays === 0 ? dailySales : dailySales.slice(0, rangeDays);
 
-  const weeklyData = Array.from({ length: 4 }, (_, i) => {
+  const totalRevenue = filteredSales.reduce((s, d) => s + d.totalRevenue, 0);
+  const totalCustomers = filteredSales.reduce((s, d) => s + d.customerCount, 0);
+  const avgDaily = filteredSales.length > 0 ? Math.round(totalRevenue / filteredSales.length) : 0;
+  const beerPct = totalRevenue > 0 ? Math.round((filteredSales.reduce((s, d) => s + d.beerRevenue, 0) / totalRevenue) * 100) : 0;
+
+  const weeklyData = Array.from({ length: Math.min(Math.ceil(filteredSales.length / 7), 4) }, (_, i) => {
     const start = i * 7;
-    const week = dailySales.slice(start, start + 7);
+    const week = filteredSales.slice(start, start + 7);
     return {
       week: `Week ${i + 1}`,
       beer: week.reduce((s, d) => s + d.beerRevenue, 0),
@@ -30,11 +41,11 @@ export default function ReportsPage() {
     .map(b => ({ name: b.name.length > 15 ? b.name.slice(0, 15) + '...' : b.name, pours: b.totalPours, rating: b.rating }));
 
   const categoryRevenue = [
-    { name: 'Beer', value: dailySales.reduce((s, d) => s + d.beerRevenue, 0), color: '#d97706' },
-    { name: 'Food', value: dailySales.reduce((s, d) => s + d.foodRevenue, 0), color: '#059669' },
-    { name: 'NA Beverages', value: dailySales.reduce((s, d) => s + d.naRevenue, 0), color: '#3b82f6' },
-    { name: 'Merchandise', value: dailySales.reduce((s, d) => s + d.merchandiseRevenue, 0), color: '#a855f7' },
-    { name: 'Events', value: dailySales.reduce((s, d) => s + d.eventRevenue, 0), color: '#f43f5e' },
+    { name: 'Beer', value: filteredSales.reduce((s, d) => s + d.beerRevenue, 0), color: '#d97706' },
+    { name: 'Food', value: filteredSales.reduce((s, d) => s + d.foodRevenue, 0), color: '#059669' },
+    { name: 'NA Beverages', value: filteredSales.reduce((s, d) => s + d.naRevenue, 0), color: '#3b82f6' },
+    { name: 'Merchandise', value: filteredSales.reduce((s, d) => s + d.merchandiseRevenue, 0), color: '#a855f7' },
+    { name: 'Events', value: filteredSales.reduce((s, d) => s + d.eventRevenue, 0), color: '#f43f5e' },
   ];
 
   const loyaltyDistro = [
@@ -46,7 +57,7 @@ export default function ReportsPage() {
 
   function exportCSV() {
     const headers = ['Date', 'Total Revenue', 'Beer Revenue', 'Food Revenue', 'NA Revenue', 'Events Revenue', 'Customers', 'Avg Ticket'];
-    const rows = dailySales.map(d => [
+    const rows = filteredSales.map(d => [
       d.date, d.totalRevenue.toFixed(2), d.beerRevenue.toFixed(2), d.foodRevenue.toFixed(2),
       d.naRevenue.toFixed(2), d.eventRevenue.toFixed(2), d.customerCount, d.avgTicket.toFixed(2),
     ]);
@@ -62,9 +73,19 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header with export */}
-      <div className="flex items-center justify-between">
-        <div />
+      {/* Header with date range filter + export */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex gap-1.5">
+          {RANGES.map(r => (
+            <button
+              key={r.days}
+              onClick={() => setRangeDays(r.days)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${rangeDays === r.days ? 'bg-amber-600/20 text-amber-300 border-amber-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'}`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
         <button
           onClick={exportCSV}
           className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-brewery-800/60 border border-brewery-700/30 text-brewery-300 hover:text-brewery-100 hover:border-amber-500/30 transition-all"
@@ -74,7 +95,7 @@ export default function ReportsPage() {
       </div>
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="30-Day Revenue" value={`$${totalRevenue.toLocaleString()}`} change={18} icon={DollarSign} iconBg="bg-emerald-600/20" iconColor="text-emerald-400" />
+        <StatCard title={`${rangeDays === 0 ? 'All-Time' : rangeDays + '-Day'} Revenue`} value={`$${totalRevenue.toLocaleString()}`} change={18} icon={DollarSign} iconBg="bg-emerald-600/20" iconColor="text-emerald-400" />
         <StatCard title="Total Guests" value={totalCustomers.toLocaleString()} change={12} icon={Users} iconBg="bg-blue-600/20" iconColor="text-blue-400" />
         <StatCard title="Avg Daily Revenue" value={`$${avgDaily.toLocaleString()}`} icon={TrendingUp} iconBg="bg-amber-600/20" iconColor="text-amber-400" />
         <StatCard title="Beer % of Revenue" value={`${beerPct}%`} icon={Percent} iconBg="bg-purple-600/20" iconColor="text-purple-400" />

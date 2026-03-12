@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Crown, Users, DollarSign, TrendingUp, Gift } from 'lucide-react';
+import { Crown, Users, DollarSign, TrendingUp, Gift, X, Calendar, MapPin, Star } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
 import Modal from '../../components/ui/Modal';
+import SlidePanel from '../../components/ui/SlidePanel';
 import { useBrewery } from '../../context/BreweryContext';
 import { useToast } from '../../components/ui/ToastProvider';
+import type { MugClubMember } from '../../types';
 
 const tierColors: Record<string, 'amber' | 'purple' | 'blue'> = { Standard: 'blue', Premium: 'amber', Founding: 'purple' };
 const tierPrices = { Standard: 99, Premium: 199, Founding: 299 };
@@ -13,6 +15,7 @@ export default function MugClubPage() {
   const { mugClubMembers, addMugClubMember } = useBrewery();
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<MugClubMember | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [tier, setTier] = useState<'Standard' | 'Premium' | 'Founding'>('Standard');
   const [mugNumber, setMugNumber] = useState('');
@@ -150,7 +153,11 @@ export default function MugClubPage() {
             </thead>
             <tbody className="divide-y divide-brewery-700/20">
               {mugClubMembers.map(member => (
-                <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
+                <tr
+                  key={member.id}
+                  onClick={() => setSelectedMember(member)}
+                  className="hover:bg-brewery-800/30 transition-colors cursor-pointer"
+                >
                   <td className="px-4 py-3 text-sm font-bold text-amber-400">#{member.mugNumber.toString().padStart(3, '0')}</td>
                   <td className="px-4 py-3">
                     <p className="text-sm font-medium text-brewery-100">{member.customerName}</p>
@@ -169,6 +176,87 @@ export default function MugClubPage() {
           </table>
         </div>
       </div>
+
+      {/* Member Detail Panel */}
+      <SlidePanel open={!!selectedMember} onClose={() => setSelectedMember(null)} title={selectedMember?.customerName ?? ''}>
+        {selectedMember && (
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold ${selectedMember.tier === 'Founding' ? 'bg-purple-600/30 text-purple-300' : selectedMember.tier === 'Premium' ? 'bg-amber-600/30 text-amber-300' : 'bg-blue-600/30 text-blue-300'}`}>
+                {selectedMember.customerName.charAt(0)}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-brewery-50">{selectedMember.customerName}</h3>
+                  <Badge variant={tierColors[selectedMember.tier]}>{selectedMember.tier}</Badge>
+                </div>
+                <p className="text-sm text-amber-400 font-medium">Mug #{selectedMember.mugNumber.toString().padStart(3, '0')}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-brewery-800/40 rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-brewery-100">{selectedMember.visitsAsMember}</p>
+                <p className="text-xs text-brewery-400">Visits as Member</p>
+              </div>
+              <div className="bg-brewery-800/40 rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-emerald-400">${selectedMember.totalSaved.toFixed(0)}</p>
+                <p className="text-xs text-brewery-400">Total Saved</p>
+              </div>
+              <div className="bg-brewery-800/40 rounded-xl p-3 text-center">
+                <p className="text-xl font-bold text-blue-400">{selectedMember.referrals}</p>
+                <p className="text-xs text-brewery-400">Referrals</p>
+              </div>
+              <div className="bg-brewery-800/40 rounded-xl p-3 text-center">
+                <Badge variant={selectedMember.status === 'active' ? 'green' : selectedMember.status === 'expiring-soon' ? 'amber' : 'red'}>
+                  {selectedMember.status}
+                </Badge>
+                <p className="text-xs text-brewery-400 mt-1">Status</p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2 text-brewery-300">
+                <Calendar className="w-4 h-4 text-brewery-500" />
+                <span>Member since <span className="text-brewery-100 font-medium">{selectedMember.memberSince}</span></span>
+              </div>
+              <div className="flex items-center gap-2 text-brewery-300">
+                <Calendar className="w-4 h-4 text-brewery-500" />
+                <span>Renewal <span className="text-brewery-100 font-medium">{selectedMember.renewalDate}</span></span>
+              </div>
+              <div className="flex items-center gap-2 text-brewery-300">
+                <MapPin className="w-4 h-4 text-brewery-500" />
+                <span>Mug location: <span className="text-brewery-100 font-medium">{selectedMember.mugLocation}</span></span>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Benefits</h4>
+              <div className="space-y-1.5">
+                {selectedMember.benefits.map((b, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <Star className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-brewery-300">{b}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedMember.status === 'expiring-soon' && (
+              <div className="bg-amber-900/30 border border-amber-500/30 rounded-xl p-4">
+                <p className="text-sm font-semibold text-amber-300">⚠ Renewal Due Soon</p>
+                <p className="text-xs text-amber-400 mt-1">Membership renews on {selectedMember.renewalDate}. Send a reminder to lock in another year.</p>
+                <button
+                  onClick={() => { toast('success', `Renewal reminder sent to ${selectedMember.customerName}`); setSelectedMember(null); }}
+                  className="mt-3 w-full bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-sm font-semibold py-2 rounded-lg transition-all"
+                >
+                  Send Renewal Reminder
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </SlidePanel>
 
       {/* Add Member Modal */}
       <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="Add Mug Club Member">

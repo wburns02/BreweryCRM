@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlaskConical, Thermometer, Droplets, Plus, CheckCircle } from 'lucide-react';
+import { FlaskConical, Thermometer, Droplets, Plus, CheckCircle, ChevronRight, Activity } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Modal from '../../components/ui/Modal';
@@ -7,6 +7,12 @@ import { useBrewery } from '../../context/BreweryContext';
 import { useToast } from '../../components/ui/ToastProvider';
 import { useData } from '../../context/DataContext';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+const STATUS_FLOW: Record<string, string> = {
+  planned: 'mashing', mashing: 'boiling', boiling: 'fermenting',
+  fermenting: 'conditioning', conditioning: 'carbonating', carbonating: 'ready', ready: 'packaged',
+};
+const GRAVITY_STATUSES = ['fermenting', 'conditioning', 'carbonating'];
 
 const statusColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'gray' | 'red'> = {
   planned: 'gray', mashing: 'amber', boiling: 'amber', fermenting: 'amber', conditioning: 'blue', carbonating: 'purple', ready: 'green', packaged: 'green',
@@ -24,16 +30,37 @@ const tanks = [
 
 export default function BrewingPage() {
   const { beers } = useData();
-  const { batches, addBatch } = useBrewery();
+  const { batches, addBatch, advanceBatchStatus, addGravityReading } = useBrewery();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'batches' | 'tanks' | 'recipes'>('batches');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [gravityBatchId, setGravityBatchId] = useState<string | null>(null);
+  const [gravityValue, setGravityValue] = useState('');
   const [beerName, setBeerName] = useState('');
   const [style, setStyle] = useState('');
   const [targetOG, setTargetOG] = useState('');
   const [volume, setVolume] = useState('');
   const [tankId, setTankId] = useState('');
   const [notes, setNotes] = useState('');
+
+  const handleAdvance = (batchId: string, beerName: string, currentStatus: string) => {
+    const next = STATUS_FLOW[currentStatus];
+    if (!next) return;
+    advanceBatchStatus(batchId);
+    toast('success', `${beerName} advanced to ${next}`);
+  };
+
+  const handleGravitySubmit = (batchId: string, beerName: string) => {
+    const gv = parseFloat(gravityValue);
+    if (isNaN(gv) || gv < 0.9 || gv > 1.2) {
+      toast('error', 'Enter a valid gravity (e.g. 1.045)');
+      return;
+    }
+    addGravityReading(batchId, { date: new Date().toISOString().split('T')[0], gravity: gv });
+    toast('success', `Gravity ${gv} logged for ${beerName}`);
+    setGravityBatchId(null);
+    setGravityValue('');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +186,49 @@ export default function BrewingPage() {
               </div>
 
               {batch.notes && <p className="text-xs text-brewery-300 mt-3 pt-3 border-t border-brewery-700/20 italic">"{batch.notes}"</p>}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-brewery-700/20">
+                {STATUS_FLOW[batch.status] && (
+                  <button
+                    onClick={() => handleAdvance(batch.id, batch.beerName, batch.status)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/15 hover:bg-amber-600/25 border border-amber-500/30 text-amber-300 hover:text-amber-200 rounded-lg text-xs font-semibold transition-all"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                    Advance to {STATUS_FLOW[batch.status]}
+                  </button>
+                )}
+                {GRAVITY_STATUSES.includes(batch.status) && (
+                  gravityBatchId === batch.id ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number" step="0.001" min="0.9" max="1.2"
+                        value={gravityValue}
+                        onChange={e => setGravityValue(e.target.value)}
+                        placeholder="e.g. 1.028"
+                        autoFocus
+                        className="w-28 bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-2 py-1.5 text-xs text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                      />
+                      <button
+                        onClick={() => handleGravitySubmit(batch.id, batch.beerName)}
+                        className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-semibold transition-all"
+                      >Log</button>
+                      <button
+                        onClick={() => { setGravityBatchId(null); setGravityValue(''); }}
+                        className="px-2 py-1.5 text-brewery-500 hover:text-brewery-300 text-xs transition-colors"
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setGravityBatchId(batch.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-300 hover:text-blue-200 rounded-lg text-xs font-semibold transition-all"
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      Log Gravity
+                    </button>
+                  )
+                )}
+              </div>
             </div>
           ))}
         </div>
