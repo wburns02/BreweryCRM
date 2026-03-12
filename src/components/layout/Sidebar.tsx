@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut, Factory, FileText, Gauge, QrCode, Thermometer, Tv2, Calculator } from 'lucide-react';
+import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut, Factory, FileText, Gauge, QrCode, Thermometer, Tv2, Calculator, Star } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -19,6 +19,7 @@ const navItems: { id: PageId; label: string; icon: React.ElementType; group: str
   { id: 'customers', label: 'Customers', icon: Users, group: 'Guests' },
   { id: 'mug-club', label: 'Mug Club', icon: Crown, group: 'Guests' },
   { id: 'loyalty', label: 'Loyalty Check-in', icon: QrCode, group: 'Guests' },
+  { id: 'ratings', label: 'Beer Ratings', icon: Star, group: 'Guests' },
   { id: 'reservations', label: 'Reservations', icon: BookOpen, group: 'Guests' },
   { id: 'tap-menu', label: 'Tap Menu Board', icon: Tv2, group: 'Taproom' },
   { id: 'taps', label: 'Tap Management', icon: GlassWater, group: 'Brewery' },

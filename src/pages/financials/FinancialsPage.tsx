@@ -66,8 +66,17 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 // ═══════════════════════════════════════════════
 // TAB 1: OVERVIEW
 // ═══════════════════════════════════════════════
+const PERIODS = [
+  { label: 'This Month', months: 1 },
+  { label: '3 Months', months: 3 },
+  { label: '6 Months', months: 6 },
+  { label: 'YTD', months: 12 },
+] as const;
+
 function OverviewTab() {
   const { monthlyFinancials } = useData();
+  const [periodMonths, setPeriodMonths] = useState(1);
+
   if (monthlyFinancials.length < 2) return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
       <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center">
@@ -77,14 +86,20 @@ function OverviewTab() {
       <p className="text-brewery-500 text-sm text-center max-w-xs">Financial overview will populate after at least two months of recorded sales data.</p>
     </div>
   );
-  const curr = monthlyFinancials[monthlyFinancials.length - 1];
-  const prev = monthlyFinancials[monthlyFinancials.length - 2];
+
+  const periodData = monthlyFinancials.slice(-Math.max(1, periodMonths));
+  const curr = periodData[periodData.length - 1];
+  const prev = monthlyFinancials[monthlyFinancials.length - 1 - periodMonths] ?? monthlyFinancials[0];
+
+  // Aggregate across period
+  const periodRevenue = periodData.reduce((s, m) => s + m.totalRevenue, 0);
+  const periodProfit = periodData.reduce((s, m) => s + m.netProfit, 0);
   const ytd = monthlyFinancials.reduce((s, m) => s + m.totalRevenue, 0);
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const avgDaily = curr.totalRevenue / daysInMonth;
+  const avgDaily = periodMonths === 1 ? curr.totalRevenue / daysInMonth : periodRevenue / (periodMonths * 30);
 
-  const stackedData = monthlyFinancials.map(m => ({
+  const stackedData = periodData.map(m => ({
     month: m.monthLabel,
     Beer: m.beerRevenue, Food: m.foodRevenue, NA: m.naRevenue,
     Wholesale: m.wholesaleRevenue, Merch: m.merchandiseRevenue, Events: m.eventRevenue,
@@ -117,12 +132,30 @@ function OverviewTab() {
 
   return (
     <div className="space-y-6">
+      {/* Period Selector */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-brewery-500 font-medium">Period:</span>
+        {PERIODS.map(p => (
+          <button
+            key={p.months}
+            onClick={() => setPeriodMonths(p.months)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+              periodMonths === p.months
+                ? 'bg-amber-600/20 text-amber-300 border-amber-500/30'
+                : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Monthly Revenue" value={fmt(curr.totalRevenue)} change={pctChange(curr.totalRevenue, prev.totalRevenue)} subtitle="vs last month" />
-        <StatCard label="Net Profit" value={fmt(curr.netProfit)} change={pctChange(curr.netProfit, prev.netProfit)} subtitle={`${fmtPct(curr.netMarginPct)} margin`} />
-        <StatCard label="Avg Daily Revenue" value={fmt(avgDaily)} subtitle="this month" />
-        <StatCard label="YTD Revenue" value={fmt(ytd)} subtitle="6 months" />
+        <StatCard label={periodMonths === 1 ? 'Monthly Revenue' : `${periodMonths}M Revenue`} value={fmt(periodRevenue)} change={pctChange(periodRevenue, prev.totalRevenue * periodMonths)} subtitle={`vs prior ${periodMonths === 1 ? 'month' : `${periodMonths} months`}`} />
+        <StatCard label={periodMonths === 1 ? 'Net Profit' : `${periodMonths}M Profit`} value={fmt(periodProfit)} change={pctChange(periodProfit, prev.netProfit * periodMonths)} subtitle={`${fmtPct(periodRevenue > 0 ? (periodProfit / periodRevenue) * 100 : 0)} margin`} />
+        <StatCard label="Avg Daily Revenue" value={fmt(avgDaily)} subtitle={periodMonths === 1 ? 'this month' : `${periodMonths}-month avg`} />
+        <StatCard label="YTD Revenue" value={fmt(ytd)} subtitle="all recorded months" />
       </div>
 
       {/* Revenue Trend — Stacked Area */}

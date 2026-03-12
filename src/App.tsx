@@ -30,6 +30,7 @@ import TTBReportsPage from './pages/ttb-reports/TTBReportsPage';
 import KegMonitorPage from './pages/keg-monitor/KegMonitorPage';
 import TapMenuBoardPage from './pages/tap-menu/TapMenuBoardPage';
 import BrewCostLabPage from './pages/brew-costs/BrewCostLabPage';
+import BeerRatingsPage from './pages/ratings/BeerRatingsPage';
 import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
 import { DataProvider } from './context/DataContext';
@@ -67,6 +68,7 @@ const pageTitles: Record<PageId, string> = {
   'fermentation': 'Ferment Lab',
   'tap-menu': 'Live Tap Menu Board',
   'brew-costs': 'Brew Cost Lab',
+  'ratings': 'Beer Ratings',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -97,6 +99,7 @@ const pages: Record<PageId, React.ComponentType> = {
   'fermentation': FermentationPage,
   'tap-menu': TapMenuBoardPage,
   'brew-costs': BrewCostLabPage,
+  'ratings': BeerRatingsPage,
 };
 
 function App() {

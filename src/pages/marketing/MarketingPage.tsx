@@ -31,6 +31,7 @@ export default function MarketingPage() {
   const [scheduleDate, setScheduleDate] = useState('');
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
   const [type, setType] = useState<'new-release' | 'event' | 'promotion' | 'newsletter' | 'mug-club' | 'birthday'>('newsletter');
   const [segment, setSegment] = useState('');
 
@@ -81,6 +82,7 @@ export default function MarketingPage() {
     addCampaign({
       name: name.trim(),
       subject: subject.trim(),
+      body: body.trim(),
       type,
       segment: segment.trim() || 'All Subscribers',
       status: 'draft',
@@ -94,6 +96,7 @@ export default function MarketingPage() {
     setShowAddModal(false);
     setName('');
     setSubject('');
+    setBody('');
     setType('newsletter');
     setSegment('');
   };
@@ -131,6 +134,11 @@ export default function MarketingPage() {
                 <Badge variant="gray">{campaign.segment}</Badge>
               </div>
             </div>
+            {(campaign as { body?: string }).body && (
+              <p className="text-xs text-brewery-500 italic mb-3 border-l-2 border-brewery-700/50 pl-3 line-clamp-2">
+                {(campaign as { body?: string }).body}
+              </p>
+            )}
 
             {campaign.status === 'sent' && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -261,6 +269,17 @@ export default function MarketingPage() {
                 placeholder="All Subscribers"
                 className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30" />
             </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Email Body</label>
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              rows={5}
+              placeholder="Write your email content here. Include your message, offers, links, and a call to action..."
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30 resize-none"
+            />
+            <p className="text-[10px] text-brewery-500 mt-1">{body.length} characters · {Math.ceil(body.length / 600)} min read</p>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setShowAddModal(false)}

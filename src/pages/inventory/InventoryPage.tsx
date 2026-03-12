@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Warehouse, AlertTriangle, Package, ShoppingCart, Plus, Trash2 } from 'lucide-react';
+import { Warehouse, AlertTriangle, Package, ShoppingCart, Plus, Trash2, SlidersHorizontal } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Modal from '../../components/ui/Modal';
@@ -28,6 +28,24 @@ export default function InventoryPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [adjustItem, setAdjustItem] = useState<typeof inventoryItems[0] | null>(null);
+  const [adjustMode, setAdjustMode] = useState<'use' | 'receive'>('use');
+  const [adjustAmount, setAdjustAmount] = useState('');
+  const [adjustNote, setAdjustNote] = useState('');
+
+  const handleAdjust = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adjustItem) return;
+    const delta = parseFloat(adjustAmount) || 0;
+    if (delta <= 0) { toast('error', 'Enter a positive amount'); return; }
+    const change = adjustMode === 'use' ? -delta : delta;
+    const newStock = Math.max(0, adjustItem.currentStock + change);
+    updateInventoryItem(adjustItem.id, { currentStock: newStock });
+    toast('success', `${adjustItem.name}: ${adjustMode === 'use' ? 'Used' : 'Received'} ${delta} ${adjustItem.unit} → ${newStock} remaining`);
+    setAdjustItem(null);
+    setAdjustAmount('');
+    setAdjustNote('');
+  };
   const filtered = activeCategory === 'all' ? inventoryItems : inventoryItems.filter(i => i.category === activeCategory);
   const lowStock = inventoryItems.filter(i => i.currentStock <= i.reorderPoint);
   const totalValue = inventoryItems.reduce((s, i) => s + (i.currentStock * i.costPerUnit), 0);
@@ -172,13 +190,22 @@ export default function InventoryPage() {
                     <td className="px-4 py-3 text-sm text-brewery-300">{item.supplier}</td>
                     <td className="px-4 py-3 text-sm text-brewery-400">{item.location}</td>
                     <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleDelete(item)}
-                        className="p-1.5 rounded-lg text-brewery-500 hover:text-red-400 hover:bg-red-900/20 transition-colors"
-                        title={`Delete ${item.name}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1 justify-center">
+                        <button
+                          onClick={() => { setAdjustItem(item); setAdjustMode('use'); setAdjustAmount(''); }}
+                          className="p-1.5 rounded-lg text-brewery-500 hover:text-amber-400 hover:bg-amber-900/20 transition-colors"
+                          title={`Adjust stock for ${item.name}`}
+                        >
+                          <SlidersHorizontal className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item)}
+                          className="p-1.5 rounded-lg text-brewery-500 hover:text-red-400 hover:bg-red-900/20 transition-colors"
+                          title={`Delete ${item.name}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -318,6 +345,83 @@ export default function InventoryPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Adjust Stock Modal */}
+      <Modal open={!!adjustItem} onClose={() => setAdjustItem(null)} title={`Adjust Stock — ${adjustItem?.name ?? ''}`} size="sm">
+        {adjustItem && (
+          <form onSubmit={handleAdjust} className="space-y-4">
+            <div className="p-3 rounded-xl bg-brewery-800/40 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-brewery-400">Current Stock</p>
+                <p className="text-xl font-bold text-brewery-100">{adjustItem.currentStock} <span className="text-sm font-normal text-brewery-400">{adjustItem.unit}</span></p>
+              </div>
+              <div>
+                <p className="text-xs text-brewery-400 text-right">Par Level</p>
+                <p className="text-xl font-bold text-brewery-400 text-right">{adjustItem.parLevel} <span className="text-sm font-normal">{adjustItem.unit}</span></p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-brewery-400 mb-2">Adjustment Type</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button"
+                  onClick={() => setAdjustMode('use')}
+                  className={`py-2 rounded-lg text-sm font-semibold border transition-all ${adjustMode === 'use' ? 'bg-red-900/30 border-red-500/40 text-red-300' : 'bg-brewery-800/40 border-brewery-700/30 text-brewery-400'}`}>
+                  Use / Remove
+                </button>
+                <button type="button"
+                  onClick={() => setAdjustMode('receive')}
+                  className={`py-2 rounded-lg text-sm font-semibold border transition-all ${adjustMode === 'receive' ? 'bg-emerald-900/30 border-emerald-500/40 text-emerald-300' : 'bg-brewery-800/40 border-brewery-700/30 text-brewery-400'}`}>
+                  Receive / Add
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-brewery-300 mb-1.5">
+                Amount ({adjustItem.unit})
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={adjustAmount}
+                onChange={e => setAdjustAmount(e.target.value)}
+                placeholder={`e.g. 5 ${adjustItem.unit}`}
+                required
+                className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                autoFocus
+              />
+              {adjustAmount && (
+                <p className="text-xs mt-1 font-medium">
+                  New stock: <span className={adjustMode === 'use' ? 'text-red-400' : 'text-emerald-400'}>
+                    {Math.max(0, adjustItem.currentStock + (adjustMode === 'use' ? -1 : 1) * (parseFloat(adjustAmount) || 0)).toFixed(1)} {adjustItem.unit}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Note (optional)</label>
+              <input
+                type="text"
+                value={adjustNote}
+                onChange={e => setAdjustNote(e.target.value)}
+                placeholder="e.g. Batch 47, spillage, delivery..."
+                className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 placeholder-brewery-500 focus:outline-none focus:border-amber-500/50"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-1">
+              <button type="button" onClick={() => setAdjustItem(null)} className="px-4 py-2 text-sm font-medium text-brewery-300 hover:text-brewery-100 transition-colors">Cancel</button>
+              <button type="submit"
+                className={`px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors ${adjustMode === 'use' ? 'bg-red-600 hover:bg-red-500' : 'bg-emerald-600 hover:bg-emerald-500'}`}>
+                {adjustMode === 'use' ? 'Record Usage' : 'Receive Stock'}
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

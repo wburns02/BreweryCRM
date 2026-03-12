@@ -233,12 +233,22 @@ export default function MugClubPage() {
             <div>
               <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Benefits</h4>
               <div className="space-y-1.5">
-                {(selectedMember.benefits ?? []).map((b, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <Star className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-brewery-300">{b}</span>
-                  </div>
-                ))}
+                {(() => {
+                  const tierBenefits: Record<string, string[]> = {
+                    Founding: ['20oz pour at pint price', '15% off everything', 'All member-only releases', 'Annual appreciation dinner', 'Founding member plaque', 'Name on brewery wall'],
+                    Premium: ['20oz pour at pint price', '10% off merchandise', 'Member-only releases', '2 guest passes/month'],
+                    Standard: ['20oz pour at pint price', 'Birthday free pint', 'Member newsletter'],
+                  };
+                  const benefits = (selectedMember.benefits && selectedMember.benefits.length > 0)
+                    ? selectedMember.benefits
+                    : (tierBenefits[selectedMember.tier] ?? ['20oz pour at pint price']);
+                  return benefits.map((b, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <Star className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-brewery-300">{b}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 

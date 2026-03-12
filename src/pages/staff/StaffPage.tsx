@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { UserCog, Clock, DollarSign, ShieldCheck, Plus, Phone, Mail, Calendar, Edit2, TrendingUp } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { UserCog, Clock, DollarSign, ShieldCheck, Plus, Phone, Mail, Calendar, Edit2, TrendingUp, X } from 'lucide-react';
 
 const TIP_ELIGIBLE_ROLES = new Set(['bartender', 'server', 'host']);
 import Badge from '../../components/ui/Badge';
@@ -23,6 +23,11 @@ export default function StaffPage() {
   const [activeTab, setActiveTab] = useState<'team' | 'schedule' | 'compliance'>('team');
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMember, setViewMember] = useState<StaffMember | null>(null);
+  // Schedule editing: memberId → ShiftSlot[]
+  const [scheduleOverrides, setScheduleOverrides] = useState<Record<string, import('../../types').ShiftSlot[]>>({});
+  const [editingCell, setEditingCell] = useState<{ memberId: string; day: string } | null>(null);
+  const [editStart, setEditStart] = useState('09:00');
+  const [editEnd, setEditEnd] = useState('17:00');
 
   // Form state
   const [firstName, setFirstName] = useState('');
@@ -40,6 +45,37 @@ export default function StaffPage() {
   const totalHours = staff.reduce((s, m) => s + m.hoursThisWeek, 0);
   const totalLabor = staff.reduce((s, m) => s + (m.hoursThisWeek * m.hourlyRate), 0);
   const certIssues = staff.filter(s => !s.tabcCertified && s.role !== 'cook' && s.role !== 'dishwasher');
+
+  // Effective schedule merges API data with local overrides
+  const effectiveSchedule = useMemo(() => {
+    const map: Record<string, import('../../types').ShiftSlot[]> = {};
+    for (const m of staff) {
+      map[m.id] = scheduleOverrides[m.id] ?? m.schedule ?? [];
+    }
+    return map;
+  }, [staff, scheduleOverrides]);
+
+  const getShift = (memberId: string, day: string) =>
+    effectiveSchedule[memberId]?.find(s => s.day === day);
+
+  const saveShift = (memberId: string, day: string, startTime: string, endTime: string) => {
+    const member = staff.find(m => m.id === memberId);
+    if (!member) return;
+    const current = effectiveSchedule[memberId] ?? [];
+    const updated = current.filter(s => s.day !== day);
+    updated.push({ day, startTime, endTime, role: member.role });
+    setScheduleOverrides(prev => ({ ...prev, [memberId]: updated }));
+    setEditingCell(null);
+    toast('success', `${member.firstName}'s ${day} shift set: ${startTime}–${endTime}`);
+  };
+
+  const removeShift = (memberId: string, day: string) => {
+    const member = staff.find(m => m.id === memberId);
+    if (!member) return;
+    const current = effectiveSchedule[memberId] ?? [];
+    setScheduleOverrides(prev => ({ ...prev, [memberId]: current.filter(s => s.day !== day) }));
+    toast('success', `${member.firstName}'s ${day} shift removed`);
+  };
 
   const resetForm = () => {
     setFirstName(''); setLastName(''); setEmail(''); setPhone('');
@@ -184,30 +220,62 @@ export default function StaffPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brewery-700/20">
-                    {staff.map(member => (
-                      <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</p>
-                          <Badge variant={roleColors[member.role]}>{member.role}</Badge>
-                        </td>
-                        {days.map(day => {
-                          const shift = member.schedule.find(s => s.day === day);
-                          return (
-                            <td key={day} className="px-2 py-3 text-center">
-                              {shift ? (
-                                <div className="p-1.5 rounded-lg bg-amber-600/10 border border-amber-500/20">
-                                  <p className="text-[10px] font-medium text-amber-300">{shift.startTime}</p>
-                                  <p className="text-[10px] text-brewery-400">{shift.endTime}</p>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-brewery-600">—</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                        <td className="px-4 py-3 text-right text-sm font-medium text-brewery-200">{member.hoursThisWeek}h</td>
-                      </tr>
-                    ))}
+                    {staff.map(member => {
+                      const memberShifts = effectiveSchedule[member.id] ?? [];
+                      const totalHrs = memberShifts.reduce((s, sh) => {
+                        const [sh1, sm1] = sh.startTime.split(':').map(Number);
+                        const [eh1, em1] = sh.endTime.split(':').map(Number);
+                        return s + ((eh1 * 60 + em1) - (sh1 * 60 + sm1)) / 60;
+                      }, 0);
+                      return (
+                        <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
+                          <td className="px-4 py-3">
+                            <p className="text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</p>
+                            <Badge variant={roleColors[member.role]}>{member.role}</Badge>
+                          </td>
+                          {days.map(day => {
+                            const shift = getShift(member.id, day);
+                            const isEditing = editingCell?.memberId === member.id && editingCell?.day === day;
+                            return (
+                              <td key={day} className="px-1 py-2 text-center relative">
+                                {isEditing ? (
+                                  <div className="absolute z-10 top-0 left-1/2 -translate-x-1/2 bg-brewery-800 border border-amber-500/40 rounded-xl p-3 shadow-2xl w-40 text-left">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-[10px] font-bold text-amber-300">{day} Shift</span>
+                                      <button onClick={() => setEditingCell(null)}><X className="w-3 h-3 text-brewery-400" /></button>
+                                    </div>
+                                    <label className="text-[9px] text-brewery-500 block mb-0.5">Start</label>
+                                    <input type="time" value={editStart} onChange={e => setEditStart(e.target.value)}
+                                      className="w-full bg-brewery-900 border border-brewery-700/50 rounded px-1.5 py-1 text-[10px] text-brewery-100 mb-1.5 focus:outline-none" />
+                                    <label className="text-[9px] text-brewery-500 block mb-0.5">End</label>
+                                    <input type="time" value={editEnd} onChange={e => setEditEnd(e.target.value)}
+                                      className="w-full bg-brewery-900 border border-brewery-700/50 rounded px-1.5 py-1 text-[10px] text-brewery-100 mb-2 focus:outline-none" />
+                                    <button onClick={() => saveShift(member.id, day, editStart, editEnd)}
+                                      className="w-full bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold py-1 rounded transition-colors">Save</button>
+                                    {shift && <button onClick={() => { removeShift(member.id, day); setEditingCell(null); }}
+                                      className="w-full mt-1 bg-red-900/40 hover:bg-red-900/60 text-red-400 text-[10px] font-bold py-1 rounded transition-colors">Remove</button>}
+                                  </div>
+                                ) : null}
+                                <button
+                                  onClick={() => { setEditStart(shift?.startTime ?? '09:00'); setEditEnd(shift?.endTime ?? '17:00'); setEditingCell({ memberId: member.id, day }); }}
+                                  className={`w-full p-1.5 rounded-lg transition-all border ${shift ? 'bg-amber-600/10 border-amber-500/20 hover:bg-amber-600/20' : 'border-transparent hover:bg-brewery-800/50 hover:border-brewery-700/40'}`}
+                                >
+                                  {shift ? (
+                                    <>
+                                      <p className="text-[10px] font-medium text-amber-300">{shift.startTime}</p>
+                                      <p className="text-[10px] text-brewery-400">{shift.endTime}</p>
+                                    </>
+                                  ) : (
+                                    <span className="text-xs text-brewery-700 hover:text-brewery-500">+</span>
+                                  )}
+                                </button>
+                              </td>
+                            );
+                          })}
+                          <td className="px-4 py-3 text-right text-sm font-medium text-brewery-200">{totalHrs > 0 ? `${totalHrs.toFixed(1)}h` : `${member.hoursThisWeek}h`}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { OpenTab, TapLine, Batch, GravityReading, FloorTable, ServiceAlert, Customer, Reservation, BreweryEvent, EmailCampaign, MugClubMember, InventoryItem, MenuItem, Keg, DetailedRecipe, TicketSale } from '../types';
+import type { OpenTab, TapLine, Batch, GravityReading, FloorTable, ServiceAlert, Customer, Reservation, BreweryEvent, EmailCampaign, MugClubMember, InventoryItem, MenuItem, Keg, DetailedRecipe, TicketSale, BeerRating } from '../types';
 import { api } from '../api/client';
 import * as mock from '../data/mockData';
 
@@ -66,6 +66,9 @@ interface BreweryState {
   updateDetailedRecipe: (id: string, updates: Partial<DetailedRecipe>) => void;
   deleteDetailedRecipe: (id: string) => void;
   updateSettings: (updates: Partial<BusinessSettings>) => void;
+  beerRatings: BeerRating[];
+  addBeerRating: (rating: Omit<BeerRating, 'id'>) => void;
+  deleteBeerRating: (id: string) => void;
   refetch: () => void;
 }
 
@@ -124,6 +127,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const [kegsState, setKegs] = useState<Keg[]>([]);
   const [detailedRecipesState, setDetailedRecipes] = useState<DetailedRecipe[]>([]);
   const [settings, setSettings] = useState<BusinessSettings>(defaultSettings);
+  const [beerRatings, setBeerRatings] = useState<BeerRating[]>(mock.beerRatings);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
@@ -558,6 +562,15 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
     api.patch('/settings/', snakeUpdates).catch(console.error);
   }, []);
 
+  const addBeerRating = useCallback((rating: Omit<BeerRating, 'id'>) => {
+    const newRating = { ...rating, id: `r-${crypto.randomUUID()}` };
+    setBeerRatings(prev => [newRating, ...prev]);
+  }, []);
+
+  const deleteBeerRating = useCallback((id: string) => {
+    setBeerRatings(prev => prev.filter(r => r.id !== id));
+  }, []);
+
   return (
     <BreweryContext.Provider value={{
       tabs, tapLines: tapLineState, batches: batchState, floorTables, serviceAlerts,
@@ -572,7 +585,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
       addMenuItem, updateMenuItem, deleteMenuItem,
       addKeg, updateKeg, deleteKeg,
       addDetailedRecipe, updateDetailedRecipe, deleteDetailedRecipe,
-      updateSettings, refetch: fetchAll,
+      updateSettings, beerRatings, addBeerRating, deleteBeerRating, refetch: fetchAll,
     }}>
       {children}
     </BreweryContext.Provider>

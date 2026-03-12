@@ -301,6 +301,7 @@ export interface EmailCampaign {
   id: string;
   name: string;
   subject: string;
+  body?: string;
   status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
   segment: string;
   sentDate?: string;
@@ -824,4 +825,19 @@ export interface BatchTimelineEntry {
   estimatedCompletion?: string;
 }
 
-export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production' | 'ttb-reports' | 'keg-monitor' | 'loyalty' | 'fermentation' | 'tap-menu' | 'brew-costs';
+export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production' | 'ttb-reports' | 'keg-monitor' | 'loyalty' | 'fermentation' | 'tap-menu' | 'brew-costs' | 'ratings';
+
+export interface BeerRating {
+  id: string;
+  beerId: string;
+  beerName: string;
+  beerStyle: string;
+  customerName: string;
+  customerId?: string;
+  stars: number;         // 1–5
+  notes: string;
+  channel: 'in-person' | 'untappd' | 'google' | 'yelp' | 'facebook';
+  date: string;          // ISO date string
+  mugClubMember: boolean;
+  verified: boolean;     // staff-verified vs. imported
+}
