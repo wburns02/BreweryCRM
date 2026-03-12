@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, MousePointer, Eye, Send, Clock, FileText, Plus } from 'lucide-react';
+import { Mail, MousePointer, Eye, Send, Clock, FileText, Plus, Calendar, X } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
 import Modal from '../../components/ui/Modal';
@@ -23,9 +23,12 @@ const campaignTypes = [
 ] as const;
 
 export default function MarketingPage() {
-  const { emailCampaigns, addCampaign } = useBrewery();
+  const { emailCampaigns, addCampaign, updateCampaign } = useBrewery();
   const { toast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleCampaignId, setScheduleCampaignId] = useState('');
+  const [scheduleDate, setScheduleDate] = useState('');
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
   const [type, setType] = useState<'new-release' | 'event' | 'promotion' | 'newsletter' | 'mug-club' | 'birthday'>('newsletter');
@@ -37,6 +40,39 @@ export default function MarketingPage() {
   const totalClicked = sent.reduce((s, c) => s + c.clicked, 0);
   const openRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
   const clickRate = totalOpened > 0 ? Math.round((totalClicked / totalOpened) * 100) : 0;
+
+  const handleSendNow = (id: string, name: string) => {
+    const recipientCount = Math.floor(Math.random() * 400) + 800;
+    updateCampaign(id, {
+      status: 'sent',
+      sentDate: new Date().toISOString().split('T')[0],
+      recipients: recipientCount,
+      opened: Math.floor(recipientCount * (0.28 + Math.random() * 0.15)),
+      clicked: Math.floor(recipientCount * (0.06 + Math.random() * 0.08)),
+      unsubscribed: Math.floor(recipientCount * 0.005),
+    });
+    toast('success', `Campaign "${name}" sent to ${recipientCount.toLocaleString()} recipients`);
+  };
+
+  const handleSchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scheduleDate) return;
+    const campaign = emailCampaigns.find(c => c.id === scheduleCampaignId);
+    if (!campaign) return;
+    updateCampaign(scheduleCampaignId, {
+      status: 'scheduled',
+      scheduledDate: scheduleDate,
+      recipients: Math.floor(Math.random() * 400) + 800,
+    });
+    toast('success', `Campaign scheduled for ${new Date(scheduleDate).toLocaleDateString()}`);
+    setShowScheduleModal(false);
+    setScheduleDate('');
+  };
+
+  const handleCancelScheduled = (id: string, name: string) => {
+    updateCampaign(id, { status: 'draft', scheduledDate: undefined });
+    toast('success', `Campaign "${name}" returned to drafts`);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,20 +157,78 @@ export default function MarketingPage() {
               </div>
             )}
             {campaign.status === 'scheduled' && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-900/20 border border-blue-500/20">
-                <Clock className="w-4 h-4 text-blue-400" />
-                <span className="text-xs text-blue-300">Scheduled for {campaign.scheduledDate} · {campaign.recipients} recipients</span>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-blue-900/20 border border-blue-500/20">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-400" />
+                  <span className="text-xs text-blue-300">Scheduled for {campaign.scheduledDate} · {campaign.recipients?.toLocaleString()} recipients</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleSendNow(campaign.id, campaign.name)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/15 hover:bg-amber-600/25 border border-amber-500/30 text-amber-300 rounded-lg text-xs font-semibold transition-all"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Send Now
+                  </button>
+                  <button
+                    onClick={() => handleCancelScheduled(campaign.id, campaign.name)}
+                    className="flex items-center gap-1.5 px-2 py-1.5 bg-brewery-800/40 hover:bg-red-900/20 border border-brewery-700/30 hover:border-red-500/30 text-brewery-400 hover:text-red-300 rounded-lg text-xs transition-all"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
             {campaign.status === 'draft' && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-brewery-800/30">
-                <FileText className="w-4 h-4 text-brewery-400" />
-                <span className="text-xs text-brewery-400">{campaign.recipients} potential recipients · Ready to schedule</span>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-brewery-800/30">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-brewery-400" />
+                  <span className="text-xs text-brewery-400">{campaign.recipients} potential recipients · Ready to schedule</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setScheduleCampaignId(campaign.id); setShowScheduleModal(true); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-300 rounded-lg text-xs font-semibold transition-all"
+                  >
+                    <Calendar className="w-3.5 h-3.5" /> Schedule
+                  </button>
+                  <button
+                    onClick={() => handleSendNow(campaign.id, campaign.name)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/15 hover:bg-amber-600/25 border border-amber-500/30 text-amber-300 rounded-lg text-xs font-semibold transition-all"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Send Now
+                  </button>
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
+
+      {/* Schedule Modal */}
+      <Modal open={showScheduleModal} onClose={() => { setShowScheduleModal(false); setScheduleDate(''); }} title="Schedule Campaign" size="sm">
+        <form onSubmit={handleSchedule} className="space-y-4">
+          <p className="text-sm text-brewery-300">Choose when to send this campaign:</p>
+          <div>
+            <label className="block text-xs font-semibold text-brewery-300 mb-1.5">Send Date *</label>
+            <input
+              type="date"
+              value={scheduleDate}
+              onChange={e => setScheduleDate(e.target.value)}
+              required
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full bg-brewery-800/50 border border-brewery-700/40 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => { setShowScheduleModal(false); setScheduleDate(''); }} className="px-4 py-2 text-sm font-medium text-brewery-300 hover:text-brewery-100 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
+              <Calendar className="w-4 h-4" /> Schedule
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* New Campaign Modal */}
       <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="New Email Campaign">

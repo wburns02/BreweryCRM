@@ -48,6 +48,7 @@ interface BreweryState {
   updateReservation: (id: string, updates: Partial<Reservation>) => void;
   addEvent: (event: Omit<BreweryEvent, 'id'>) => void;
   addCampaign: (campaign: Omit<EmailCampaign, 'id'>) => void;
+  updateCampaign: (id: string, updates: Partial<EmailCampaign>) => void;
   addMugClubMember: (member: Omit<MugClubMember, 'id'>) => void;
   updateInventoryItem: (id: string, updates: Partial<InventoryItem>) => void;
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
@@ -386,6 +387,11 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
     api.post('/marketing/campaigns', toSnakeKeys(campaign as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
+  const updateCampaign = useCallback((id: string, updates: Partial<EmailCampaign>) => {
+    setEmailCampaigns(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    api.patch(`/marketing/campaigns/${id}`, toSnakeKeys(updates as unknown as Record<string, unknown>)).catch(console.error);
+  }, []);
+
   const addMugClubMember = useCallback((member: Omit<MugClubMember, 'id'>) => {
     const tempId = `mc-${Date.now()}`;
     setMugClubMembers(prev => [...prev, { ...member, id: tempId, customerId: member.customerId || tempId }]);
@@ -503,7 +509,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
       addToTab, closeTab, holdTab, createTab, updateTapLine, advanceBatchStatus, addBatch, addGravityReading,
       updateTable, dismissAlert, addAlert, seatGuests, clearTable,
       addCustomer, updateCustomer, addReservation, updateReservation,
-      addEvent, addCampaign, addMugClubMember,
+      addEvent, addCampaign, updateCampaign, addMugClubMember,
       updateInventoryItem, addInventoryItem, deleteInventoryItem,
       addMenuItem, updateMenuItem, deleteMenuItem,
       addKeg, updateKeg, deleteKeg,

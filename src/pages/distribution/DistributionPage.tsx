@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail, Plus, ClipboardList, Calendar } from 'lucide-react';
+import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail, Plus, ClipboardList, Calendar, FileText } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
 import Modal from '../../components/ui/Modal';
@@ -254,16 +254,51 @@ export default function DistributionPage() {
                 ) : (
                   <div className="space-y-2">
                     {orders.map(order => (
-                      <div key={order.id} className="flex items-center justify-between p-3 bg-brewery-800/30 rounded-lg">
-                        <div>
-                          <p className="text-xs font-semibold text-brewery-200">{order.id}</p>
-                          <p className="text-[10px] text-brewery-500 flex items-center gap-1"><Calendar className="w-3 h-3" />{order.date}</p>
-                          <p className="text-[10px] text-brewery-400">{order.beers.join(', ')} · {order.kegs} keg{order.kegs > 1 ? 's' : ''}</p>
+                      <div key={order.id} className="p-3 bg-brewery-800/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-semibold text-brewery-200">{order.id}</p>
+                            <p className="text-[10px] text-brewery-500 flex items-center gap-1"><Calendar className="w-3 h-3" />{order.date}</p>
+                            <p className="text-[10px] text-brewery-400">{order.beers.join(', ')} · {order.kegs} keg{order.kegs > 1 ? 's' : ''}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-emerald-400">${order.amount}</p>
+                            <Badge variant={order.status === 'delivered' ? 'green' : order.status === 'shipped' ? 'blue' : 'amber'}>{order.status}</Badge>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-emerald-400">${order.amount}</p>
-                          <Badge variant={order.status === 'delivered' ? 'green' : order.status === 'shipped' ? 'blue' : 'amber'}>{order.status}</Badge>
-                        </div>
+                        {(order.status === 'delivered' || order.status === 'shipped') && (
+                          <button
+                            onClick={() => {
+                              const acc = selectedAccount!;
+                              const lines = [
+                                `INVOICE — Bearded Hop Brewery`,
+                                `To: ${acc.businessName}`,
+                                `Contact: ${acc.contactName}`,
+                                `Date: ${new Date().toLocaleDateString()}`,
+                                ``,
+                                `Order: ${order.id}`,
+                                `Order Date: ${order.date}`,
+                                `Items: ${order.beers.join(', ')}`,
+                                `Kegs: ${order.kegs}`,
+                                `Amount Due: $${order.amount}`,
+                                `Payment Terms: ${acc.paymentTerms}`,
+                                ``,
+                                `Thank you for your business!`,
+                              ];
+                              const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `Invoice-${order.id}.txt`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                              toast('success', `Invoice ${order.id} downloaded`);
+                            }}
+                            className="mt-2 flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+                          >
+                            <FileText className="w-3 h-3" /> Download Invoice
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

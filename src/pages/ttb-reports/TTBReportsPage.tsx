@@ -79,7 +79,7 @@ const fmtDollars = (n: number) => `$${n.toLocaleString(undefined, { minimumFract
 
 // ─── Tab 1: Reports List ──────────────────────────────────────────────────────
 
-function ReportsTab({ reports, onFile }: { reports: TTBReport[]; onFile: (id: string) => void }) {
+function ReportsTab({ reports, onFile, onDownload }: { reports: TTBReport[]; onFile: (id: string) => void; onDownload: (report: TTBReport) => void }) {
   const [filter, setFilter] = useState<'all' | ReportType>('all');
   const filtered = filter === 'all' ? reports : reports.filter(r => r.type === filter);
   const pending = reports.filter(r => r.status === 'pending' || r.status === 'overdue');
@@ -193,7 +193,10 @@ function ReportsTab({ reports, onFile }: { reports: TTBReport[]; onFile: (id: st
                         </button>
                       )}
                       {report.status === 'filed' && (
-                        <button className="text-xs text-brewery-500 hover:text-brewery-300 flex items-center gap-1 transition-colors">
+                        <button
+                          onClick={() => onDownload(report)}
+                          className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+                        >
                           <Download className="w-3 h-3" /> PDF
                         </button>
                       )}
@@ -618,6 +621,28 @@ export default function TTBReportsPage() {
     toast('success', `${report?.period} report marked as filed!`);
   };
 
+  const handleDownload = (report: TTBReport) => {
+    // Generate a CSV blob and trigger download (simulates PDF export)
+    const lines = [
+      `TTB Report — ${report.period}`,
+      `Form: ${report.form}`,
+      `Status: ${report.status}`,
+      `Due Date: ${report.dueDate}`,
+      `Filed Date: ${report.filedDate ?? 'N/A'}`,
+      `Total Barrels: ${report.totalBarrels.toFixed(1)} bbl`,
+      `Federal Tax Est: $${(report.totalBarrels * TTB_RATE_REDUCED).toFixed(2)}`,
+      `TX State Tax Est: $${(report.totalBarrels * 31 * TX_STATE_RATE).toFixed(2)}`,
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `TTB-${report.period.replace(/\s+/g, '-')}-${report.form.replace(/\s+/g, '-')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('success', `Downloading ${report.period} report…`);
+  };
+
   const pending = reports.filter(r => r.status === 'pending' || r.status === 'overdue').length;
 
   return (
@@ -677,7 +702,7 @@ export default function TTBReportsPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'reports' && <ReportsTab reports={reports} onFile={handleFile} />}
+      {activeTab === 'reports' && <ReportsTab reports={reports} onFile={handleFile} onDownload={handleDownload} />}
       {activeTab === 'production' && <ProductionTab />}
       {activeTab === 'removals' && <RemovalsTab />}
       {activeTab === 'calculator' && <TaxCalculatorTab />}
