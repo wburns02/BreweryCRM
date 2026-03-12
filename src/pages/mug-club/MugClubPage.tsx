@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Crown, Users, DollarSign, TrendingUp, Gift, X, Calendar, MapPin, Star } from 'lucide-react';
+import { Crown, Users, DollarSign, TrendingUp, Gift, Calendar, MapPin, Star } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
 import Modal from '../../components/ui/Modal';
@@ -178,7 +178,7 @@ export default function MugClubPage() {
       </div>
 
       {/* Member Detail Panel */}
-      <SlidePanel open={!!selectedMember} onClose={() => setSelectedMember(null)} title={selectedMember?.customerName ?? ''}>
+      <SlidePanel isOpen={!!selectedMember} onClose={() => setSelectedMember(null)} title={selectedMember?.customerName ?? ''}>
         {selectedMember && (
           <div className="space-y-5">
             <div className="flex items-center gap-3">

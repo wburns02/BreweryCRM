@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, BarChart2, Package, Leaf, FlaskConical, Settings2 } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, BarChart2, Package, FlaskConical, Settings2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { Batch } from '../../types';
 
@@ -181,7 +181,6 @@ function BatchCostCard({ batch, overrides, onOverride }: {
 export default function BatchCostTab({ batches }: { batches: Batch[] }) {
   const [overrides, setOverrides] = useState<Record<string, Record<string, number>>>({});
 
-  const activeBatches = batches.filter(b => !['packaged'].includes(b.status));
   const allBatches = batches.slice(0, 8);
 
   const costData = allBatches.map(b => {

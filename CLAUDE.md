@@ -7,11 +7,12 @@ Full-stack brewery CRM and taproom management platform for Bearded Hop Brewery i
 - **Frontend**: React 19 + TypeScript + Vite 7
 - **Styling**: Tailwind CSS 4 (via `@tailwindcss/vite` plugin)
 - **State**: React Context (BreweryContext for mutations, DataContext for read-only data)
-- **Data fetching**: Direct fetch via `src/api/client.ts` (no react-query usage currently despite dependency)
+- **Data fetching**: Direct fetch via `src/api/client.ts` (react-query is a dependency but unused)
 - **Charts**: Recharts 2
 - **Icons**: Lucide React
 - **Dates**: date-fns 4
-- **Testing**: Playwright (browser verification)
+- **Utilities**: clsx (class merging)
+- **Testing**: Playwright (browser verification — no unit test framework)
 - **Backend**: FastAPI (Python) at `~/bearded-hop-api` — separate repo
 
 ## Project Structure
@@ -19,7 +20,7 @@ Full-stack brewery CRM and taproom management platform for Bearded Hop Brewery i
 ```
 src/
   api/
-    client.ts         # API client with Bearer auth, snake_case/camelCase conversion
+    client.ts         # API client with Bearer auth, snake_case↔camelCase conversion
     auth.ts           # Login/logout/getMe
   components/
     layout/
@@ -31,11 +32,11 @@ src/
     BreweryContext.tsx # Writable state + optimistic mutations (CRUD for all entities)
     DataContext.tsx    # Read-only data fetching for all entities
   data/
-    mockData.ts       # Fallback mock data
-  pages/              # One folder per feature page (see Features below)
+    mockData.ts       # Fallback mock data (used when API unavailable in demo mode)
+  pages/              # 22 feature pages (one folder each — see Features below)
   types/
-    index.ts          # All TypeScript interfaces
-  App.tsx             # Root component — handles auth, page routing, layout
+    index.ts          # All TypeScript interfaces, PageId type
+  App.tsx             # Root component — auth, page routing, layout
   main.tsx            # Entry point
 ```
 
@@ -43,8 +44,8 @@ src/
 
 ```bash
 npm install
-npm run dev          # Vite dev server (default: http://localhost:5173)
-npm run build        # TypeScript check + Vite production build
+npm run dev          # Vite dev server → http://localhost:5173
+npm run build        # tsc -b && vite build → dist/
 npm run preview      # Preview production build
 ```
 
@@ -53,10 +54,10 @@ npm run preview      # Preview production build
 ## Architecture
 
 ### Routing
-Client-side page switching via React state (`currentPage` in App.tsx), NOT react-router-dom URL routing. Pages selected from sidebar, rendered by `pages[currentPage]` lookup. Page IDs defined in `types/index.ts` as `PageId` type.
+Client-side page switching via React state (`currentPage` in App.tsx), NOT react-router-dom URL routing. Pages rendered by `pages[currentPage]` lookup. Page IDs defined in `types/index.ts` as `PageId` type.
 
 ### Auth
-JWT Bearer token stored in localStorage (`bh_token`). Login via `/api/v1/auth/login`, token attached to all API requests. Demo mode auto-logs in with `admin@beardedhop.com` / `BrewDay2026!`.
+JWT Bearer token stored in localStorage (`bh_token`). Login via `/api/v1/auth/login`, token attached to all API requests. Demo mode auto-logs in with `admin@beardedhop.com` / `BrewDay2026!`. "Explore Demo" button on login page for demo access.
 
 ### API Pattern
 - `src/api/client.ts` wraps fetch with auth headers and 401 handling
@@ -66,50 +67,37 @@ JWT Bearer token stored in localStorage (`bh_token`). Login via `/api/v1/auth/lo
 - Both BreweryContext and DataContext fetch all data on mount via `fetchAll()`
 
 ### State Management
-Two context providers wrap the app:
-- **DataContext** (`useData()`) — read-only data for display pages (beers, financials, staff, wholesale, etc.)
-- **BreweryContext** (`useBrewery()`) — mutable state with CRUD operations (tabs, taps, batches, inventory, recipes, kegs, menu items, etc.)
+- **DataContext** (`useData()`) — read-only data for display pages (beers, financials, staff, wholesale)
+- **BreweryContext** (`useBrewery()`) — mutable state with CRUD operations (tabs, taps, batches, inventory, recipes, kegs, menu items)
 
 ### Path Alias
-`@` maps to `src/` (configured in vite.config.ts).
+`@` maps to `src/` (configured in vite.config.ts and tsconfig.app.json).
 
 ## Features (Pages)
 
-| Page ID | Component | Description |
-|---------|-----------|-------------|
-| dashboard | DashboardPage | Main overview with KPIs |
-| production | ProductionPage | Tank farm grid, batch pipeline, brew calendar, gravity charts |
-| pos | POSPage | Point-of-sale terminal for taproom |
-| floor-plan | FloorPlanPage | Visual table management, seating, service alerts |
-| taps | TapsPage | Tap line management (what's pouring) |
-| brewing | BrewingPage | Production & brewing operations |
-| recipes | RecipesPage | Recipe Lab — full CRUD for detailed recipes |
-| kegs | KegsPage | Keg tracking — full CRUD |
-| inventory | InventoryPage | Inventory management — full CRUD |
-| menu | MenuPage | Food & menu engineering — full CRUD |
-| customers | CustomersPage | Customer management with detail view |
-| mug-club | MugClubPage | Bearded Hop Mug Club loyalty program |
-| taproom-analytics | TaproomAnalyticsPage | Taproom sales analytics |
-| financials | FinancialsPage | Financial command center |
-| events | EventsPage | Events & entertainment scheduling |
-| reservations | ReservationsPage | Table reservations |
-| staff | StaffPage | Staff management |
-| distribution | DistributionPage | Distribution & wholesale accounts |
-| marketing | MarketingPage | Email campaigns & marketing |
-| reports | ReportsPage | Reports & analytics |
-| settings | SettingsPage | Business settings & compliance |
-
-## Production Deployment
-
-- **Frontend**: https://brewery-frontend-production.up.railway.app
-- **Backend API**: https://bearded-hop-api-production.up.railway.app/api/v1
-- **Platform**: Railway
-- **Build command**: `tsc -b && vite build` (outputs to `dist/`)
-- **Backend repo**: `~/bearded-hop-api` (FastAPI/Python)
-
-## Priority
-
-Build production dashboard with live brewery metrics: real-time taproom sales, keg levels, fermentation status. This is the #1 differentiator. The ProductionPage already has TankFarmGrid, BatchPipeline, BrewCalendar, GravityChart, TankCard, TankDetailPanel, QualityBadge, and ScheduleBrewModal components.
+| Page ID | Description |
+|---------|-------------|
+| dashboard | Main overview with KPIs |
+| production | Tank farm grid, batch pipeline, brew calendar, gravity charts |
+| pos | Point-of-sale terminal for taproom |
+| floor-plan | Visual table management, seating, service alerts |
+| taps | Tap line management (what's pouring) |
+| brewing | Production & brewing operations |
+| recipes | Recipe Lab — full CRUD for detailed recipes |
+| kegs | Keg tracking — full CRUD |
+| inventory | Inventory management — full CRUD |
+| menu | Food & menu engineering — full CRUD |
+| customers | Customer management with detail view |
+| mug-club | Bearded Hop Mug Club loyalty program |
+| taproom-analytics | Taproom sales analytics |
+| financials | Financial command center |
+| events | Events & entertainment scheduling |
+| reservations | Table reservations |
+| staff | Staff management |
+| distribution | Distribution & wholesale accounts |
+| marketing | Email campaigns & marketing |
+| reports | Reports & analytics |
+| settings | Business settings & compliance |
 
 ## API Endpoints
 
@@ -124,6 +112,33 @@ Key routes used by the frontend:
 - `/staff/`, `/distribution/accounts`, `/mug-club/`, `/marketing/campaigns` — other
 - `/settings/`, `/settings/compliance` — configuration
 
+## Production Deployment
+
+- **Frontend**: https://brewery-frontend-production.up.railway.app
+- **Backend API**: https://bearded-hop-api-production.up.railway.app/api/v1
+- **Health check**: https://bearded-hop-api-production.up.railway.app/ping
+- **Platform**: Railway (auto-deploys from GitHub push)
+- **Build command**: `tsc -b && vite build` (outputs to `dist/`)
+- **Deploy time**: ~90s after push to GitHub
+- **Backend repo**: `~/bearded-hop-api` (FastAPI/Python)
+
+## Known Patterns & Pitfalls
+
+- **snake_case/camelCase bugs are the #1 source of issues** — watch for abbreviation fields (OG, FG, ABV, IBU, SRM) and nested objects
+- `toSnakeKeys()` in BreweryContext only converts top-level keys — nested objects need manual handling
+- UUID fields must be valid UUIDs or omitted entirely (never empty strings or fake IDs like "cust-123")
+- Nested objects (like `yeast` in recipes) must be valid dicts, not null
+- Recharts crashes on null data — always null-check before rendering charts
+- CSS custom color scheme uses `brewery-*` classes (e.g., `bg-brewery-950`, `text-brewery-400`)
+- Pour Analytics uses CSS bars instead of Recharts (previous Recharts implementation crashed)
+- Demo auth falls back to mock data when API is unavailable
+- Modal/SlidePanel components use `role="dialog"` with aria-modal for accessibility
+- Sidebar nav items match exact text: Dashboard, POS, Floor Plan, etc.
+
+## Priority
+
+Build production dashboard with live brewery metrics: real-time taproom sales, keg levels, fermentation status. This is the #1 differentiator.
+
 ## Development Rules
 
 1. **ALWAYS push to GitHub** after every commit — no exceptions
@@ -135,13 +150,3 @@ Key routes used by the frontend:
    - If still broken, repeat — up to 30 iterations max
 4. Only declare success when Playwright confirms the feature works visually
 5. Never claim something works without Playwright verification
-
-## Known Patterns & Pitfalls
-
-- snake_case/camelCase bugs are common — watch for abbreviation fields (OG, FG, ABV, IBU, SRM)
-- Recharts can crash on null data — always null-check before rendering charts
-- CSS custom color scheme uses `brewery-*` classes (e.g., `bg-brewery-950`, `text-brewery-400`)
-- The app uses two separate contexts that both fetch overlapping data — be aware of which one a page uses
-- Pour Analytics previously crashed due to broken recharts charts — replaced with CSS bars
-- Demo auth uses fallback mock data when API is unavailable
-- Deep camelCase mapping is needed for nested API objects (not just top-level fields)

@@ -1,0 +1,6 @@
+[
+  "Distribution: FAILED TO LOAD — page.waitForTimeout: Test timeout of 30000ms exceeded.",
+  "Reports: FAILED TO LOAD — locator.click: Target page, context or browser has been closed",
+  "TTB Reports: FAILED TO LOAD — locator.click: Target page, context or browser has been closed",
+  "Settings: FAILED TO LOAD — locator.click: Target page, context or browser has been closed"
+]

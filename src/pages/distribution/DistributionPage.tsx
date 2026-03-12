@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail, Plus, ClipboardList, ChevronRight, Calendar } from 'lucide-react';
+import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail, Plus, ClipboardList, Calendar } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
 import Modal from '../../components/ui/Modal';
@@ -179,7 +179,7 @@ export default function DistributionPage() {
       )}
 
       {/* Account Detail Panel */}
-      <SlidePanel open={!!selectedAccount} onClose={() => setSelectedAccount(null)} title={selectedAccount?.businessName ?? ''}>
+      <SlidePanel isOpen={!!selectedAccount} onClose={() => setSelectedAccount(null)} title={selectedAccount?.businessName ?? ''}>
         {selectedAccount && (() => {
           const orders = mockOrders(selectedAccount);
           return (
