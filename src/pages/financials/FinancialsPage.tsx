@@ -68,7 +68,15 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 // ═══════════════════════════════════════════════
 function OverviewTab() {
   const { monthlyFinancials } = useData();
-  if (monthlyFinancials.length < 2) return <p className="text-sm text-brewery-400">Insufficient financial data to display overview.</p>;
+  if (monthlyFinancials.length < 2) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center">
+        <Calculator className="w-8 h-8 text-amber-600/40" />
+      </div>
+      <p className="text-brewery-300 font-medium">No financial data yet</p>
+      <p className="text-brewery-500 text-sm text-center max-w-xs">Financial overview will populate after at least two months of recorded sales data.</p>
+    </div>
+  );
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytd = monthlyFinancials.reduce((s, m) => s + m.totalRevenue, 0);

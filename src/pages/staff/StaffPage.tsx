@@ -1,20 +1,73 @@
 import { useState } from 'react';
-import { UserCog, Clock, DollarSign, ShieldCheck } from 'lucide-react';
+import { UserCog, Clock, DollarSign, ShieldCheck, Plus } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
 import { useData } from '../../context/DataContext';
+import { useToast } from '../../components/ui/ToastProvider';
+import type { StaffMember } from '../../types';
 
 const roleColors: Record<string, 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'gray'> = {
   brewer: 'amber', bartender: 'purple', server: 'green', cook: 'red', host: 'blue', manager: 'blue', dishwasher: 'gray',
 };
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const inputClass = 'w-full bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50';
+const labelClass = 'block text-xs font-medium text-brewery-400 mb-1';
 
 export default function StaffPage() {
-  const { staff } = useData();
+  const { staff: apiStaff } = useData();
+  const { toast } = useToast();
+  const [localStaff, setLocalStaff] = useState<StaffMember[]>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'schedule' | 'compliance'>('team');
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form state
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [role, setRole] = useState<StaffMember['role']>('server');
+  const [hourlyRate, setHourlyRate] = useState('');
+  const [hireDate, setHireDate] = useState(new Date().toISOString().split('T')[0]);
+  const [tabcCertified, setTabcCertified] = useState(false);
+  const [foodHandlerCertified, setFoodHandlerCertified] = useState(false);
+
+  const staff = [...apiStaff, ...localStaff];
+
   const totalHours = staff.reduce((s, m) => s + m.hoursThisWeek, 0);
   const totalLabor = staff.reduce((s, m) => s + (m.hoursThisWeek * m.hourlyRate), 0);
   const certIssues = staff.filter(s => !s.tabcCertified && s.role !== 'cook' && s.role !== 'dishwasher');
+
+  const resetForm = () => {
+    setFirstName(''); setLastName(''); setEmail(''); setPhone('');
+    setRole('server'); setHourlyRate(''); setTabcCertified(false); setFoodHandlerCertified(false);
+    setHireDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName.trim() || !lastName.trim()) return;
+    const newMember: StaffMember = {
+      id: crypto.randomUUID(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      role,
+      hourlyRate: parseFloat(hourlyRate) || 15,
+      hireDate,
+      status: 'active',
+      tabcCertified,
+      foodHandlerCertified,
+      hoursThisWeek: 0,
+      salesThisWeek: 0,
+      schedule: [],
+    };
+    setLocalStaff(prev => [...prev, newMember]);
+    toast('success', `${firstName} ${lastName} added to the team!`);
+    resetForm();
+    setShowAddModal(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -38,95 +91,120 @@ export default function StaffPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-brewery-700/30">
-        {(['team', 'schedule', 'compliance'] as const).map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${activeTab === tab ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+      {/* Tabs + Add Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1 border-b border-brewery-700/30 flex-1">
+          {(['team', 'schedule', 'compliance'] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${activeTab === tab ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setShowAddModal(true)} className="ml-4 bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20 whitespace-nowrap">
+          <Plus className="w-4 h-4" /> Add Staff
+        </button>
       </div>
 
       {activeTab === 'team' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {staff.map(member => (
-            <div key={member.id} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5 hover:border-amber-500/20 transition-all">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center text-sm font-bold text-amber-400">
-                    {member.firstName[0]}{member.lastName[0]}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-brewery-100">{member.firstName} {member.lastName}</p>
-                    <Badge variant={roleColors[member.role]}>{member.role}</Badge>
-                  </div>
-                </div>
-                <Badge variant={member.status === 'active' ? 'green' : 'gray'}>{member.status}</Badge>
-              </div>
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="text-center p-2 rounded-lg bg-brewery-800/30">
-                  <p className="text-xs font-bold text-brewery-200">{member.hoursThisWeek}h</p>
-                  <p className="text-[10px] text-brewery-500">This Week</p>
-                </div>
-                <div className="text-center p-2 rounded-lg bg-brewery-800/30">
-                  <p className="text-xs font-bold text-emerald-400">${member.hourlyRate}/hr</p>
-                  <p className="text-[10px] text-brewery-500">Rate</p>
-                </div>
-                <div className="text-center p-2 rounded-lg bg-brewery-800/30">
-                  <p className="text-xs font-bold text-brewery-200">${member.salesThisWeek > 0 ? member.salesThisWeek.toLocaleString() : '—'}</p>
-                  <p className="text-[10px] text-brewery-500">Sales</p>
-                </div>
-              </div>
-              <div className="flex gap-1.5">
-                {member.tabcCertified ? <Badge variant="green">TABC ✓</Badge> : member.role !== 'cook' && member.role !== 'dishwasher' ? <Badge variant="red">TABC ✗</Badge> : null}
-                {member.foodHandlerCertified && <Badge variant="green">Food Handler ✓</Badge>}
-              </div>
+        <div>
+          {staff.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 bg-brewery-900/40 rounded-xl border border-brewery-700/30 border-dashed">
+              <UserCog className="w-10 h-10 text-brewery-600" />
+              <p className="text-brewery-400 font-medium">No staff members yet</p>
+              <p className="text-brewery-500 text-sm">Click "Add Staff" to add your first team member.</p>
+              <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Add Staff Member
+              </button>
             </div>
-          ))}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {staff.map(member => (
+                <div key={member.id} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5 hover:border-amber-500/20 transition-all">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center text-sm font-bold text-amber-400">
+                        {member.firstName[0]}{member.lastName[0]}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-brewery-100">{member.firstName} {member.lastName}</p>
+                        <Badge variant={roleColors[member.role]}>{member.role}</Badge>
+                      </div>
+                    </div>
+                    <Badge variant={member.status === 'active' ? 'green' : 'gray'}>{member.status}</Badge>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="text-center p-2 rounded-lg bg-brewery-800/30">
+                      <p className="text-xs font-bold text-brewery-200">{member.hoursThisWeek}h</p>
+                      <p className="text-[10px] text-brewery-500">This Week</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-brewery-800/30">
+                      <p className="text-xs font-bold text-emerald-400">${member.hourlyRate}/hr</p>
+                      <p className="text-[10px] text-brewery-500">Rate</p>
+                    </div>
+                    <div className="text-center p-2 rounded-lg bg-brewery-800/30">
+                      <p className="text-xs font-bold text-brewery-200">${member.salesThisWeek > 0 ? member.salesThisWeek.toLocaleString() : '—'}</p>
+                      <p className="text-[10px] text-brewery-500">Sales</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {member.tabcCertified ? <Badge variant="green">TABC ✓</Badge> : member.role !== 'cook' && member.role !== 'dishwasher' ? <Badge variant="red">TABC ✗</Badge> : null}
+                    {member.foodHandlerCertified && <Badge variant="green">Food Handler ✓</Badge>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {activeTab === 'schedule' && (
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-brewery-700/30">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase w-40">Staff</th>
-                  {days.map(day => (
-                    <th key={day} className="px-2 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">{day}</th>
-                  ))}
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-brewery-400 uppercase">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brewery-700/20">
-                {staff.map(member => (
-                  <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</p>
-                      <Badge variant={roleColors[member.role]}>{member.role}</Badge>
-                    </td>
-                    {days.map(day => {
-                      const shift = member.schedule.find(s => s.day === day);
-                      return (
-                        <td key={day} className="px-2 py-3 text-center">
-                          {shift ? (
-                            <div className="p-1.5 rounded-lg bg-amber-600/10 border border-amber-500/20">
-                              <p className="text-[10px] font-medium text-amber-300">{shift.startTime}</p>
-                              <p className="text-[10px] text-brewery-400">{shift.endTime}</p>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-brewery-600">—</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                    <td className="px-4 py-3 text-right text-sm font-medium text-brewery-200">{member.hoursThisWeek}h</td>
+          {staff.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <Clock className="w-8 h-8 text-brewery-600" />
+              <p className="text-brewery-400 text-sm">Add staff members to build the schedule.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-brewery-700/30">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase w-40">Staff</th>
+                    {days.map(day => (
+                      <th key={day} className="px-2 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">{day}</th>
+                    ))}
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-brewery-400 uppercase">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-brewery-700/20">
+                  {staff.map(member => (
+                    <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</p>
+                        <Badge variant={roleColors[member.role]}>{member.role}</Badge>
+                      </td>
+                      {days.map(day => {
+                        const shift = member.schedule.find(s => s.day === day);
+                        return (
+                          <td key={day} className="px-2 py-3 text-center">
+                            {shift ? (
+                              <div className="p-1.5 rounded-lg bg-amber-600/10 border border-amber-500/20">
+                                <p className="text-[10px] font-medium text-amber-300">{shift.startTime}</p>
+                                <p className="text-[10px] text-brewery-400">{shift.endTime}</p>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-brewery-600">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="px-4 py-3 text-right text-sm font-medium text-brewery-200">{member.hoursThisWeek}h</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -136,35 +214,102 @@ export default function StaffPage() {
             <div className="px-5 py-4 border-b border-brewery-700/30">
               <h3 className="text-sm font-semibold text-brewery-200">Certification Tracker</h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-brewery-700/30">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Staff</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Role</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">TABC Certified</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">TABC Expiry</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">Food Handler</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">FH Expiry</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-brewery-700/20">
-                  {staff.map(member => (
-                    <tr key={member.id} className="hover:bg-brewery-800/30">
-                      <td className="px-4 py-3 text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</td>
-                      <td className="px-4 py-3"><Badge variant={roleColors[member.role]}>{member.role}</Badge></td>
-                      <td className="px-4 py-3 text-center">{member.tabcCertified ? <Badge variant="green">Active</Badge> : <Badge variant="red">Missing</Badge>}</td>
-                      <td className="px-4 py-3 text-center text-sm text-brewery-300">{member.tabcExpiry || '—'}</td>
-                      <td className="px-4 py-3 text-center">{member.foodHandlerCertified ? <Badge variant="green">Active</Badge> : <Badge variant="red">Missing</Badge>}</td>
-                      <td className="px-4 py-3 text-center text-sm text-brewery-300">{member.foodHandlerExpiry || '—'}</td>
+            {staff.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <ShieldCheck className="w-8 h-8 text-brewery-600" />
+                <p className="text-brewery-400 text-sm">No staff members to track.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-brewery-700/30">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Staff</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase">Role</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">TABC Certified</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">TABC Expiry</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">Food Handler</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">FH Expiry</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-brewery-700/20">
+                    {staff.map(member => (
+                      <tr key={member.id} className="hover:bg-brewery-800/30">
+                        <td className="px-4 py-3 text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</td>
+                        <td className="px-4 py-3"><Badge variant={roleColors[member.role]}>{member.role}</Badge></td>
+                        <td className="px-4 py-3 text-center">{member.tabcCertified ? <Badge variant="green">Active</Badge> : <Badge variant="red">Missing</Badge>}</td>
+                        <td className="px-4 py-3 text-center text-sm text-brewery-300">{member.tabcExpiry || '—'}</td>
+                        <td className="px-4 py-3 text-center">{member.foodHandlerCertified ? <Badge variant="green">Active</Badge> : <Badge variant="red">Missing</Badge>}</td>
+                        <td className="px-4 py-3 text-center text-sm text-brewery-300">{member.foodHandlerExpiry || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      {/* Add Staff Modal */}
+      <Modal open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); }} title="Add Staff Member">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>First Name *</label>
+              <input className={inputClass} value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Jane" required />
+            </div>
+            <div>
+              <label className={labelClass}>Last Name *</label>
+              <input className={inputClass} value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Smith" required />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Email</label>
+            <input className={inputClass} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@beardedhop.com" />
+          </div>
+          <div>
+            <label className={labelClass}>Phone</label>
+            <input className={inputClass} value={phone} onChange={e => setPhone(e.target.value)} placeholder="(830) 555-1234" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Role *</label>
+              <select className={inputClass} value={role} onChange={e => setRole(e.target.value as StaffMember['role'])}>
+                {(['brewer', 'bartender', 'server', 'cook', 'host', 'manager', 'dishwasher'] as const).map(r => (
+                  <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Hourly Rate ($)</label>
+              <input className={inputClass} type="number" min="7.25" step="0.25" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} placeholder="15.00" />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Hire Date</label>
+            <input className={inputClass} type="date" value={hireDate} onChange={e => setHireDate(e.target.value)} />
+          </div>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={tabcCertified} onChange={e => setTabcCertified(e.target.checked)} className="w-4 h-4 accent-amber-500" />
+              <span className="text-sm text-brewery-300">TABC Certified</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={foodHandlerCertified} onChange={e => setFoodHandlerCertified(e.target.checked)} className="w-4 h-4 accent-amber-500" />
+              <span className="text-sm text-brewery-300">Food Handler Certified</span>
+            </label>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => { setShowAddModal(false); resetForm(); }} className="flex-1 px-4 py-2 rounded-lg border border-brewery-700/50 text-brewery-300 hover:text-brewery-100 text-sm transition-colors">
+              Cancel
+            </button>
+            <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-amber-600/20">
+              Add Staff Member
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

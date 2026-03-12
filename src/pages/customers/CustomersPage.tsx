@@ -137,7 +137,7 @@ export default function CustomersPage() {
           <p className="text-xs text-brewery-400">Total Revenue</p>
         </div>
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-blue-400">${Math.round(customers.reduce((s, c) => s + c.avgTicket, 0) / customers.length)}</p>
+          <p className="text-2xl font-bold text-blue-400">${customers.length > 0 ? Math.round(customers.reduce((s, c) => s + c.avgTicket, 0) / customers.length) : 0}</p>
           <p className="text-xs text-brewery-400">Avg Ticket</p>
         </div>
       </div>

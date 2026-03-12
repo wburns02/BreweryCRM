@@ -8,8 +8,30 @@ import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, 
 export default function DashboardPage() {
   const { dailySales, tapLines, events, batches, reservations, complianceItems, beers, loading } = useData();
 
-if (loading || dailySales.length === 0) {
-  return <div className="text-center py-20 text-brewery-400">Loading dashboard data...</div>;
+if (loading) {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-brewery-800/40 rounded-xl" />)}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 h-72 bg-brewery-800/40 rounded-xl" />
+        <div className="h-72 bg-brewery-800/40 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
+if (dailySales.length === 0) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center">
+        <DollarSign className="w-8 h-8 text-amber-600/40" />
+      </div>
+      <p className="text-brewery-300 font-medium">No sales data yet</p>
+      <p className="text-brewery-500 text-sm text-center max-w-xs">Sales data will appear here once the taproom starts recording transactions.</p>
+    </div>
+  );
 }
 
 const todaySales = dailySales[dailySales.length - 1];
