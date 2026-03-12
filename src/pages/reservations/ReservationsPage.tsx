@@ -38,7 +38,12 @@ export default function ReservationsPage() {
 
   const occupiedTables = reservations.filter(r => r.status === 'seated' || r.status === 'confirmed').map(r => r.tableId).filter(Boolean);
   const todayStr = new Date().toISOString().split('T')[0];
-  const today = reservations.filter(r => r.date === todayStr);
+  // Show today + upcoming (next 7 days) to handle API data with future-dated reservations
+  const sevenDaysOut = new Date(); sevenDaysOut.setDate(sevenDaysOut.getDate() + 7);
+  const sevenDaysStr = sevenDaysOut.toISOString().split('T')[0];
+  const upcoming = reservations.filter(r => r.date >= todayStr && r.date <= sevenDaysStr);
+  const todayOnly = reservations.filter(r => r.date === todayStr);
+  const today = todayOnly.length > 0 ? todayOnly : upcoming;
   const confirmed = today.filter(r => r.status === 'confirmed').length;
   const seated = today.filter(r => r.status === 'seated').length;
   const waitlisted = today.filter(r => r.status === 'waitlist').length;

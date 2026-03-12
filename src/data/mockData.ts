@@ -166,7 +166,8 @@ export const emailCampaigns: EmailCampaign[] = [
 ];
 
 export const dailySales: DailySales[] = Array.from({ length: 30 }, (_, i) => {
-  const date = new Date(2026, 1, 3 + i);
+  const base = new Date(); base.setHours(0, 0, 0, 0);
+  const date = new Date(base.getFullYear(), base.getMonth(), base.getDate() - 29 + i);
   const dayOfWeek = date.getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
   const baseBeer = isWeekend ? 3200 : 1800;

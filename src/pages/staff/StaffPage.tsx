@@ -146,7 +146,7 @@ export default function StaffPage() {
                       <p className="text-[10px] text-brewery-500">Rate</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-brewery-800/30">
-                      <p className="text-xs font-bold text-brewery-200">${member.salesThisWeek > 0 ? member.salesThisWeek.toLocaleString() : '—'}</p>
+                      <p className="text-xs font-bold text-brewery-200">{member.salesThisWeek > 0 ? `$${member.salesThisWeek.toLocaleString()}` : '—'}</p>
                       <p className="text-[10px] text-brewery-500">Sales</p>
                     </div>
                   </div>

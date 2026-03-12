@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail, Plus, ClipboardList, Calendar, FileText } from 'lucide-react';
+import { Truck, DollarSign, Package, Store, MapPin, Phone, Mail, Plus, ClipboardList, Calendar, FileText, ShoppingCart } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import StatCard from '../../components/ui/StatCard';
 import Modal from '../../components/ui/Modal';
@@ -7,6 +7,20 @@ import SlidePanel from '../../components/ui/SlidePanel';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../components/ui/ToastProvider';
 import type { WholesaleAccount } from '../../types';
+
+interface WholesaleOrder {
+  id: string;
+  accountId: string;
+  accountName: string;
+  date: string;
+  deliveryDate: string;
+  beer: string;
+  kegs: number;
+  pricePerKeg: number;
+  amount: number;
+  status: 'pending' | 'shipped' | 'delivered';
+  notes: string;
+}
 
 // Mock order history per account (last 5 orders)
 function mockOrders(account: WholesaleAccount) {
@@ -37,11 +51,16 @@ export default function DistributionPage() {
   const { wholesaleAccounts: apiAccounts } = useData();
   const { toast } = useToast();
   const [localAccounts, setLocalAccounts] = useState<WholesaleAccount[]>([]);
+  const [localOrders, setLocalOrders] = useState<WholesaleOrder[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'accounts' | 'orders'>('accounts');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'prospect' | 'inactive'>('all');
+  const [orderFilterStatus, setOrderFilterStatus] = useState<'all' | 'pending' | 'shipped' | 'delivered'>('all');
+  const [orderFilterAccount, setOrderFilterAccount] = useState('all');
   const [selectedAccount, setSelectedAccount] = useState<WholesaleAccount | null>(null);
 
-  // Form state
+  // Account form state
   const [businessName, setBusinessName] = useState('');
   const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
@@ -53,16 +72,103 @@ export default function DistributionPage() {
   const [paymentTerms, setPaymentTerms] = useState('Net 30');
   const [notes, setNotes] = useState('');
 
+  // Order form state
+  const [orderAccount, setOrderAccount] = useState('');
+  const [orderBeer, setOrderBeer] = useState('');
+  const [orderKegs, setOrderKegs] = useState('1');
+  const [orderPricePerKeg, setOrderPricePerKeg] = useState('180');
+  const [orderDeliveryDate, setOrderDeliveryDate] = useState(new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]);
+  const [orderStatus, setOrderStatus] = useState<WholesaleOrder['status']>('pending');
+  const [orderNotes, setOrderNotes] = useState('');
+
   const allAccounts = [...apiAccounts, ...localAccounts];
   const filtered = filterStatus === 'all' ? allAccounts : allAccounts.filter(a => a.status === filterStatus);
+
+  // Build all orders: seed mock orders from API accounts + local orders
+  const allMockOrders: WholesaleOrder[] = apiAccounts.flatMap(acc =>
+    mockOrders(acc).map((o) => ({
+      id: o.id,
+      accountId: acc.id,
+      accountName: acc.businessName,
+      date: o.date,
+      deliveryDate: (() => { const d = new Date(o.date); d.setDate(d.getDate() + 3); return d.toISOString().split('T')[0]; })(),
+      beer: o.beers[0],
+      kegs: o.kegs,
+      pricePerKeg: Math.round(o.amount / o.kegs),
+      amount: o.amount,
+      status: o.status as WholesaleOrder['status'],
+      notes: '',
+    }))
+  );
+  const allOrders = [...localOrders, ...allMockOrders].sort((a, b) => b.date.localeCompare(a.date));
+  const filteredOrders = allOrders.filter(o => {
+    if (orderFilterStatus !== 'all' && o.status !== orderFilterStatus) return false;
+    if (orderFilterAccount !== 'all' && o.accountId !== orderFilterAccount) return false;
+    return true;
+  });
+
+  const pendingOrders = allOrders.filter(o => o.status === 'pending');
+  const shippedOrders = allOrders.filter(o => o.status === 'shipped');
+  const orderRevenue = allOrders.reduce((s, o) => s + o.amount, 0);
+  const pendingKegs = pendingOrders.reduce((s, o) => s + o.kegs, 0) + shippedOrders.reduce((s, o) => s + o.kegs, 0);
+
+  const updateOrderStatus = (orderId: string, newStatus: WholesaleOrder['status']) => {
+    setLocalOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    toast('success', `Order ${orderId} marked as ${newStatus}`);
+  };
   const active = allAccounts.filter(a => a.status === 'active');
-  const totalRevenue = allAccounts.reduce((s, a) => s + a.totalRevenue, 0);
-  const totalKegsOut = allAccounts.reduce((s, a) => s + a.kegsOut, 0);
 
   const resetForm = () => {
     setBusinessName(''); setContactName(''); setEmail(''); setPhone('');
     setAddress(''); setType('bar'); setStatus('prospect');
     setCreditLimit(''); setPaymentTerms('Net 30'); setNotes('');
+  };
+
+  const resetOrderForm = () => {
+    setOrderAccount(''); setOrderBeer(''); setOrderKegs('1'); setOrderPricePerKeg('180');
+    setOrderDeliveryDate(new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]);
+    setOrderStatus('pending'); setOrderNotes('');
+  };
+
+  const openOrderModal = (prefilledAccountId?: string) => {
+    resetOrderForm();
+    setOrderAccount(prefilledAccountId ?? '');
+    setShowOrderModal(true);
+  };
+
+  const handleOrderSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const acctId = orderAccount;
+    const acct = allAccounts.find(a => a.id === acctId);
+    if (!acctId || !orderBeer.trim()) { toast('error', 'Select an account and enter a beer/product'); return; }
+    const kegs = parseInt(orderKegs) || 1;
+    const ppk = parseFloat(orderPricePerKeg) || 180;
+    const amount = kegs * ppk;
+    const newOrder: WholesaleOrder = {
+      id: `ORD-${acctId.substring(0, 4).toUpperCase()}-${String(Date.now()).slice(-4)}`,
+      accountId: acctId,
+      accountName: acct?.businessName ?? '',
+      date: new Date().toISOString().split('T')[0],
+      deliveryDate: orderDeliveryDate,
+      beer: orderBeer.trim(),
+      kegs,
+      pricePerKeg: ppk,
+      amount,
+      status: orderStatus,
+      notes: orderNotes.trim(),
+    };
+    setLocalOrders(prev => [newOrder, ...prev]);
+    // Update account stats locally
+    setLocalAccounts(prev => {
+      const existing = prev.find(a => a.id === acctId);
+      if (existing) {
+        return prev.map(a => a.id === acctId ? { ...a, totalOrders: a.totalOrders + 1, totalRevenue: a.totalRevenue + amount, kegsOut: a.kegsOut + kegs } : a);
+      }
+      return prev;
+    });
+    toast('success', `Order logged: ${kegs} keg${kegs > 1 ? 's' : ''} of ${orderBeer.trim()} → ${acct?.businessName}`);
+    resetOrderForm();
+    setShowOrderModal(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -95,13 +201,139 @@ export default function DistributionPage() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Active Accounts" value={active.length} icon={Store} iconBg="bg-amber-600/20" iconColor="text-amber-400" />
-        <StatCard title="Wholesale Revenue" value={`$${totalRevenue.toLocaleString()}`} icon={DollarSign} iconBg="bg-emerald-600/20" iconColor="text-emerald-400" />
-        <StatCard title="Kegs Out" value={totalKegsOut} icon={Package} iconBg="bg-blue-600/20" iconColor="text-blue-400" />
-        <StatCard title="Prospects" value={allAccounts.filter(a => a.status === 'prospect').length} icon={Truck} iconBg="bg-purple-600/20" iconColor="text-purple-400" />
+        <StatCard title="Wholesale Revenue" value={`$${orderRevenue.toLocaleString()}`} icon={DollarSign} iconBg="bg-emerald-600/20" iconColor="text-emerald-400" />
+        <StatCard title="Kegs In Transit" value={pendingKegs} icon={Package} iconBg="bg-blue-600/20" iconColor="text-blue-400" />
+        <StatCard title="Open Orders" value={pendingOrders.length + shippedOrders.length} icon={ShoppingCart} iconBg="bg-purple-600/20" iconColor="text-purple-400" />
       </div>
 
-      {/* Filter + Add Button */}
-      <div className="flex items-center justify-between gap-4">
+      {/* Tab Nav + Action Buttons */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex gap-1 bg-brewery-800/40 p-1 rounded-xl border border-brewery-700/30">
+          <button onClick={() => setActiveTab('accounts')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'accounts' ? 'bg-amber-600/20 text-amber-300 border border-amber-500/30' : 'text-brewery-400 hover:text-brewery-200'}`}>
+            <Store className="w-4 h-4 inline mr-1.5" />Accounts ({allAccounts.length})
+          </button>
+          <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'orders' ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30' : 'text-brewery-400 hover:text-brewery-200'}`}>
+            <ClipboardList className="w-4 h-4 inline mr-1.5" />Orders ({allOrders.length})
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => openOrderModal()} disabled={allAccounts.length === 0} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2 shadow-lg shadow-blue-600/20 whitespace-nowrap">
+            <ShoppingCart className="w-4 h-4" /> Log Order
+          </button>
+          <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20 whitespace-nowrap">
+            <Plus className="w-4 h-4" /> Add Account
+          </button>
+        </div>
+      </div>
+
+      {/* ── ORDERS TAB ── */}
+      {activeTab === 'orders' && (
+        <div className="space-y-4">
+          {/* Order filters */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex gap-1">
+              {(['all', 'pending', 'shipped', 'delivered'] as const).map(s => (
+                <button key={s} onClick={() => setOrderFilterStatus(s)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${orderFilterStatus === s ? 'bg-blue-600/20 text-blue-300 border-blue-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'}`}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {s !== 'all' && ` (${allOrders.filter(o => o.status === s).length})`}
+                </button>
+              ))}
+            </div>
+            <select
+              value={orderFilterAccount}
+              onChange={e => setOrderFilterAccount(e.target.value)}
+              className="bg-brewery-800/50 border border-brewery-700/50 rounded-lg px-3 py-1.5 text-xs text-brewery-300 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+            >
+              <option value="all">All Accounts</option>
+              {allAccounts.map(a => <option key={a.id} value={a.id}>{a.businessName}</option>)}
+            </select>
+          </div>
+
+          {filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 bg-brewery-900/40 rounded-xl border border-brewery-700/30 border-dashed">
+              <ClipboardList className="w-10 h-10 text-brewery-600" />
+              <p className="text-brewery-400 font-medium">No orders found</p>
+              <button onClick={() => openOrderModal()} disabled={allAccounts.length === 0} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-semibold px-4 py-2 rounded-lg flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4" /> Log First Order
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredOrders.map(order => (
+                <div key={order.id} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4 hover:border-blue-500/20 transition-all">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-xs font-mono text-brewery-500">{order.id}</span>
+                        <Badge variant={order.status === 'delivered' ? 'green' : order.status === 'shipped' ? 'blue' : 'amber'}>
+                          {order.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-semibold text-brewery-100">{order.accountName}</p>
+                      <p className="text-xs text-brewery-300 mt-0.5">
+                        {order.beer} · {order.kegs} keg{order.kegs !== 1 ? 's' : ''} @ ${order.pricePerKeg}/keg
+                      </p>
+                      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-brewery-500">
+                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />Ordered {order.date}</span>
+                        <span className="flex items-center gap-1"><Truck className="w-3 h-3" />Deliver by {order.deliveryDate}</span>
+                      </div>
+                      {order.notes && <p className="text-xs text-brewery-500 mt-1 italic">{order.notes}</p>}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-base font-bold text-emerald-400">${order.amount.toLocaleString()}</p>
+                      {/* Status advancement — only for local orders */}
+                      {localOrders.some(lo => lo.id === order.id) && order.status !== 'delivered' && (
+                        <button
+                          onClick={() => updateOrderStatus(order.id, order.status === 'pending' ? 'shipped' : 'delivered')}
+                          className="mt-2 text-xs px-2.5 py-1 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/20 text-blue-300 rounded-lg font-medium transition-all"
+                        >
+                          Mark {order.status === 'pending' ? 'Shipped' : 'Delivered'} →
+                        </button>
+                      )}
+                      {(order.status === 'delivered' || order.status === 'shipped') && (
+                        <button
+                          onClick={() => {
+                            const acc = allAccounts.find(a => a.id === order.accountId);
+                            const lines = [
+                              `INVOICE — Bearded Hop Brewery`,
+                              `To: ${order.accountName}`,
+                              `Contact: ${acc?.contactName ?? ''}`,
+                              `Date: ${new Date().toLocaleDateString()}`,
+                              ``,
+                              `Order: ${order.id}`,
+                              `Order Date: ${order.date}`,
+                              `Delivery Date: ${order.deliveryDate}`,
+                              `Items: ${order.beer}`,
+                              `Kegs: ${order.kegs} × $${order.pricePerKeg}`,
+                              `Amount Due: $${order.amount}`,
+                              `Payment Terms: ${acc?.paymentTerms ?? 'Net 30'}`,
+                              ``,
+                              `Thank you for your business!`,
+                              `Bearded Hop Brewery · Bulverde, TX`,
+                            ];
+                            const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url; a.download = `Invoice-${order.id}.txt`; a.click();
+                            URL.revokeObjectURL(url);
+                            toast('success', `Invoice ${order.id} downloaded`);
+                          }}
+                          className="mt-1 flex items-center gap-1 text-[10px] text-brewery-500 hover:text-brewery-300 transition-colors"
+                        >
+                          <FileText className="w-3 h-3" /> Invoice
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ACCOUNTS TAB ── */}
+      {activeTab === 'accounts' && (
         <div className="flex gap-2">
           {(['all', 'active', 'prospect', 'inactive'] as const).map(s => (
             <button key={s} onClick={() => setFilterStatus(s)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${filterStatus === s ? 'bg-amber-600/20 text-amber-300 border-amber-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'}`}>
@@ -109,12 +341,8 @@ export default function DistributionPage() {
             </button>
           ))}
         </div>
-        <button onClick={() => setShowAddModal(true)} className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-2 shadow-lg shadow-amber-600/20 whitespace-nowrap">
-          <Plus className="w-4 h-4" /> Add Account
-        </button>
-      </div>
-
-      {filtered.length === 0 ? (
+      )}
+      {activeTab === 'accounts' && (filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4 bg-brewery-900/40 rounded-xl border border-brewery-700/30 border-dashed">
           <Truck className="w-10 h-10 text-brewery-600" />
           <p className="text-brewery-400 font-medium">No accounts yet</p>
@@ -176,12 +404,16 @@ export default function DistributionPage() {
             </div>
           ))}
         </div>
-      )}
+      ))}
 
       {/* Account Detail Panel */}
       <SlidePanel isOpen={!!selectedAccount} onClose={() => setSelectedAccount(null)} title={selectedAccount?.businessName ?? ''}>
         {selectedAccount && (() => {
-          const orders = mockOrders(selectedAccount);
+          const mock = mockOrders(selectedAccount);
+          const logged = localOrders.filter(o => o.accountId === selectedAccount.id).map(o => ({
+            id: o.id, date: o.date, beers: [o.beer], kegs: o.kegs, amount: o.amount, status: o.status,
+          }));
+          const orders = [...logged, ...mock];
           return (
             <div className="space-y-5">
               <div className="flex items-center gap-2">
@@ -236,10 +468,10 @@ export default function DistributionPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-xs font-semibold text-brewery-400 uppercase tracking-wider">Order History</h4>
                   <button
-                    onClick={() => { toast('success', `New order started for ${selectedAccount.businessName}`); setSelectedAccount(null); }}
-                    className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-semibold transition-colors"
+                    onClick={() => { setSelectedAccount(null); openOrderModal(selectedAccount.id); }}
+                    className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-semibold transition-colors"
                   >
-                    <Plus className="w-3 h-3" /> New Order
+                    <ShoppingCart className="w-3 h-3" /> Log Order
                   </button>
                 </div>
                 {orders.length === 0 ? (
@@ -247,9 +479,9 @@ export default function DistributionPage() {
                     <ClipboardList className="w-8 h-8 text-brewery-600 mx-auto mb-2" />
                     <p className="text-sm text-brewery-400">No orders yet</p>
                     <button
-                      onClick={() => { toast('success', `New order started for ${selectedAccount.businessName}`); setSelectedAccount(null); }}
-                      className="mt-2 text-xs text-amber-400 hover:text-amber-300 font-semibold"
-                    >Place first order →</button>
+                      onClick={() => { setSelectedAccount(null); openOrderModal(selectedAccount.id); }}
+                      className="mt-2 text-xs text-blue-400 hover:text-blue-300 font-semibold"
+                    >Log first order →</button>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -315,6 +547,69 @@ export default function DistributionPage() {
           );
         })()}
       </SlidePanel>
+
+      {/* Log Order Modal */}
+      <Modal open={showOrderModal} onClose={() => { setShowOrderModal(false); resetOrderForm(); }} title="Log Wholesale Order">
+        <form onSubmit={handleOrderSubmit} className="space-y-4">
+          <div>
+            <label className={labelClass}>Account *</label>
+            <select className={inputClass} value={orderAccount} onChange={e => setOrderAccount(e.target.value)} required>
+              <option value="">Select account...</option>
+              {allAccounts.map(a => (
+                <option key={a.id} value={a.id}>{a.businessName}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Beer / Product *</label>
+            <input className={inputClass} value={orderBeer} onChange={e => setOrderBeer(e.target.value)} placeholder="Hill Country Haze IPA" required />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Quantity (kegs)</label>
+              <input className={inputClass} type="number" min="1" value={orderKegs} onChange={e => setOrderKegs(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Price / Keg ($)</label>
+              <input className={inputClass} type="number" min="0" step="5" value={orderPricePerKeg} onChange={e => setOrderPricePerKeg(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Delivery Date</label>
+              <input className={inputClass} type="date" value={orderDeliveryDate} onChange={e => setOrderDeliveryDate(e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Status</label>
+              <select className={inputClass} value={orderStatus} onChange={e => setOrderStatus(e.target.value as WholesaleOrder['status'])}>
+                <option value="pending">Pending</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Notes</label>
+            <textarea className={inputClass + ' resize-none'} rows={2} value={orderNotes} onChange={e => setOrderNotes(e.target.value)} placeholder="Any special instructions..." />
+          </div>
+          {orderAccount && orderKegs && orderPricePerKeg && (
+            <div className="bg-blue-600/10 border border-blue-500/20 rounded-lg p-3">
+              <p className="text-sm font-semibold text-blue-300">
+                Order Total: ${(parseInt(orderKegs) * parseFloat(orderPricePerKeg) || 0).toLocaleString()}
+              </p>
+              <p className="text-xs text-brewery-400">{orderKegs} keg{parseInt(orderKegs) !== 1 ? 's' : ''} × ${orderPricePerKeg}/keg</p>
+            </div>
+          )}
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => { setShowOrderModal(false); resetOrderForm(); }} className="flex-1 px-4 py-2 rounded-lg border border-brewery-700/50 text-brewery-300 hover:text-brewery-100 text-sm transition-colors">
+              Cancel
+            </button>
+            <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-blue-600/20">
+              Log Order
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Add Account Modal */}
       <Modal open={showAddModal} onClose={() => { setShowAddModal(false); resetForm(); }} title="Add Wholesale Account">
