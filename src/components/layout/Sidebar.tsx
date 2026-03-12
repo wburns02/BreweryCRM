@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut, Factory } from 'lucide-react';
+import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut, Factory, FileText } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -33,6 +33,7 @@ const navItems: { id: PageId; label: string; icon: React.ElementType; group: str
   { id: 'staff', label: 'Staff', icon: UserCog, group: 'Management' },
   { id: 'distribution', label: 'Distribution', icon: Truck, group: 'Management' },
   { id: 'reports', label: 'Reports', icon: BarChart3, group: 'Management' },
+  { id: 'ttb-reports', label: 'TTB Reports', icon: FileText, group: 'Compliance' },
   { id: 'settings', label: 'Settings', icon: Settings, group: 'System' },
 ];
 

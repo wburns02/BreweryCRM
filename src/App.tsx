@@ -23,6 +23,7 @@ import SettingsPage from './pages/settings/SettingsPage';
 import POSPage from './pages/pos/POSPage';
 import FloorPlanPage from './pages/floor-plan/FloorPlanPage';
 import ProductionPage from './pages/production/ProductionPage';
+import TTBReportsPage from './pages/ttb-reports/TTBReportsPage';
 import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
 import { DataProvider } from './context/DataContext';
@@ -54,6 +55,7 @@ const pageTitles: Record<PageId, string> = {
   pos: 'Taproom POS',
   'floor-plan': 'Floor Plan & Table Management',
   production: 'Production Dashboard',
+  'ttb-reports': 'TTB Compliance Center',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -78,6 +80,7 @@ const pages: Record<PageId, React.ComponentType> = {
   pos: POSPage,
   'floor-plan': FloorPlanPage,
   production: ProductionPage,
+  'ttb-reports': TTBReportsPage,
 };
 
 function App() {
