@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal';
 import SlidePanel from '../../components/ui/SlidePanel';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../components/ui/ToastProvider';
+import { api } from '../../api/client';
 import type { WholesaleAccount } from '../../types';
 
 interface WholesaleOrder {
@@ -171,7 +172,7 @@ export default function DistributionPage() {
     setShowOrderModal(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName.trim()) return;
     const newAccount: WholesaleAccount = {
@@ -193,6 +194,21 @@ export default function DistributionPage() {
     };
     setLocalAccounts(prev => [...prev, newAccount]);
     toast('success', `${businessName} added as a wholesale account!`);
+    // Persist to API
+    try {
+      await api.post('/distribution/accounts', {
+        business_name: newAccount.businessName,
+        contact_name: newAccount.contactName,
+        email: newAccount.email,
+        phone: newAccount.phone,
+        address: newAccount.address,
+        type: newAccount.type,
+        status: newAccount.status,
+        credit_limit: newAccount.creditLimit,
+        payment_terms: newAccount.paymentTerms,
+        notes: newAccount.notes,
+      });
+    } catch { /* ignore — keep local state as fallback */ }
     resetForm();
     setShowAddModal(false);
   };

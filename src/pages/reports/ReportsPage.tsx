@@ -14,8 +14,13 @@ const RANGES = [
 export default function ReportsPage() {
   const { dailySales, beers, customers } = useData();
   const [rangeDays, setRangeDays] = useState(30);
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+  const [useCustomRange, setUseCustomRange] = useState(false);
 
-  const filteredSales = rangeDays === 0 ? dailySales : dailySales.slice(-rangeDays);
+  const filteredSales = useCustomRange && customStart && customEnd
+    ? dailySales.filter(d => d.date >= customStart && d.date <= customEnd)
+    : rangeDays === 0 ? dailySales : dailySales.slice(-rangeDays);
 
   const totalRevenue = Math.round(filteredSales.reduce((s, d) => s + d.totalRevenue, 0));
   const totalCustomers = filteredSales.reduce((s, d) => s + d.customerCount, 0);
@@ -75,16 +80,51 @@ export default function ReportsPage() {
     <div className="space-y-6">
       {/* Header with date range filter + export */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-1.5">
-          {RANGES.map(r => (
-            <button
-              key={r.days}
-              onClick={() => setRangeDays(r.days)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${rangeDays === r.days ? 'bg-amber-600/20 text-amber-300 border-amber-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'}`}
-            >
-              {r.label}
-            </button>
-          ))}
+        <div className="space-y-2">
+          <div className="flex gap-1.5">
+            {RANGES.map(r => (
+              <button
+                key={r.days}
+                onClick={() => { setRangeDays(r.days); setUseCustomRange(false); }}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${rangeDays === r.days && !useCustomRange ? 'bg-amber-600/20 text-amber-300 border-amber-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          {/* Custom date range */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-brewery-500">Custom:</span>
+            <input
+              type="date"
+              value={customStart}
+              onChange={e => { setCustomStart(e.target.value); setUseCustomRange(false); }}
+              className="bg-brewery-800/50 border border-brewery-700/30 rounded-lg px-2 py-1 text-xs text-brewery-200 focus:outline-none focus:border-amber-500/40"
+            />
+            <span className="text-xs text-brewery-500">to</span>
+            <input
+              type="date"
+              value={customEnd}
+              onChange={e => { setCustomEnd(e.target.value); setUseCustomRange(false); }}
+              className="bg-brewery-800/50 border border-brewery-700/30 rounded-lg px-2 py-1 text-xs text-brewery-200 focus:outline-none focus:border-amber-500/40"
+            />
+            {customStart && customEnd && (
+              <button
+                onClick={() => setUseCustomRange(true)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border ${useCustomRange ? 'bg-amber-600/20 text-amber-300 border-amber-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'}`}
+              >
+                Apply
+              </button>
+            )}
+            {useCustomRange && (
+              <button
+                onClick={() => { setUseCustomRange(false); setCustomStart(''); setCustomEnd(''); }}
+                className="px-2 py-1 rounded-full text-xs text-brewery-500 hover:text-brewery-300 border border-brewery-700/30"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
         <button
           onClick={exportCSV}

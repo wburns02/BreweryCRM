@@ -164,54 +164,96 @@ export default function StaffPage() {
       )}
 
       {activeTab === 'schedule' && (
-        <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl overflow-hidden">
-          {staff.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <Clock className="w-8 h-8 text-brewery-600" />
-              <p className="text-brewery-400 text-sm">Add staff members to build the schedule.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-brewery-700/30">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase w-40">Staff</th>
-                    {days.map(day => (
-                      <th key={day} className="px-2 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">{day}</th>
-                    ))}
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-brewery-400 uppercase">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-brewery-700/20">
-                  {staff.map(member => (
-                    <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</p>
-                        <Badge variant={roleColors[member.role]}>{member.role}</Badge>
-                      </td>
-                      {days.map(day => {
-                        const shift = member.schedule.find(s => s.day === day);
-                        return (
-                          <td key={day} className="px-2 py-3 text-center">
-                            {shift ? (
-                              <div className="p-1.5 rounded-lg bg-amber-600/10 border border-amber-500/20">
-                                <p className="text-[10px] font-medium text-amber-300">{shift.startTime}</p>
-                                <p className="text-[10px] text-brewery-400">{shift.endTime}</p>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-brewery-600">—</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                      <td className="px-4 py-3 text-right text-sm font-medium text-brewery-200">{member.hoursThisWeek}h</td>
+        <>
+          <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl overflow-hidden">
+            {staff.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <Clock className="w-8 h-8 text-brewery-600" />
+                <p className="text-brewery-400 text-sm">Add staff members to build the schedule.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-brewery-700/30">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brewery-400 uppercase w-40">Staff</th>
+                      {days.map(day => (
+                        <th key={day} className="px-2 py-3 text-center text-xs font-semibold text-brewery-400 uppercase">{day}</th>
+                      ))}
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brewery-400 uppercase">Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody className="divide-y divide-brewery-700/20">
+                    {staff.map(member => (
+                      <tr key={member.id} className="hover:bg-brewery-800/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <p className="text-sm font-medium text-brewery-100">{member.firstName} {member.lastName}</p>
+                          <Badge variant={roleColors[member.role]}>{member.role}</Badge>
+                        </td>
+                        {days.map(day => {
+                          const shift = member.schedule.find(s => s.day === day);
+                          return (
+                            <td key={day} className="px-2 py-3 text-center">
+                              {shift ? (
+                                <div className="p-1.5 rounded-lg bg-amber-600/10 border border-amber-500/20">
+                                  <p className="text-[10px] font-medium text-amber-300">{shift.startTime}</p>
+                                  <p className="text-[10px] text-brewery-400">{shift.endTime}</p>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-brewery-600">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td className="px-4 py-3 text-right text-sm font-medium text-brewery-200">{member.hoursThisWeek}h</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Weekly Hours & Pay Summary */}
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {(() => {
+              const scheduled = staff.filter(m => m.schedule && m.schedule.length > 0);
+              const totalShifts = scheduled.reduce((s, m) => s + (m.schedule?.length || 0), 0);
+              const totalHoursScheduled = scheduled.reduce((s, m) => {
+                return s + (m.schedule || []).reduce((sh: number, shift) => sh + ((shift as unknown as { hours?: number }).hours || 8), 0);
+              }, 0);
+              const estimatedPayroll = scheduled.reduce((s, m) => {
+                const hoursThisWeek = (m.schedule || []).reduce((sh: number, shift) => sh + ((shift as unknown as { hours?: number }).hours || 8), 0);
+                return s + hoursThisWeek * (m.hourlyRate || 15);
+              }, 0);
+              const totalStaffScheduled = scheduled.length;
+              return (
+                <>
+                  <div className="bg-brewery-800/40 border border-brewery-700/30 rounded-xl p-4">
+                    <p className="text-xs text-brewery-400 mb-1">Staff Scheduled</p>
+                    <p className="text-2xl font-bold text-brewery-100">{totalStaffScheduled}</p>
+                    <p className="text-xs text-brewery-500">of {staff.length} total</p>
+                  </div>
+                  <div className="bg-brewery-800/40 border border-brewery-700/30 rounded-xl p-4">
+                    <p className="text-xs text-brewery-400 mb-1">Total Shifts</p>
+                    <p className="text-2xl font-bold text-amber-400">{totalShifts}</p>
+                    <p className="text-xs text-brewery-500">this week</p>
+                  </div>
+                  <div className="bg-brewery-800/40 border border-brewery-700/30 rounded-xl p-4">
+                    <p className="text-xs text-brewery-400 mb-1">Total Hours</p>
+                    <p className="text-2xl font-bold text-blue-400">{totalHoursScheduled}</p>
+                    <p className="text-xs text-brewery-500">scheduled hrs</p>
+                  </div>
+                  <div className="bg-brewery-800/40 border border-brewery-700/30 rounded-xl p-4">
+                    <p className="text-xs text-brewery-400 mb-1">Est. Labor Cost</p>
+                    <p className="text-2xl font-bold text-emerald-400">${estimatedPayroll.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                    <p className="text-xs text-brewery-500">this week</p>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </>
       )}
 
       {activeTab === 'compliance' && (

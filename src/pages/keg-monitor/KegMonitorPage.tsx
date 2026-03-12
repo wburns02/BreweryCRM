@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AlertTriangle, CheckCircle, Droplets, Beer, Activity, ArrowUpDown, Filter, RefreshCw, Clock, TrendingDown } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Droplets, Beer, Activity, ArrowUpDown, Filter, RefreshCw, Clock, TrendingDown, Thermometer, Gauge } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { clsx } from 'clsx';
 import type { TapLine } from '../../types';
@@ -27,6 +27,27 @@ const MOCK_POUR_HISTORY: Record<number, number[]> = {
   12: [14, 18, 12, 22, 18, 28, 25],
   13: [10, 12, 8, 16, 14, 20, 18],
 };
+
+// Mock sensor data per tap (deterministic)
+const MOCK_SENSOR: Record<number, { tempF: number; psiCo2: number; psiLine: number }> = {
+  1: { tempF: 38, psiCo2: 12, psiLine: 10 },
+  2: { tempF: 36, psiCo2: 11, psiLine: 10 },
+  3: { tempF: 37, psiCo2: 12, psiLine: 11 },
+  4: { tempF: 35, psiCo2: 10, psiLine: 9 },
+  5: { tempF: 39, psiCo2: 13, psiLine: 12 },
+  6: { tempF: 36, psiCo2: 11, psiLine: 10 },
+  7: { tempF: 38, psiCo2: 12, psiLine: 11 },
+  8: { tempF: 37, psiCo2: 10, psiLine: 9 },
+  9: { tempF: 36, psiCo2: 11, psiLine: 10 },
+  10: { tempF: 38, psiCo2: 12, psiLine: 11 },
+  11: { tempF: 35, psiCo2: 10, psiLine: 9 },
+  12: { tempF: 37, psiCo2: 11, psiLine: 10 },
+  13: { tempF: 38, psiCo2: 12, psiLine: 11 },
+};
+
+function getSensor(tapNumber: number) {
+  return MOCK_SENSOR[tapNumber] ?? { tempF: 37, psiCo2: 11, psiLine: 10 };
+}
 
 function getAvgDailyPours(tapNumber: number): number {
   const history = MOCK_POUR_HISTORY[tapNumber] || [15, 18, 12, 20, 16, 24, 22];
@@ -144,6 +165,9 @@ function KegCard({ tap, idx }: { tap: TapLine; idx: number }) {
   const urgency = getUrgency(tap.kegLevel, daysLeft);
   const pintsLeft = Math.round((tap.kegLevel / 100) * PINTS_PER_HALF_KEG);
   const history = MOCK_POUR_HISTORY[tap.tapNumber] || [15, 18, 12, 20, 16, 24, 22];
+  const sensor = getSensor(tap.tapNumber);
+  const tempOk = sensor.tempF >= 34 && sensor.tempF <= 42;
+  const psiOk = sensor.psiCo2 >= 8 && sensor.psiCo2 <= 15;
 
   const borderColor = urgency === 'critical' ? 'border-red-500/40 shadow-red-500/10'
     : urgency === 'low' ? 'border-amber-500/30 shadow-amber-500/10'
@@ -246,6 +270,22 @@ function KegCard({ tap, idx }: { tap: TapLine; idx: number }) {
         <div className="text-right">
           <p className="text-[9px] text-brewery-600 mb-0.5">All-time pours</p>
           <p className="text-sm font-bold text-brewery-300">{(tap.totalPours || 0).toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Sensor Readings */}
+      <div className="mt-2.5 pt-2.5 border-t border-brewery-700/20 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
+          <Thermometer className={`w-3 h-3 ${tempOk ? 'text-emerald-400' : 'text-red-400'}`} />
+          <span className={`text-[10px] font-semibold ${tempOk ? 'text-emerald-400' : 'text-red-400'}`}>{sensor.tempF}°F</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Gauge className={`w-3 h-3 ${psiOk ? 'text-blue-400' : 'text-amber-400'}`} />
+          <span className={`text-[10px] font-semibold ${psiOk ? 'text-blue-400' : 'text-amber-400'}`}>{sensor.psiCo2} PSI</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-brewery-500">CO₂</span>
+          <span className="text-[10px] font-semibold text-brewery-300">{sensor.psiLine} PSI</span>
         </div>
       </div>
     </div>
