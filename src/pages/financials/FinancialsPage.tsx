@@ -241,7 +241,15 @@ function OverviewTab() {
 // ═══════════════════════════════════════════════
 function PnlTab() {
   const { monthlyFinancials } = useData();
-  if (monthlyFinancials.length < 2) return <p className="text-sm text-brewery-400">Insufficient financial data to display P&L.</p>;
+  if (monthlyFinancials.length < 2) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center">
+        <DollarSign className="w-8 h-8 text-amber-600/40" />
+      </div>
+      <p className="text-brewery-300 font-medium">No P&L data yet</p>
+      <p className="text-brewery-500 text-sm text-center max-w-xs">P&L statement requires at least two months of recorded revenue data to compare periods.</p>
+    </div>
+  );
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytdSum = (fn: (m: typeof curr) => number) => monthlyFinancials.reduce((s, m) => s + fn(m), 0);
@@ -356,7 +364,15 @@ function BeerTab() {
     }).sort((a, b) => b.marginPct - a.marginPct);
   }, [beers, detailedRecipes]);
 
-  if (beerData.length === 0) return <p className="text-sm text-brewery-400">No on-tap beers to analyze.</p>;
+  if (beerData.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center">
+        <BarChart3 className="w-8 h-8 text-amber-600/40" />
+      </div>
+      <p className="text-brewery-300 font-medium">No beers on tap</p>
+      <p className="text-brewery-500 text-sm text-center max-w-xs">Beer economics analysis will appear once beers are added to the tap list.</p>
+    </div>
+  );
 
   const best = beerData.reduce((a, b) => b.marginPct > a.marginPct ? b : a, beerData[0]);
   const volumeLeader = beerData.reduce((a, b) => b.monthlyPours > a.monthlyPours ? b : a, beerData[0]);
@@ -464,7 +480,15 @@ function BeerTab() {
 // ═══════════════════════════════════════════════
 function LaborTab() {
   const { staff, monthlyFinancials } = useData();
-  if (monthlyFinancials.length === 0) return <p className="text-sm text-brewery-400">No financial data available.</p>;
+  if (monthlyFinancials.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <div className="w-16 h-16 rounded-full bg-amber-600/10 flex items-center justify-center">
+        <Users className="w-8 h-8 text-amber-600/40" />
+      </div>
+      <p className="text-brewery-300 font-medium">No labor data yet</p>
+      <p className="text-brewery-500 text-sm text-center max-w-xs">Labor & overhead analysis will populate once financial records are available.</p>
+    </div>
+  );
   const activeStaff = staff.filter(s => s.status === 'active');
   const totalWeeklyLabor = activeStaff.reduce((s, m) => s + m.hourlyRate * m.hoursThisWeek, 0);
   const totalWeeklyHours = activeStaff.reduce((s, m) => s + m.hoursThisWeek, 0);
