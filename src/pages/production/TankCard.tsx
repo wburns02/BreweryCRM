@@ -124,8 +124,10 @@ export default function TankCard({ vessel, onClick }: TankCardProps) {
           </div>
           {estimatedDays > 0 && (
             <div className="flex items-center gap-1">
-              <Droplets className="w-3 h-3 text-brewery-400" />
-              <span className="text-xs text-brewery-300">Day {days} of ~{estimatedDays}</span>
+              <Droplets className={clsx('w-3 h-3', days > estimatedDays ? 'text-red-400' : 'text-brewery-400')} />
+              <span className={clsx('text-xs', days > estimatedDays ? 'text-red-400 font-semibold' : 'text-brewery-300')}>
+                Day {days} of ~{estimatedDays}{days > estimatedDays ? ' ⚠ Overdue' : ''}
+              </span>
             </div>
           )}
         </div>

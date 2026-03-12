@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Mail, Phone, Calendar, Star, Crown, Beer, MessageSquare, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Calendar, Star, Crown, Beer, MessageSquare, TrendingUp, Cake } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useData } from '../../context/DataContext';
 
@@ -59,6 +59,21 @@ export default function CustomerDetailPage({ customerId, onBack }: CustomerDetai
               <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {customer.email}</span>
               <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {customer.phone}</span>
               <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Member since {customer.firstVisit}</span>
+              {customer.dateOfBirth && (() => {
+                const dob = customer.dateOfBirth!;
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const parts = dob.split('-').map(Number);
+                let bday = new Date(today.getFullYear(), parts[1] - 1, parts[2]);
+                if (bday < today) bday = new Date(today.getFullYear() + 1, parts[1] - 1, parts[2]);
+                const days = Math.round((bday.getTime() - today.getTime()) / 86400000);
+                const age = bday.getFullYear() - parts[0];
+                return (
+                  <span className={`flex items-center gap-1 ${days === 0 ? 'text-rose-400 font-semibold' : days <= 7 ? 'text-pink-400' : 'text-brewery-400'}`}>
+                    <Cake className="w-3.5 h-3.5" />
+                    {days === 0 ? `Birthday today! (Turning ${age})` : days === 1 ? `Birthday tomorrow (Turning ${age})` : `Birthday in ${days} days (Turning ${age})`}
+                  </span>
+                );
+              })()}
             </div>
             <div className="flex flex-wrap gap-1.5 mt-2">
               {customer.tags.map(tag => <Badge key={tag} variant="gray">{tag}</Badge>)}
@@ -70,7 +85,7 @@ export default function CustomerDetailPage({ customerId, onBack }: CustomerDetai
               <p className="text-[10px] text-brewery-500">Visits</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-brewery-800/40 border border-brewery-700/20">
-              <p className="text-lg font-bold text-emerald-400">${customer.totalSpent.toLocaleString()}</p>
+              <p className="text-lg font-bold text-emerald-400">${Math.round(customer.totalSpent).toLocaleString()}</p>
               <p className="text-[10px] text-brewery-500">Total Spent</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-brewery-800/40 border border-brewery-700/20">

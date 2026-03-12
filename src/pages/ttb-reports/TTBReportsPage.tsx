@@ -121,7 +121,7 @@ function ReportsTab({ reports, onFile, onDownload }: { reports: TTBReport[]; onF
           { label: 'Reports Filed (YTD)', value: reports.filter(r => r.status === 'filed').length, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-600/10' },
           { label: 'Pending Filings', value: pending.length, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-600/10' },
           { label: 'Barrels Reported (YTD)', value: reports.filter(r => r.status === 'filed' && r.type === 'monthly').reduce((s, r) => s + r.totalBarrels, 0).toFixed(1) + ' bbl', icon: FlaskConical, color: 'text-blue-400', bg: 'bg-blue-600/10', wide: true },
-          { label: 'Federal Tax Paid (Est.)', value: '$' + (reports.filter(r => r.status === 'filed').reduce((s, r) => s + r.totalBarrels, 0) * TTB_RATE_REDUCED).toFixed(0), icon: TrendingUp, color: 'text-purple-400', bg: 'bg-purple-600/10' },
+          { label: 'Federal Tax Paid (Est.)', value: '$' + Math.round(reports.filter(r => r.status === 'filed').reduce((s, r) => s + r.totalBarrels, 0) * TTB_RATE_REDUCED).toLocaleString(), icon: TrendingUp, color: 'text-purple-400', bg: 'bg-purple-600/10' },
         ].map(s => (
           <div key={s.label} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
             <div className={clsx('w-8 h-8 rounded-lg flex items-center justify-center mb-2', s.bg)}>

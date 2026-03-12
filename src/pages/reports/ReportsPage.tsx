@@ -17,7 +17,7 @@ export default function ReportsPage() {
 
   const filteredSales = rangeDays === 0 ? dailySales : dailySales.slice(-rangeDays);
 
-  const totalRevenue = filteredSales.reduce((s, d) => s + d.totalRevenue, 0);
+  const totalRevenue = Math.round(filteredSales.reduce((s, d) => s + d.totalRevenue, 0));
   const totalCustomers = filteredSales.reduce((s, d) => s + d.customerCount, 0);
   const avgDaily = filteredSales.length > 0 ? Math.round(totalRevenue / filteredSales.length) : 0;
   const beerPct = totalRevenue > 0 ? Math.round((filteredSales.reduce((s, d) => s + d.beerRevenue, 0) / totalRevenue) * 100) : 0;
@@ -27,10 +27,10 @@ export default function ReportsPage() {
     const week = filteredSales.slice(start, start + 7);
     return {
       week: `Week ${i + 1}`,
-      beer: week.reduce((s, d) => s + d.beerRevenue, 0),
-      food: week.reduce((s, d) => s + d.foodRevenue, 0),
-      na: week.reduce((s, d) => s + d.naRevenue, 0),
-      events: week.reduce((s, d) => s + d.eventRevenue, 0),
+      beer: Math.round(week.reduce((s, d) => s + d.beerRevenue, 0)),
+      food: Math.round(week.reduce((s, d) => s + d.foodRevenue, 0)),
+      na: Math.round(week.reduce((s, d) => s + d.naRevenue, 0)),
+      events: Math.round(week.reduce((s, d) => s + d.eventRevenue, 0)),
     };
   });
 
@@ -41,11 +41,11 @@ export default function ReportsPage() {
     .map(b => ({ name: b.name.length > 15 ? b.name.slice(0, 15) + '...' : b.name, pours: b.totalPours, rating: b.rating }));
 
   const categoryRevenue = [
-    { name: 'Beer', value: filteredSales.reduce((s, d) => s + d.beerRevenue, 0), color: '#d97706' },
-    { name: 'Food', value: filteredSales.reduce((s, d) => s + d.foodRevenue, 0), color: '#059669' },
-    { name: 'NA Beverages', value: filteredSales.reduce((s, d) => s + d.naRevenue, 0), color: '#3b82f6' },
-    { name: 'Merchandise', value: filteredSales.reduce((s, d) => s + d.merchandiseRevenue, 0), color: '#a855f7' },
-    { name: 'Events', value: filteredSales.reduce((s, d) => s + d.eventRevenue, 0), color: '#f43f5e' },
+    { name: 'Beer', value: Math.round(filteredSales.reduce((s, d) => s + d.beerRevenue, 0)), color: '#d97706' },
+    { name: 'Food', value: Math.round(filteredSales.reduce((s, d) => s + d.foodRevenue, 0)), color: '#059669' },
+    { name: 'NA Beverages', value: Math.round(filteredSales.reduce((s, d) => s + d.naRevenue, 0)), color: '#3b82f6' },
+    { name: 'Merchandise', value: Math.round(filteredSales.reduce((s, d) => s + d.merchandiseRevenue, 0)), color: '#a855f7' },
+    { name: 'Events', value: Math.round(filteredSales.reduce((s, d) => s + d.eventRevenue, 0)), color: '#f43f5e' },
   ];
 
   const loyaltyDistro = [

@@ -224,7 +224,7 @@ export default function MenuPage() {
           </div>
           <div>
             <label className="block text-xs font-medium text-brewery-300 mb-1">Description</label>
-            <textarea required value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description" rows={2} className={inputClass} />
+            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description (optional)" rows={2} className={inputClass} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
