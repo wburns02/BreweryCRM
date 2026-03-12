@@ -440,7 +440,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addCampaign = useCallback((campaign: Omit<EmailCampaign, 'id'>) => {
-    const tempId = `camp-${Date.now()}`;
+    const tempId = crypto.randomUUID();
     setEmailCampaigns(prev => [...prev, { ...campaign, id: tempId }]);
     api.post('/marketing/campaigns', toSnakeKeys(campaign as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);

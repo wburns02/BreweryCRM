@@ -141,8 +141,15 @@ export default function ReservationsPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between">
                 <div className="flex items-start gap-4">
                   <div className="w-14 h-14 rounded-xl bg-amber-600/20 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-amber-400">{res.time.split(':')[0]}</span>
-                    <span className="text-[10px] text-amber-500 -mt-1">{parseInt(res.time.split(':')[0]) >= 12 ? 'PM' : 'AM'}</span>
+                    {(() => {
+                      const [h, m] = res.time.split(':').map(Number);
+                      const h12 = h % 12 || 12;
+                      const isPM = h >= 12;
+                      return (<>
+                        <span className="text-lg font-bold text-amber-400">{h12}:{String(m || 0).padStart(2, '0')}</span>
+                        <span className="text-[10px] text-amber-500 -mt-1">{isPM ? 'PM' : 'AM'}</span>
+                      </>);
+                    })()}
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-brewery-100">{res.customerName}</h3>

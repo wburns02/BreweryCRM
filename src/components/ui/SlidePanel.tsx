@@ -30,7 +30,8 @@ export default function SlidePanel({ isOpen, onClose, title, children, width = '
       />
       <div
         role="dialog"
-        aria-modal="true"
+        aria-modal={isOpen}
+        aria-hidden={!isOpen}
         aria-labelledby="slide-panel-title"
         className={clsx(
           'fixed top-0 right-0 h-full z-[95] flex flex-col bg-brewery-900 border-l border-brewery-700/30 shadow-2xl transition-transform duration-300',

@@ -787,7 +787,7 @@ function TrendTab({ rangeDays }: { rangeDays: number }) {
                   <div style={TOOLTIP_STYLE} className="px-3 py-2">
                     <p className="text-brewery-300 text-xs mb-1">{d?.label}</p>
                     <p className="text-brewery-400 text-[11px]">Guests: {d?.x} &middot; Revenue: {fmt(d?.y)}</p>
-                    <p className="text-brewery-400 text-[11px]">Avg Ticket: ${d?.z?.toFixed(2)}</p>
+                    <p className="text-brewery-400 text-[11px]">Avg Ticket: ${(d?.z ?? 0).toFixed(2)}</p>
                   </div>
                 );
               }} />
