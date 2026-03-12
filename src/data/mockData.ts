@@ -1,4 +1,8 @@
-import type { Customer, Beer, Batch, TapLine, BreweryEvent, Reservation, MenuItem, InventoryItem, StaffMember, WholesaleAccount, MugClubMember, EmailCampaign, DailySales, ComplianceItem, Performer, DetailedRecipe, Keg, MonthlyFinancial, VisitRecord, CustomerNote, ScheduleShift, DailyLabor, QCBreakdown, TTBMonthlyReport, PurchaseOrder, WholesaleOrder, SocialMetrics, ContentCalendarEntry, CustomerSegment, WeeklyFoodCost, MugClubMonthly, OpenTab, POSTransaction, FloorTable, ServiceAlert, OrderTimelineEntry } from '../types';
+import type { Customer, Beer, Batch, TapLine, BreweryEvent, Reservation, MenuItem, InventoryItem, StaffMember, WholesaleAccount, MugClubMember, EmailCampaign, DailySales, ComplianceItem, Performer, DetailedRecipe, Keg, MonthlyFinancial, VisitRecord, CustomerNote, ScheduleShift, DailyLabor, QCBreakdown, TTBMonthlyReport, PurchaseOrder, WholesaleOrder, SocialMetrics, ContentCalendarEntry, CustomerSegment, WeeklyFoodCost, MugClubMonthly, OpenTab, POSTransaction, FloorTable, ServiceAlert, OrderTimelineEntry, TicketSale } from '../types';
+
+// ─── Dynamic timestamp helpers (always relative to now) ──────────────────────
+function minsAgo(m: number) { return new Date(Date.now() - m * 60_000).toISOString(); }
+function hoursAgo(h: number) { return new Date(Date.now() - h * 3_600_000).toISOString(); }
 
 export const customers: Customer[] = [
   { id: '1', firstName: 'Jake', lastName: 'Morrison', email: 'jake@email.com', phone: '(830) 555-0101', firstVisit: '2026-01-15', lastVisit: '2026-03-02', totalVisits: 24, totalSpent: 1842.50, avgTicket: 76.77, favoriteBeers: ['Hill Country Haze', 'Bulverde Blonde'], dietaryRestrictions: [], tags: ['regular', 'vip'], loyaltyPoints: 2450, loyaltyTier: 'Gold', mugClubMember: true, mugClubTier: 'Premium', notes: 'Loves IPAs, brings family every Saturday', source: 'word-of-mouth', familyMembers: [{ name: 'Sarah', relation: 'wife' }, { name: 'Max', relation: 'son', age: 7 }] },
@@ -835,13 +839,13 @@ export const mugClubMonthly: MugClubMonthly[] = [
 
 // Open Tabs — 7 active tabs for POS
 export const openTabs: OpenTab[] = [
-  { id: 'tab-1', customerName: 'Jake Morrison', customerId: '1', items: [{ name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 2 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 1 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 1 }], openedAt: '2026-03-05T17:15:00', server: 'Jessica Tran', subtotal: 41.98, tableNumber: 'T-12' },
-  { id: 'tab-2', customerName: 'Walk-in', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 2 }, { name: 'Topo Chico', size: '', price: 4, qty: 1 }], openedAt: '2026-03-05T18:30:00', server: 'Amy Nguyen', subtotal: 18, tableNumber: 'P-5' },
-  { id: 'tab-3', customerName: 'Carlos Rivera', customerId: '7', items: [{ name: 'Mesquite Smoked Porter', size: 'Pint', price: 7, qty: 1 }, { name: 'Jalapeño Cream Ale', size: 'Half', price: 5, qty: 1 }, { name: 'Brewhouse Burger', size: '', price: 16.99, qty: 1 }, { name: 'Loaded Fries', size: '', price: 8.99, qty: 1 }], openedAt: '2026-03-05T18:05:00', server: 'Jessica Tran', subtotal: 37.98 },
-  { id: 'tab-4', customerName: 'Bobby Whitfield', customerId: '5', items: [{ name: 'Barrel-Aged Imperial Stout', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'Smoked Brisket Plate', size: '', price: 19.99, qty: 1 }, { name: 'Stout Brownie Sundae', size: '', price: 10.99, qty: 1 }, { name: 'Prickly Pear Sour', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'BBQ Pulled Pork Sandwich', size: '', price: 14.99, qty: 1 }], openedAt: '2026-03-05T16:00:00', server: 'Rachel Kim', subtotal: 66.97, tableNumber: 'T-1' },
-  { id: 'tab-5', customerName: 'Walk-in (Patio)', items: [{ name: 'Bulverde Blonde', size: 'Pint', price: 7, qty: 3 }, { name: 'Lavender Lemonade', size: '', price: 5.99, qty: 2 }, { name: 'Kids Chicken Tenders', size: '', price: 8.99, qty: 2 }], openedAt: '2026-03-05T17:45:00', server: 'Amy Nguyen', subtotal: 50.97, tableNumber: 'P-8' },
-  { id: 'tab-6', customerName: 'Maria Gonzalez', customerId: '2', items: [{ name: 'Texas Sunset Wheat', size: 'Pint', price: 7, qty: 1 }, { name: 'Fish Tacos', size: '', price: 15.99, qty: 1 }], openedAt: '2026-03-05T18:40:00', server: 'Jessica Tran', subtotal: 22.99 },
-  { id: 'tab-7', customerName: 'Tom Henderson', customerId: '3', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 4 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 2 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 2 }], openedAt: '2026-03-05T19:10:00', server: 'Rachel Kim', subtotal: 83.96 },
+  { id: 'tab-1', customerName: 'Jake Morrison', customerId: '1', items: [{ name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 2 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 1 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 1 }], openedAt: minsAgo(105), server: 'Jessica Tran', subtotal: 41.98, tableNumber: 'T-12' },
+  { id: 'tab-2', customerName: 'Walk-in', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 2 }, { name: 'Topo Chico', size: '', price: 4, qty: 1 }], openedAt: minsAgo(45), server: 'Amy Nguyen', subtotal: 18, tableNumber: 'P-5' },
+  { id: 'tab-3', customerName: 'Carlos Rivera', customerId: '7', items: [{ name: 'Mesquite Smoked Porter', size: 'Pint', price: 7, qty: 1 }, { name: 'Jalapeño Cream Ale', size: 'Half', price: 5, qty: 1 }, { name: 'Brewhouse Burger', size: '', price: 16.99, qty: 1 }, { name: 'Loaded Fries', size: '', price: 8.99, qty: 1 }], openedAt: minsAgo(115), server: 'Jessica Tran', subtotal: 37.98 },
+  { id: 'tab-4', customerName: 'Bobby Whitfield', customerId: '5', items: [{ name: 'Barrel-Aged Imperial Stout', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'Hill Country Haze', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'Smoked Brisket Plate', size: '', price: 19.99, qty: 1 }, { name: 'Stout Brownie Sundae', size: '', price: 10.99, qty: 1 }, { name: 'Prickly Pear Sour', size: 'Mug Club 20oz', price: 7, qty: 1 }, { name: 'BBQ Pulled Pork Sandwich', size: '', price: 14.99, qty: 1 }], openedAt: hoursAgo(3), server: 'Rachel Kim', subtotal: 66.97, tableNumber: 'T-1' },
+  { id: 'tab-5', customerName: 'Walk-in (Patio)', items: [{ name: 'Bulverde Blonde', size: 'Pint', price: 7, qty: 3 }, { name: 'Lavender Lemonade', size: '', price: 5.99, qty: 2 }, { name: 'Kids Chicken Tenders', size: '', price: 8.99, qty: 2 }], openedAt: minsAgo(75), server: 'Amy Nguyen', subtotal: 50.97, tableNumber: 'P-8' },
+  { id: 'tab-6', customerName: 'Maria Gonzalez', customerId: '2', items: [{ name: 'Texas Sunset Wheat', size: 'Pint', price: 7, qty: 1 }, { name: 'Fish Tacos', size: '', price: 15.99, qty: 1 }], openedAt: minsAgo(80), server: 'Jessica Tran', subtotal: 22.99 },
+  { id: 'tab-7', customerName: 'Tom Henderson', customerId: '3', items: [{ name: 'Lone Star Lager', size: 'Pint', price: 7, qty: 4 }, { name: 'Loaded Nachos', size: '', price: 12.99, qty: 2 }, { name: 'Smoked Wings (8pc)', size: '', price: 14.99, qty: 2 }], openedAt: minsAgo(50), server: 'Rachel Kim', subtotal: 83.96 },
 ];
 
 // POS Transactions — last 20 closed
@@ -872,35 +876,35 @@ export const posTransactions: POSTransaction[] = [
 // SVG viewBox: 0 0 900 600
 export const floorTables: FloorTable[] = [
   // Main Taproom (center) — 8 tables
-  { id: 'T-1', zone: 'taproom', label: 'T1', seats: 4, x: 220, y: 180, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-4', currentCustomerName: 'Bobby Whitfield', currentCustomerId: '5', partySize: 2, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T16:00:00' },
+  { id: 'T-1', zone: 'taproom', label: 'T1', seats: 4, x: 220, y: 180, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-4', currentCustomerName: 'Bobby Whitfield', currentCustomerId: '5', partySize: 2, serverId: '6', serverName: 'Rachel Kim', seatedAt: hoursAgo(3) },
   { id: 'T-2', zone: 'taproom', label: 'T2', seats: 2, x: 310, y: 160, shape: 'circle', radius: 22, status: 'available' },
-  { id: 'T-3', zone: 'taproom', label: 'T3', seats: 4, x: 400, y: 180, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-3', currentCustomerName: 'Carlos Rivera', currentCustomerId: '7', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T18:05:00' },
+  { id: 'T-3', zone: 'taproom', label: 'T3', seats: 4, x: 400, y: 180, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-3', currentCustomerName: 'Carlos Rivera', currentCustomerId: '7', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: minsAgo(115) },
   { id: 'T-4', zone: 'taproom', label: 'T4', seats: 2, x: 220, y: 270, shape: 'circle', radius: 22, status: 'reserved', reservationId: '1' },
-  { id: 'T-5', zone: 'taproom', label: 'T5', seats: 4, x: 310, y: 260, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-6', currentCustomerName: 'Maria Gonzalez', currentCustomerId: '2', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T18:40:00' },
+  { id: 'T-5', zone: 'taproom', label: 'T5', seats: 4, x: 310, y: 260, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-6', currentCustomerName: 'Maria Gonzalez', currentCustomerId: '2', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: minsAgo(80) },
   { id: 'T-6', zone: 'taproom', label: 'T6', seats: 2, x: 400, y: 280, shape: 'circle', radius: 22, status: 'available' },
-  { id: 'T-7', zone: 'taproom', label: 'T7', seats: 4, x: 310, y: 350, shape: 'rect', width: 48, height: 48, status: 'needs-attention', currentCustomerName: 'Walk-in', partySize: 3, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T17:15:00' },
-  { id: 'T-8', zone: 'taproom', label: 'T8', seats: 8, x: 460, y: 260, shape: 'community', width: 80, height: 40, status: 'occupied', currentTabId: 'tab-7', currentCustomerName: 'Tom Henderson', currentCustomerId: '3', partySize: 6, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T19:10:00' },
+  { id: 'T-7', zone: 'taproom', label: 'T7', seats: 4, x: 310, y: 350, shape: 'rect', width: 48, height: 48, status: 'needs-attention', currentCustomerName: 'Walk-in', partySize: 3, serverId: '4', serverName: 'Amy Nguyen', seatedAt: minsAgo(52) },
+  { id: 'T-8', zone: 'taproom', label: 'T8', seats: 8, x: 460, y: 260, shape: 'community', width: 80, height: 40, status: 'occupied', currentTabId: 'tab-7', currentCustomerName: 'Tom Henderson', currentCustomerId: '3', partySize: 6, serverId: '6', serverName: 'Rachel Kim', seatedAt: minsAgo(50) },
 
   // Bar Area (top) — 6 stools
-  { id: 'B-1', zone: 'bar', label: 'B1', seats: 1, x: 180, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentTabId: 'tab-1', currentCustomerName: 'Jake Morrison', currentCustomerId: '1', partySize: 1, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T17:15:00' },
+  { id: 'B-1', zone: 'bar', label: 'B1', seats: 1, x: 180, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentTabId: 'tab-1', currentCustomerName: 'Jake Morrison', currentCustomerId: '1', partySize: 1, serverId: '2', serverName: 'Jessica Tran', seatedAt: minsAgo(105) },
   { id: 'B-2', zone: 'bar', label: 'B2', seats: 1, x: 240, y: 55, shape: 'circle', radius: 16, status: 'available' },
-  { id: 'B-3', zone: 'bar', label: 'B3', seats: 1, x: 300, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentCustomerName: 'Walk-in', partySize: 1, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T18:50:00' },
+  { id: 'B-3', zone: 'bar', label: 'B3', seats: 1, x: 300, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentCustomerName: 'Walk-in', partySize: 1, serverId: '6', serverName: 'Rachel Kim', seatedAt: minsAgo(70) },
   { id: 'B-4', zone: 'bar', label: 'B4', seats: 1, x: 360, y: 55, shape: 'circle', radius: 16, status: 'available' },
-  { id: 'B-5', zone: 'bar', label: 'B5', seats: 1, x: 420, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentCustomerName: 'Walk-in', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: '2026-03-05T19:05:00' },
+  { id: 'B-5', zone: 'bar', label: 'B5', seats: 1, x: 420, y: 55, shape: 'circle', radius: 16, status: 'occupied', currentCustomerName: 'Walk-in', partySize: 2, serverId: '2', serverName: 'Jessica Tran', seatedAt: minsAgo(55) },
   { id: 'B-6', zone: 'bar', label: 'B6', seats: 1, x: 480, y: 55, shape: 'circle', radius: 16, status: 'available' },
 
   // Patio (right side) — 4 tables
   { id: 'P-1', zone: 'patio', label: 'P1', seats: 4, x: 640, y: 160, shape: 'rect', width: 48, height: 48, status: 'available' },
-  { id: 'P-2', zone: 'patio', label: 'P2', seats: 4, x: 740, y: 160, shape: 'rect', width: 48, height: 48, status: 'needs-attention', currentCustomerName: 'Walk-in', partySize: 4, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T17:30:00' },
+  { id: 'P-2', zone: 'patio', label: 'P2', seats: 4, x: 740, y: 160, shape: 'rect', width: 48, height: 48, status: 'needs-attention', currentCustomerName: 'Walk-in', partySize: 4, serverId: '4', serverName: 'Amy Nguyen', seatedAt: minsAgo(90) },
   { id: 'P-3', zone: 'patio', label: 'P3', seats: 6, x: 640, y: 260, shape: 'rect', width: 56, height: 48, status: 'reserved', reservationId: '2' },
-  { id: 'P-4', zone: 'patio', label: 'P4', seats: 4, x: 740, y: 260, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-5', currentCustomerName: 'Walk-in (Patio)', partySize: 5, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T17:45:00' },
+  { id: 'P-4', zone: 'patio', label: 'P4', seats: 4, x: 740, y: 260, shape: 'rect', width: 48, height: 48, status: 'occupied', currentTabId: 'tab-5', currentCustomerName: 'Walk-in (Patio)', partySize: 5, serverId: '4', serverName: 'Amy Nguyen', seatedAt: minsAgo(75) },
 
   // Beer Garden (bottom) — 6 picnic tables
   { id: 'G-1', zone: 'beer-garden', label: 'G1', seats: 6, x: 160, y: 460, shape: 'rect', width: 60, height: 36, status: 'available' },
-  { id: 'G-2', zone: 'beer-garden', label: 'G2', seats: 6, x: 260, y: 460, shape: 'rect', width: 60, height: 36, status: 'occupied', currentCustomerName: 'Walk-in Group', partySize: 8, serverId: '4', serverName: 'Amy Nguyen', seatedAt: '2026-03-05T18:20:00' },
+  { id: 'G-2', zone: 'beer-garden', label: 'G2', seats: 6, x: 260, y: 460, shape: 'rect', width: 60, height: 36, status: 'occupied', currentCustomerName: 'Walk-in Group', partySize: 8, serverId: '4', serverName: 'Amy Nguyen', seatedAt: minsAgo(40) },
   { id: 'G-3', zone: 'beer-garden', label: 'G3', seats: 6, x: 360, y: 460, shape: 'rect', width: 60, height: 36, status: 'available' },
   { id: 'G-4', zone: 'beer-garden', label: 'G4', seats: 6, x: 160, y: 530, shape: 'rect', width: 60, height: 36, status: 'available' },
-  { id: 'G-5', zone: 'beer-garden', label: 'G5', seats: 6, x: 260, y: 530, shape: 'rect', width: 60, height: 36, status: 'occupied', currentCustomerName: 'Walk-in Couple', partySize: 2, serverId: '6', serverName: 'Rachel Kim', seatedAt: '2026-03-05T19:00:00' },
+  { id: 'G-5', zone: 'beer-garden', label: 'G5', seats: 6, x: 260, y: 530, shape: 'rect', width: 60, height: 36, status: 'occupied', currentCustomerName: 'Walk-in Couple', partySize: 2, serverId: '6', serverName: 'Rachel Kim', seatedAt: minsAgo(12) },
   { id: 'G-6', zone: 'beer-garden', label: 'G6', seats: 6, x: 360, y: 530, shape: 'rect', width: 60, height: 36, status: 'closed' },
 
   // Private Room (top-right) — 2 tables
@@ -910,39 +914,66 @@ export const floorTables: FloorTable[] = [
 
 // Service Alerts
 export const serviceAlerts: ServiceAlert[] = [
-  { id: 'alert-1', tableId: 'T-7', type: 'no-order', message: 'Table T7 seated 45+ min with no food order', priority: 'high', createdAt: '2026-03-05T18:00:00' },
-  { id: 'alert-2', tableId: 'P-2', type: 'check-requested', message: 'Table P2 requested check', priority: 'medium', createdAt: '2026-03-05T18:25:00' },
-  { id: 'alert-3', tableId: 'T-8', type: 'high-tab', message: 'Table T8 tab exceeds $80 — verify party', priority: 'low', createdAt: '2026-03-05T19:15:00' },
-  { id: 'alert-4', tableId: 'T-1', type: 'long-seated', message: 'Table T1 occupied 3+ hours (Bobby Whitfield VIP)', priority: 'low', createdAt: '2026-03-05T19:00:00' },
-  { id: 'alert-5', tableId: 'T-4', type: 'reservation-due', message: 'Jake Morrison party of 4 arriving in 12 min (T4)', priority: 'medium', createdAt: '2026-03-05T19:18:00' },
-  { id: 'alert-6', tableId: 'B-5', type: 'long-seated', message: 'Bar B5 — 2 guests seated 55 min, only 1 drink ordered', priority: 'medium', createdAt: '2026-03-05T19:05:00' },
+  { id: 'alert-1', tableId: 'T-7', type: 'no-order', message: 'Table T7 seated 45+ min with no food order', priority: 'high', createdAt: minsAgo(7) },
+  { id: 'alert-2', tableId: 'P-2', type: 'check-requested', message: 'Table P2 requested check', priority: 'medium', createdAt: minsAgo(15) },
+  { id: 'alert-3', tableId: 'T-8', type: 'high-tab', message: 'Table T8 tab exceeds $80 — verify party', priority: 'low', createdAt: minsAgo(8) },
+  { id: 'alert-4', tableId: 'T-1', type: 'long-seated', message: 'Table T1 occupied 3+ hours (Bobby Whitfield VIP)', priority: 'low', createdAt: minsAgo(5) },
+  { id: 'alert-5', tableId: 'T-4', type: 'reservation-due', message: 'Jake Morrison party of 4 arriving in 12 min (T4)', priority: 'medium', createdAt: minsAgo(2) },
+  { id: 'alert-6', tableId: 'B-5', type: 'long-seated', message: 'Bar B5 — 2 guests seated 55 min, only 1 drink ordered', priority: 'medium', createdAt: minsAgo(12) },
 ];
 
 // Order Timeline Entries
 export const orderTimelines: OrderTimelineEntry[] = [
   // Table T-1 (Bobby Whitfield)
-  { id: 'ot-1', tableId: 'T-1', time: '2026-03-05T16:00:00', action: 'seated', description: 'Seated Bobby Whitfield, party of 2' },
-  { id: 'ot-2', tableId: 'T-1', time: '2026-03-05T16:05:00', action: 'ordered', description: '1x Barrel-Aged Imperial Stout (Mug Club 20oz)' },
-  { id: 'ot-3', tableId: 'T-1', time: '2026-03-05T16:08:00', action: 'ordered', description: '1x Hill Country Haze (Mug Club 20oz)' },
-  { id: 'ot-4', tableId: 'T-1', time: '2026-03-05T16:15:00', action: 'ordered', description: '1x Smoked Brisket Plate, 1x BBQ Pulled Pork Sandwich' },
-  { id: 'ot-5', tableId: 'T-1', time: '2026-03-05T16:30:00', action: 'served', description: 'Food served to table' },
-  { id: 'ot-6', tableId: 'T-1', time: '2026-03-05T17:15:00', action: 'ordered', description: '1x Prickly Pear Sour (Mug Club 20oz), 1x Stout Brownie Sundae' },
+  { id: 'ot-1', tableId: 'T-1', time: hoursAgo(3), action: 'seated', description: 'Seated Bobby Whitfield, party of 2' },
+  { id: 'ot-2', tableId: 'T-1', time: minsAgo(175), action: 'ordered', description: '1x Barrel-Aged Imperial Stout (Mug Club 20oz)' },
+  { id: 'ot-3', tableId: 'T-1', time: minsAgo(172), action: 'ordered', description: '1x Hill Country Haze (Mug Club 20oz)' },
+  { id: 'ot-4', tableId: 'T-1', time: minsAgo(165), action: 'ordered', description: '1x Smoked Brisket Plate, 1x BBQ Pulled Pork Sandwich' },
+  { id: 'ot-5', tableId: 'T-1', time: minsAgo(150), action: 'served', description: 'Food served to table' },
+  { id: 'ot-6', tableId: 'T-1', time: minsAgo(105), action: 'ordered', description: '1x Prickly Pear Sour (Mug Club 20oz), 1x Stout Brownie Sundae' },
   // Table T-3 (Carlos Rivera)
-  { id: 'ot-7', tableId: 'T-3', time: '2026-03-05T18:05:00', action: 'seated', description: 'Seated Carlos Rivera, party of 2' },
-  { id: 'ot-8', tableId: 'T-3', time: '2026-03-05T18:10:00', action: 'ordered', description: '1x Mesquite Smoked Porter (Pint), 1x Jalapeño Cream Ale (Half)' },
-  { id: 'ot-9', tableId: 'T-3', time: '2026-03-05T18:18:00', action: 'ordered', description: '1x Brewhouse Burger, 1x Loaded Fries' },
-  { id: 'ot-10', tableId: 'T-3', time: '2026-03-05T18:35:00', action: 'served', description: 'Food served to table' },
+  { id: 'ot-7', tableId: 'T-3', time: minsAgo(115), action: 'seated', description: 'Seated Carlos Rivera, party of 2' },
+  { id: 'ot-8', tableId: 'T-3', time: minsAgo(110), action: 'ordered', description: '1x Mesquite Smoked Porter (Pint), 1x Jalapeño Cream Ale (Half)' },
+  { id: 'ot-9', tableId: 'T-3', time: minsAgo(102), action: 'ordered', description: '1x Brewhouse Burger, 1x Loaded Fries' },
+  { id: 'ot-10', tableId: 'T-3', time: minsAgo(85), action: 'served', description: 'Food served to table' },
   // Table T-8 (Tom Henderson group)
-  { id: 'ot-11', tableId: 'T-8', time: '2026-03-05T19:10:00', action: 'seated', description: 'Seated Tom Henderson trivia group, party of 6' },
-  { id: 'ot-12', tableId: 'T-8', time: '2026-03-05T19:15:00', action: 'ordered', description: '4x Lone Star Lager (Pint), 2x Loaded Nachos, 2x Smoked Wings' },
+  { id: 'ot-11', tableId: 'T-8', time: minsAgo(50), action: 'seated', description: 'Seated Tom Henderson trivia group, party of 6' },
+  { id: 'ot-12', tableId: 'T-8', time: minsAgo(45), action: 'ordered', description: '4x Lone Star Lager (Pint), 2x Loaded Nachos, 2x Smoked Wings' },
   // Table P-4 (Walk-in Patio)
-  { id: 'ot-13', tableId: 'P-4', time: '2026-03-05T17:45:00', action: 'seated', description: 'Walk-in family party of 5 seated on patio' },
-  { id: 'ot-14', tableId: 'P-4', time: '2026-03-05T17:50:00', action: 'ordered', description: '3x Bulverde Blonde (Pint), 2x Lavender Lemonade' },
-  { id: 'ot-15', tableId: 'P-4', time: '2026-03-05T17:55:00', action: 'ordered', description: '2x Kids Chicken Tenders' },
-  { id: 'ot-16', tableId: 'P-4', time: '2026-03-05T18:15:00', action: 'served', description: 'Food served to table' },
+  { id: 'ot-13', tableId: 'P-4', time: minsAgo(75), action: 'seated', description: 'Walk-in family party of 5 seated on patio' },
+  { id: 'ot-14', tableId: 'P-4', time: minsAgo(70), action: 'ordered', description: '3x Bulverde Blonde (Pint), 2x Lavender Lemonade' },
+  { id: 'ot-15', tableId: 'P-4', time: minsAgo(65), action: 'ordered', description: '2x Kids Chicken Tenders' },
+  { id: 'ot-16', tableId: 'P-4', time: minsAgo(45), action: 'served', description: 'Food served to table' },
   // Bar B-1 (Jake Morrison)
-  { id: 'ot-17', tableId: 'B-1', time: '2026-03-05T17:15:00', action: 'seated', description: 'Jake Morrison seated at bar' },
-  { id: 'ot-18', tableId: 'B-1', time: '2026-03-05T17:18:00', action: 'ordered', description: '2x Hill Country Haze (Mug Club 20oz)' },
-  { id: 'ot-19', tableId: 'B-1', time: '2026-03-05T17:25:00', action: 'ordered', description: '1x Smoked Wings, 1x Loaded Nachos' },
-  { id: 'ot-20', tableId: 'B-1', time: '2026-03-05T17:40:00', action: 'served', description: 'Food served' },
+  { id: 'ot-17', tableId: 'B-1', time: minsAgo(105), action: 'seated', description: 'Jake Morrison seated at bar' },
+  { id: 'ot-18', tableId: 'B-1', time: minsAgo(102), action: 'ordered', description: '2x Hill Country Haze (Mug Club 20oz)' },
+  { id: 'ot-19', tableId: 'B-1', time: minsAgo(95), action: 'ordered', description: '1x Smoked Wings, 1x Loaded Nachos' },
+  { id: 'ot-20', tableId: 'B-1', time: minsAgo(80), action: 'served', description: 'Food served' },
+];
+
+// ─── Ticket Sales (mock data for ticketed events) ────────────────────────────
+export const ticketSales: TicketSale[] = [
+  // Event 3: Spring Saison Release Party ($15/ticket, 82 sold)
+  { id: 'ts-1', eventId: '3', buyerName: 'Jake Morrison', buyerEmail: 'jake@email.com', quantity: 4, totalAmount: 60, purchasedAt: '2026-03-10T10:30:00Z', checkedIn: false, ticketCode: 'BH-SSR-001' },
+  { id: 'ts-2', eventId: '3', buyerName: 'Maria Gonzalez', buyerEmail: 'maria.g@email.com', quantity: 2, totalAmount: 30, purchasedAt: '2026-03-10T11:00:00Z', checkedIn: false, ticketCode: 'BH-SSR-002' },
+  { id: 'ts-3', eventId: '3', buyerName: 'Carlos Rivera', buyerEmail: 'carlos.r@email.com', quantity: 2, totalAmount: 30, purchasedAt: '2026-03-11T09:15:00Z', checkedIn: false, ticketCode: 'BH-SSR-003' },
+  { id: 'ts-4', eventId: '3', buyerName: 'Ashley Chen', buyerEmail: 'ashley.chen@email.com', quantity: 3, totalAmount: 45, purchasedAt: '2026-03-11T14:22:00Z', checkedIn: false, ticketCode: 'BH-SSR-004' },
+  { id: 'ts-5', eventId: '3', buyerName: 'Bobby Whitfield', buyerEmail: 'bobby.w@email.com', quantity: 6, totalAmount: 90, purchasedAt: '2026-03-09T16:45:00Z', checkedIn: false, ticketCode: 'BH-SSR-005' },
+  { id: 'ts-6', eventId: '3', buyerName: 'Sarah Mitchell', buyerEmail: 'sarah.m@email.com', quantity: 2, totalAmount: 30, purchasedAt: '2026-03-10T13:30:00Z', checkedIn: false, ticketCode: 'BH-SSR-006' },
+  { id: 'ts-7', eventId: '3', buyerName: 'Derek Okonkwo', buyerEmail: 'd.okonkwo@email.com', quantity: 4, totalAmount: 60, purchasedAt: '2026-03-11T10:00:00Z', checkedIn: false, ticketCode: 'BH-SSR-007' },
+  { id: 'ts-8', eventId: '3', buyerName: 'Rachel Torres', buyerEmail: 'rachel.t@email.com', quantity: 5, totalAmount: 75, purchasedAt: '2026-03-12T08:50:00Z', checkedIn: false, ticketCode: 'BH-SSR-008' },
+  { id: 'ts-9', eventId: '3', buyerName: 'Mike Patterson', buyerEmail: 'mike.p@email.com', quantity: 4, totalAmount: 60, purchasedAt: '2026-03-12T09:20:00Z', checkedIn: false, ticketCode: 'BH-SSR-009' },
+  { id: 'ts-10', eventId: '3', buyerName: 'Linda Thompson', buyerEmail: 'linda.t@email.com', quantity: 3, totalAmount: 45, purchasedAt: '2026-03-12T11:10:00Z', checkedIn: false, ticketCode: 'BH-SSR-010' },
+  // Event 5: Brewer's Dinner ($85/ticket, 34 sold)
+  { id: 'ts-11', eventId: '5', buyerName: 'Bobby Whitfield', buyerEmail: 'bobby.w@email.com', quantity: 2, totalAmount: 170, purchasedAt: '2026-03-08T14:00:00Z', checkedIn: false, ticketCode: 'BH-BD-001' },
+  { id: 'ts-12', eventId: '5', buyerName: 'Jake Morrison', buyerEmail: 'jake@email.com', quantity: 2, totalAmount: 170, purchasedAt: '2026-03-09T10:30:00Z', checkedIn: false, ticketCode: 'BH-BD-002' },
+  { id: 'ts-13', eventId: '5', buyerName: 'Tom Henderson', buyerEmail: 'tom.h@email.com', quantity: 4, totalAmount: 340, purchasedAt: '2026-03-09T11:00:00Z', checkedIn: false, ticketCode: 'BH-BD-003' },
+  { id: 'ts-14', eventId: '5', buyerName: 'Cynthia Park', buyerEmail: 'cynthia.p@email.com', quantity: 2, totalAmount: 170, purchasedAt: '2026-03-10T09:45:00Z', checkedIn: false, ticketCode: 'BH-BD-004' },
+  { id: 'ts-15', eventId: '5', buyerName: 'Robert & Ann Blake', buyerEmail: 'rblake@email.com', quantity: 2, totalAmount: 170, purchasedAt: '2026-03-10T15:30:00Z', checkedIn: false, ticketCode: 'BH-BD-005' },
+  { id: 'ts-16', eventId: '5', buyerName: 'Maria Gonzalez', buyerEmail: 'maria.g@email.com', quantity: 2, totalAmount: 170, purchasedAt: '2026-03-11T12:00:00Z', checkedIn: false, ticketCode: 'BH-BD-006' },
+  { id: 'ts-17', eventId: '5', buyerName: 'James Hartley', buyerEmail: 'j.hartley@email.com', quantity: 4, totalAmount: 340, purchasedAt: '2026-03-11T16:20:00Z', checkedIn: false, ticketCode: 'BH-BD-007' },
+  // Event 7: Blue Highway Blues Night (completed, $10/ticket, 180 sold)
+  { id: 'ts-18', eventId: '7', buyerName: 'Jake Morrison', buyerEmail: 'jake@email.com', quantity: 4, totalAmount: 40, purchasedAt: '2026-02-25T10:00:00Z', checkedIn: true, checkedInAt: '2026-02-28T19:45:00Z', ticketCode: 'BH-BHB-001' },
+  { id: 'ts-19', eventId: '7', buyerName: 'Bobby Whitfield', buyerEmail: 'bobby.w@email.com', quantity: 6, totalAmount: 60, purchasedAt: '2026-02-24T11:00:00Z', checkedIn: true, checkedInAt: '2026-02-28T19:30:00Z', ticketCode: 'BH-BHB-002' },
+  { id: 'ts-20', eventId: '7', buyerName: 'Carlos Rivera', buyerEmail: 'carlos.r@email.com', quantity: 2, totalAmount: 20, purchasedAt: '2026-02-25T14:00:00Z', checkedIn: true, checkedInAt: '2026-02-28T20:10:00Z', ticketCode: 'BH-BHB-003' },
 ];

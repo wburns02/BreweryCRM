@@ -116,6 +116,21 @@ export default function ReservationsPage() {
 
       {activeSection === 'reservations' && (
         <div className="space-y-3">
+          {today.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-brewery-800/50 flex items-center justify-center mb-4">
+                <BookOpen className="w-8 h-8 text-brewery-500" />
+              </div>
+              <h3 className="text-base font-semibold text-brewery-200 mb-1">No reservations today</h3>
+              <p className="text-sm text-brewery-400 mb-5">Future reservations will appear here. Add one to get started.</p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-amber-600/20"
+              >
+                <Plus className="w-4 h-4" /> New Reservation
+              </button>
+            </div>
+          )}
           {today.map(res => (
             <div key={res.id} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5 hover:border-amber-500/20 transition-all">
               <div className="flex flex-col md:flex-row md:items-center justify-between">

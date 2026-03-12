@@ -653,26 +653,28 @@ export default function FinancialsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Tab Bar */}
-      <div className="flex gap-1 border-b border-brewery-700/30">
-        {tabs.map(t => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={clsx(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px',
-                isActive ? 'border-amber-500 text-amber-400' : 'border-transparent text-brewery-400 hover:text-brewery-200'
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              {t.label}
-            </button>
-          );
-        })}
+      <div className="overflow-x-auto -mx-1 scrollbar-hide">
+        <div className="flex gap-1 border-b border-brewery-700/30 min-w-max px-1">
+          {tabs.map(t => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px whitespace-nowrap',
+                  isActive ? 'border-amber-500 text-amber-400' : 'border-transparent text-brewery-400 hover:text-brewery-200'
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tab Content */}

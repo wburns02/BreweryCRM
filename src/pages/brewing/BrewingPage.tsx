@@ -57,7 +57,7 @@ export default function BrewingPage() {
       toast('error', 'Enter a valid gravity (e.g. 1.045)');
       return;
     }
-    addGravityReading(batchId, { date: new Date().toISOString().split('T')[0], gravity: gv });
+    addGravityReading(batchId, { date: new Date().toISOString().split('T')[0], gravity: gv, temp: 68 });
     toast('success', `Gravity ${gv} logged for ${beerName}`);
     setGravityBatchId(null);
     setGravityValue('');

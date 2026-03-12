@@ -65,6 +65,7 @@ export default function POSPage() {
   const [showDiscount, setShowDiscount] = useState(false);
   const [customDiscount, setCustomDiscount] = useState('');
   const [tabsSidebarOpen, setTabsSidebarOpen] = useState(true);
+  const [mobileView, setMobileView] = useState<'menu' | 'tab'>('menu');
   const [showReceipt, setShowReceipt] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
@@ -126,6 +127,7 @@ export default function POSPage() {
     });
     setShowPourModal(false);
     setSelectedBeerForPour(null);
+    setMobileView('tab');
     toast('success', `Added ${selectedBeerForPour.name} (${size.name})`);
   }
 
@@ -141,6 +143,7 @@ export default function POSPage() {
         : [...prev.items, item];
       return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
     });
+    setMobileView('tab');
     toast('success', `Added ${name}`);
   }
 
@@ -242,19 +245,37 @@ export default function POSPage() {
   }
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-7rem)] -mt-2">
+    <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-7rem)] lg:h-[calc(100vh-7rem)] -mt-2 relative">
+      {/* Mobile tab switcher */}
+      <div className="flex lg:hidden gap-0 rounded-xl overflow-hidden border border-brewery-700/30 flex-shrink-0">
+        <button
+          onClick={() => setMobileView('menu')}
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${mobileView === 'menu' ? 'bg-amber-600 text-white' : 'bg-brewery-900/80 text-brewery-400'}`}
+        >
+          Menu
+        </button>
+        <button
+          onClick={() => setMobileView('tab')}
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${mobileView === 'tab' ? 'bg-amber-600 text-white' : 'bg-brewery-900/80 text-brewery-400'}`}
+        >
+          Tab {workingTab.items.length > 0 && <span className="ml-1 bg-white/20 rounded-full px-1.5 py-0.5 text-xs">{workingTab.items.length}</span>}
+        </button>
+      </div>
+
       {/* LEFT — Menu Grid (60%) */}
-      <div className="flex-[3] flex flex-col min-w-0">
+      <div className={`flex-[3] flex flex-col min-w-0 ${mobileView === 'tab' ? 'hidden lg:flex' : 'flex'}`}>
         {/* Category Tabs */}
-        <div className="flex gap-1 mb-4 border-b border-brewery-700/30 flex-shrink-0">
-          {categoryTabs.map(cat => {
-            const Icon = cat.icon;
-            return (
-              <button key={cat.id} onClick={() => setMenuCat(cat.id)} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${menuCat === cat.id ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>
-                <Icon className="w-4 h-4" /> {cat.label}
-              </button>
-            );
-          })}
+        <div className="overflow-x-auto scrollbar-hide flex-shrink-0">
+          <div className="flex gap-1 mb-4 border-b border-brewery-700/30 min-w-max">
+            {categoryTabs.map(cat => {
+              const Icon = cat.icon;
+              return (
+                <button key={cat.id} onClick={() => setMenuCat(cat.id)} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${menuCat === cat.id ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>
+                  <Icon className="w-4 h-4" /> {cat.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Draft Beer Grid */}
@@ -367,7 +388,7 @@ export default function POSPage() {
       </div>
 
       {/* RIGHT — Active Tab (40%) */}
-      <div className="flex-[2] flex flex-col bg-brewery-900/90 border border-brewery-700/30 rounded-xl overflow-hidden min-w-[280px]">
+      <div className={`flex-[2] flex flex-col bg-brewery-900/90 border border-brewery-700/30 rounded-xl overflow-hidden min-w-0 ${mobileView === 'menu' ? 'hidden lg:flex' : 'flex'}`}>
         {/* Customer Name */}
         <div className="px-4 py-3 border-b border-brewery-700/30 relative">
           <div className="relative">

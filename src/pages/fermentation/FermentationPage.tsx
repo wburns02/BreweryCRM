@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Thermometer, Activity, AlertTriangle, CheckCircle2, Clock, Droplets, Wind, FlaskConical, TrendingDown, ChevronRight } from 'lucide-react';
+import { Thermometer, Activity, AlertTriangle, CheckCircle2, Clock, Droplets, Wind, FlaskConical, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { clsx } from 'clsx';
 

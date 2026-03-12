@@ -72,7 +72,7 @@ export default function TapsPage() {
             <DollarSign className="w-4 h-4 text-emerald-400" />
             <span className="text-xs text-brewery-400">Today's Draft Revenue</span>
           </div>
-          <p className="text-2xl font-bold text-emerald-400">${totalRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-emerald-400">${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </div>
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -154,7 +154,7 @@ export default function TapsPage() {
 
                   <div className="flex justify-between text-[10px] mt-3 pt-3 border-t border-brewery-700/20">
                     <span className="text-brewery-400">{tap.totalPours} pours</span>
-                    <span className="text-emerald-400 font-medium">${tap.revenueToday}</span>
+                    <span className="text-emerald-400 font-medium">${tap.revenueToday.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -185,7 +185,7 @@ export default function TapsPage() {
                   <td className="px-4 py-3 text-sm text-brewery-300">{tap.abv}%</td>
                   <td className="px-4 py-3"><ProgressBar value={tap.kegLevel} showLabel size="sm" /></td>
                   <td className="px-4 py-3 text-sm text-brewery-200 text-right">{tap.totalPours}</td>
-                  <td className="px-4 py-3 text-sm text-emerald-400 text-right font-medium">${tap.revenueToday}</td>
+                  <td className="px-4 py-3 text-sm text-emerald-400 text-right font-medium">${tap.revenueToday.toFixed(2)}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={e => { e.stopPropagation(); openEditModal(tap.tapNumber); }}

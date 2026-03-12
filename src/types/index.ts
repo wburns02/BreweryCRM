@@ -163,6 +163,19 @@ export interface BreweryEvent {
   imageUrl?: string;
 }
 
+export interface TicketSale {
+  id: string;
+  eventId: string;
+  buyerName: string;
+  buyerEmail: string;
+  quantity: number;
+  totalAmount: number;
+  purchasedAt: string;
+  checkedIn: boolean;
+  checkedInAt?: string;
+  ticketCode: string;
+}
+
 export interface Performer {
   id: string;
   name: string;

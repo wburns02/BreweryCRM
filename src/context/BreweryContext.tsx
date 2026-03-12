@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import type { OpenTab, TapLine, Batch, GravityReading, FloorTable, ServiceAlert, Customer, Reservation, BreweryEvent, EmailCampaign, MugClubMember, InventoryItem, MenuItem, Keg, DetailedRecipe } from '../types';
+import type { OpenTab, TapLine, Batch, GravityReading, FloorTable, ServiceAlert, Customer, Reservation, BreweryEvent, EmailCampaign, MugClubMember, InventoryItem, MenuItem, Keg, DetailedRecipe, TicketSale } from '../types';
 import { api } from '../api/client';
 import * as mock from '../data/mockData';
 
@@ -46,7 +46,10 @@ interface BreweryState {
   updateCustomer: (id: string, updates: Partial<Customer>) => void;
   addReservation: (reservation: Omit<Reservation, 'id'>) => void;
   updateReservation: (id: string, updates: Partial<Reservation>) => void;
+  ticketSales: TicketSale[];
   addEvent: (event: Omit<BreweryEvent, 'id'>) => void;
+  sellTickets: (sale: Omit<TicketSale, 'id' | 'ticketCode' | 'checkedIn' | 'purchasedAt'>) => void;
+  checkInTicket: (saleId: string) => void;
   addCampaign: (campaign: Omit<EmailCampaign, 'id'>) => void;
   updateCampaign: (id: string, updates: Partial<EmailCampaign>) => void;
   addMugClubMember: (member: Omit<MugClubMember, 'id'>) => void;
@@ -113,6 +116,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [events, setEvents] = useState<BreweryEvent[]>([]);
+  const [ticketSales, setTicketSales] = useState<TicketSale[]>(mock.ticketSales);
   const [emailCampaigns, setEmailCampaigns] = useState<EmailCampaign[]>([]);
   const [mugClubMembers, setMugClubMembers] = useState<MugClubMember[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -149,11 +153,39 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
 
       const or = <T,>(apiData: T[], mockData: T[]): T[] => apiData.length > 0 ? apiData : mockData;
 
-      setTabs(mapArray<OpenTab>(tabsData));
+      // Normalize stale openedAt timestamps on tabs (> 4h old → recent)
+      const fourHoursAgo = Date.now() - 4 * 3_600_000;
+      const rawTabs = mapArray<OpenTab>(tabsData);
+      const freshTabs = rawTabs.map((tab, idx) => ({
+        ...tab,
+        openedAt: new Date(tab.openedAt).getTime() < fourHoursAgo
+          ? new Date(Date.now() - (30 + idx * 15) * 60_000).toISOString()
+          : tab.openedAt,
+      }));
+      setTabs(freshTabs.length > 0 ? freshTabs : mock.openTabs);
+
       setTapLines(or(mapArray<TapLine>(tapsData), mock.tapLines));
       setBatches(or(mapArray<Batch>(batchesData), mock.batches));
-      setFloorTables(mapArray<FloorTable>(tablesData));
-      setServiceAlerts(mapArray<ServiceAlert>(alertsData));
+
+      // Normalize stale floor table seatedAt timestamps
+      const rawTables = mapArray<FloorTable>(tablesData);
+      const freshTables = rawTables.map((t, idx) => ({
+        ...t,
+        seatedAt: t.seatedAt && new Date(t.seatedAt).getTime() < fourHoursAgo
+          ? new Date(Date.now() - (20 + idx * 8) * 60_000).toISOString()
+          : t.seatedAt,
+      }));
+      setFloorTables(freshTables.length > 0 ? freshTables : mock.floorTables);
+
+      // Normalize stale service alert createdAt timestamps
+      const rawAlerts = mapArray<ServiceAlert>(alertsData);
+      const freshAlerts = rawAlerts.map((a, idx) => ({
+        ...a,
+        createdAt: new Date(a.createdAt).getTime() < fourHoursAgo
+          ? new Date(Date.now() - (5 + idx * 4) * 60_000).toISOString()
+          : a.createdAt,
+      }));
+      setServiceAlerts(freshAlerts.length > 0 ? freshAlerts : mock.serviceAlerts);
       setCustomers(or(mapArray<Customer>(customersData), mock.customers));
       setReservations(or(mapArray<Reservation>(reservationsData), mock.reservations));
       setEvents(or(mapArray<BreweryEvent>(eventsData), mock.events));
@@ -381,6 +413,32 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
     api.post('/events/', toSnakeKeys(event as unknown as Record<string, unknown>)).then(() => fetchAll()).catch(console.error);
   }, [fetchAll]);
 
+  const sellTickets = useCallback((sale: Omit<TicketSale, 'id' | 'ticketCode' | 'checkedIn' | 'purchasedAt'>) => {
+    const id = `ts-${Date.now()}`;
+    const eventPrefix = sale.eventId.substring(0, 4).toUpperCase();
+    const ticketCode = `BH-${eventPrefix}-${String(Date.now()).slice(-4)}`;
+    const newSale: TicketSale = {
+      ...sale,
+      id,
+      ticketCode,
+      checkedIn: false,
+      purchasedAt: new Date().toISOString(),
+    };
+    setTicketSales(prev => [...prev, newSale]);
+    // Update the event's ticketsSold count
+    setEvents(prev => prev.map(e => e.id === sale.eventId
+      ? { ...e, ticketsSold: e.ticketsSold + sale.quantity, revenue: e.revenue + sale.totalAmount }
+      : e
+    ));
+  }, []);
+
+  const checkInTicket = useCallback((saleId: string) => {
+    setTicketSales(prev => prev.map(s => s.id === saleId
+      ? { ...s, checkedIn: true, checkedInAt: new Date().toISOString() }
+      : s
+    ));
+  }, []);
+
   const addCampaign = useCallback((campaign: Omit<EmailCampaign, 'id'>) => {
     const tempId = `camp-${Date.now()}`;
     setEmailCampaigns(prev => [...prev, { ...campaign, id: tempId }]);
@@ -503,13 +561,13 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
   return (
     <BreweryContext.Provider value={{
       tabs, tapLines: tapLineState, batches: batchState, floorTables, serviceAlerts,
-      customers, reservations, events, emailCampaigns, mugClubMembers, inventoryItems,
+      customers, reservations, events, ticketSales, emailCampaigns, mugClubMembers, inventoryItems,
       menuItems: menuItemsState, kegs: kegsState, detailedRecipes: detailedRecipesState,
       settings, loading,
       addToTab, closeTab, holdTab, createTab, updateTapLine, advanceBatchStatus, addBatch, addGravityReading,
       updateTable, dismissAlert, addAlert, seatGuests, clearTable,
       addCustomer, updateCustomer, addReservation, updateReservation,
-      addEvent, addCampaign, updateCampaign, addMugClubMember,
+      addEvent, sellTickets, checkInTicket, addCampaign, updateCampaign, addMugClubMember,
       updateInventoryItem, addInventoryItem, deleteInventoryItem,
       addMenuItem, updateMenuItem, deleteMenuItem,
       addKeg, updateKeg, deleteKeg,
