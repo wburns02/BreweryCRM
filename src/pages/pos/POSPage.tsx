@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Beer, UtensilsCrossed, GlassWater, ShoppingBag, Minus, Plus, Trash2, CreditCard, Banknote, Receipt, Crown, Clock, ChevronRight, ChevronLeft, Search, Check, Percent, X, Star } from 'lucide-react';
+import { Beer, UtensilsCrossed, GlassWater, ShoppingBag, Minus, Plus, Trash2, CreditCard, Banknote, Receipt, Crown, Clock, ChevronRight, ChevronLeft, Search, Check, Percent, DollarSign as DollarSignIcon, X, Star } from 'lucide-react';
 import type { Customer } from '../../types';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -98,7 +98,7 @@ export default function POSPage() {
   const isExistingTab = activeTabId !== null && tabs.some(t => t.id === activeTabId);
 
   const subtotal = activeTab.items.reduce((s, i) => s + i.price * i.qty, 0);
-  const [appliedDiscount, setAppliedDiscount] = useState<{ label: string; amount: number } | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<{ label: string; amount: number; isPercent: boolean } | null>(null);
   const discountAmount = appliedDiscount?.amount || 0;
   const taxable = subtotal - discountAmount;
   const tax = Math.round(taxable * TAX_RATE * 100) / 100;
@@ -296,11 +296,11 @@ export default function POSPage() {
     if (d.label === 'Custom $') {
       const amount = parseFloat(customDiscount);
       if (!isNaN(amount) && amount > 0) {
-        setAppliedDiscount({ label: `Custom -$${amount.toFixed(2)}`, amount: Math.min(amount, subtotal) });
+        setAppliedDiscount({ label: `Custom $${amount.toFixed(2)} off`, amount: Math.min(amount, subtotal), isPercent: false });
       }
     } else if (d.type === 'percent') {
       const amount = Math.round(subtotal * (d.value / 100) * 100) / 100;
-      setAppliedDiscount({ label: d.label, amount });
+      setAppliedDiscount({ label: d.label, amount, isPercent: true });
     }
     setShowDiscount(false);
     setCustomDiscount('');
@@ -586,7 +586,7 @@ export default function POSPage() {
           {appliedDiscount && (
             <div className="flex justify-between text-sm">
               <span className="text-amber-400 flex items-center gap-1">
-                <Percent className="w-3 h-3" /> {appliedDiscount.label}
+                {appliedDiscount.isPercent ? <Percent className="w-3 h-3" /> : <DollarSignIcon className="w-3 h-3" />} {appliedDiscount.label}
                 <button onClick={() => setAppliedDiscount(null)} className="text-brewery-500 hover:text-red-400"><X className="w-3 h-3" /></button>
               </span>
               <span className="text-amber-400">-${appliedDiscount.amount.toFixed(2)}</span>

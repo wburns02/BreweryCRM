@@ -557,7 +557,19 @@ export default function EventsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Start Time *</label>
-              <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputClass} />
+              <input
+                type="time"
+                value={startTime}
+                onChange={e => {
+                  setStartTime(e.target.value);
+                  if (!endTime && e.target.value) {
+                    const [h, m] = e.target.value.split(':').map(Number);
+                    const endH = (h + 2) % 24;
+                    setEndTime(`${String(endH).padStart(2, '0')}:${String(m ?? 0).padStart(2, '0')}`);
+                  }
+                }}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>End Time *</label>

@@ -31,6 +31,7 @@ import KegMonitorPage from './pages/keg-monitor/KegMonitorPage';
 import TapMenuBoardPage from './pages/tap-menu/TapMenuBoardPage';
 import BrewCostLabPage from './pages/brew-costs/BrewCostLabPage';
 import BeerRatingsPage from './pages/ratings/BeerRatingsPage';
+import GuestOrderPage from './pages/guest-order/GuestOrderPage';
 import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
 import { DataProvider } from './context/DataContext';
@@ -69,6 +70,7 @@ const pageTitles: Record<PageId, string> = {
   'tap-menu': 'Live Tap Menu Board',
   'brew-costs': 'Brew Cost Lab',
   'ratings': 'Beer Ratings',
+  'guest-order': 'Mobile Order Portal',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -100,6 +102,7 @@ const pages: Record<PageId, React.ComponentType> = {
   'tap-menu': TapMenuBoardPage,
   'brew-costs': BrewCostLabPage,
   'ratings': BeerRatingsPage,
+  'guest-order': GuestOrderPage,
 };
 
 function App() {

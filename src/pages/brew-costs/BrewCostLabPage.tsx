@@ -61,22 +61,23 @@ function computeRecipeCost(r: import('../../types').DetailedRecipe): RecipeCost 
   const ingredients: IngredientCost[] = [];
 
   // Grain bill
-  for (const g of r.grainBill) {
+  for (const g of r.grainBill ?? []) {
+    const unitCost = g.costPerLb ?? 0;
     ingredients.push({
       category: 'grain',
       name: g.name,
-      amount: g.amount,
+      amount: g.amount ?? 0,
       unit: g.unit || 'lbs',
-      unitCost: g.costPerLb,
-      total: g.amount * g.costPerLb,
+      unitCost,
+      total: (g.amount ?? 0) * unitCost,
     });
   }
 
   // Hop schedule
   const hopsByName: Record<string, { oz: number; costPerOz: number }> = {};
-  for (const h of r.hopSchedule) {
-    if (!hopsByName[h.name]) hopsByName[h.name] = { oz: 0, costPerOz: h.costPerOz };
-    hopsByName[h.name].oz += h.amount;
+  for (const h of r.hopSchedule ?? []) {
+    if (!hopsByName[h.name]) hopsByName[h.name] = { oz: 0, costPerOz: h.costPerOz ?? 0 };
+    hopsByName[h.name].oz += h.amount ?? 0;
   }
   for (const [name, data] of Object.entries(hopsByName)) {
     ingredients.push({

@@ -105,8 +105,8 @@ export default function BrewingPage() {
           <p className="text-2xl font-bold text-brewery-50">{batches.filter(b => !['ready', 'packaged'].includes(b.status)).length}</p>
         </div>
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2"><Thermometer className="w-4 h-4 text-red-400" /><span className="text-xs text-brewery-400">Fermenting</span></div>
-          <p className="text-2xl font-bold text-amber-400">{batches.filter(b => b.status === 'fermenting').length}</p>
+          <div className="flex items-center gap-2 mb-2"><Thermometer className="w-4 h-4 text-red-400" /><span className="text-xs text-brewery-400">In Production</span></div>
+          <p className="text-2xl font-bold text-amber-400">{batches.filter(b => ['mashing','boiling','fermenting','conditioning','carbonating'].includes(b.status)).length}</p>
         </div>
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><Droplets className="w-4 h-4 text-blue-400" /><span className="text-xs text-brewery-400">Tanks Available</span></div>
@@ -114,7 +114,7 @@ export default function BrewingPage() {
         </div>
         <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2"><CheckCircle className="w-4 h-4 text-emerald-400" /><span className="text-xs text-brewery-400">Ready to Package</span></div>
-          <p className="text-2xl font-bold text-emerald-400">{batches.filter(b => b.status === 'ready').length}</p>
+          {(() => { const n = batches.filter(b => b.status === 'ready').length; return <p className={`text-2xl font-bold ${n > 0 ? 'text-emerald-400' : 'text-brewery-300'}`}>{n}</p>; })()}
         </div>
       </div>
 

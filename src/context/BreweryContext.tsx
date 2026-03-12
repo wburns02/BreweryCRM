@@ -102,6 +102,27 @@ function mapArray<T>(arr: Record<string, unknown>[]): T[] {
   return arr.map(item => mapKeys(item) as T);
 }
 
+// Deep-mapper for DetailedRecipe — nested grain/hop/yeast arrays also need camelCase conversion
+function mapDetailedRecipe(item: Record<string, unknown>): DetailedRecipe {
+  const base = mapKeys(item) as Record<string, unknown>;
+  const mapNested = (arr: unknown): Record<string, unknown>[] =>
+    Array.isArray(arr) ? (arr as Record<string, unknown>[]).map(mapKeys) : [];
+  return {
+    ...base,
+    grainBill: mapNested(base.grainBill),
+    hopSchedule: mapNested(base.hopSchedule),
+    yeast: base.yeast && typeof base.yeast === 'object'
+      ? mapKeys(base.yeast as Record<string, unknown>)
+      : base.yeast,
+    waterProfile: base.waterProfile && typeof base.waterProfile === 'object'
+      ? mapKeys(base.waterProfile as Record<string, unknown>)
+      : base.waterProfile,
+    waterAdjustments: mapNested(base.waterAdjustments),
+    brewDaySteps: mapNested(base.brewDaySteps),
+    brewHistory: mapNested(base.brewHistory),
+  } as unknown as DetailedRecipe;
+}
+
 function toSnakeKeys(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -198,7 +219,7 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
       setInventoryItems(or(mapArray<InventoryItem>(inventoryData), mock.inventoryItems));
       setMenuItems(or(mapArray<MenuItem>(menuItemsData), mock.menuItems));
       setKegs(or(mapArray<Keg>(kegsData), mock.kegs));
-      setDetailedRecipes(or(mapArray<DetailedRecipe>(detailedRecipesData), mock.detailedRecipes));
+      setDetailedRecipes(or(detailedRecipesData.map(mapDetailedRecipe), mock.detailedRecipes));
 
       if (settingsData) {
         const s = mapKeys(settingsData) as Record<string, string>;

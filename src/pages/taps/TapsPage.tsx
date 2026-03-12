@@ -130,7 +130,7 @@ export default function TapsPage() {
                     <span className="text-xs text-brewery-400">{tap.abv}%</span>
                     <button
                       onClick={e => { e.stopPropagation(); openEditModal(tap.tapNumber); }}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-brewery-700/40 hover:bg-amber-600/20 text-brewery-400 hover:text-amber-300 transition-all"
+                      className="p-1.5 rounded-lg bg-brewery-700/40 hover:bg-amber-600/20 text-brewery-500 hover:text-amber-300 transition-all"
                       title="Edit tap"
                     >
                       <Edit2 className="w-3.5 h-3.5" />

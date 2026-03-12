@@ -825,7 +825,7 @@ export interface BatchTimelineEntry {
   estimatedCompletion?: string;
 }
 
-export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production' | 'ttb-reports' | 'keg-monitor' | 'loyalty' | 'fermentation' | 'tap-menu' | 'brew-costs' | 'ratings';
+export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production' | 'ttb-reports' | 'keg-monitor' | 'loyalty' | 'fermentation' | 'tap-menu' | 'brew-costs' | 'ratings' | 'guest-order';
 
 export interface BeerRating {
   id: string;
