@@ -24,6 +24,7 @@ import POSPage from './pages/pos/POSPage';
 import FloorPlanPage from './pages/floor-plan/FloorPlanPage';
 import ProductionPage from './pages/production/ProductionPage';
 import TTBReportsPage from './pages/ttb-reports/TTBReportsPage';
+import KegMonitorPage from './pages/keg-monitor/KegMonitorPage';
 import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
 import { DataProvider } from './context/DataContext';
@@ -56,6 +57,7 @@ const pageTitles: Record<PageId, string> = {
   'floor-plan': 'Floor Plan & Table Management',
   production: 'Production Dashboard',
   'ttb-reports': 'TTB Compliance Center',
+  'keg-monitor': 'Keg Health Monitor',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -81,6 +83,7 @@ const pages: Record<PageId, React.ComponentType> = {
   'floor-plan': FloorPlanPage,
   production: ProductionPage,
   'ttb-reports': TTBReportsPage,
+  'keg-monitor': KegMonitorPage,
 };
 
 function App() {
