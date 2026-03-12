@@ -80,7 +80,8 @@ function OverviewTab() {
   const curr = monthlyFinancials[monthlyFinancials.length - 1];
   const prev = monthlyFinancials[monthlyFinancials.length - 2];
   const ytd = monthlyFinancials.reduce((s, m) => s + m.totalRevenue, 0);
-  const daysInMonth = 31;
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const avgDaily = curr.totalRevenue / daysInMonth;
 
   const stackedData = monthlyFinancials.map(m => ({
@@ -412,7 +413,7 @@ function BeerTab() {
           <ScatterChart margin={{ bottom: 20, left: 10, right: 20, top: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#5c3e1920" />
             <XAxis type="number" dataKey="x" name="Monthly Pours" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} label={{ value: 'Monthly Pours', position: 'bottom', fill: '#8b7355', fontSize: 11, offset: 0 }} />
-            <YAxis type="number" dataKey="y" name="Margin %" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}%`} domain={[95, 100]} />
+            <YAxis type="number" dataKey="y" name="Margin %" tick={{ fill: '#8b7355', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}%`} domain={['auto', 'auto']} />
             <ZAxis type="number" dataKey="z" range={[200, 800]} />
             <Tooltip content={({ active, payload }) => {
               if (!active || !payload?.length) return null;

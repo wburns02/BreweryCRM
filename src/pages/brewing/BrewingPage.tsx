@@ -72,7 +72,7 @@ export default function BrewingPage() {
 
     addBatch({
       batchNumber,
-      beerId: `beer-${Date.now()}`,
+      beerId: crypto.randomUUID(),
       beerName: beerName.trim(),
       style: style.trim(),
       status: 'planned',

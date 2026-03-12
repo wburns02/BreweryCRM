@@ -40,6 +40,9 @@ const discounts: Discount[] = [
 
 const TAX_RATE = 0.0825;
 
+// Keg capacity in oz by size
+const KEG_CAPACITY_OZ: Record<string, number> = { '1/2': 1984, '1/4': 992, '1/6': 661 };
+
 function kegLevelColor(level: number): string {
   if (level > 50) return 'border-emerald-500/40 hover:border-emerald-400/60';
   if (level > 25) return 'border-amber-500/40 hover:border-amber-400/60';
@@ -55,7 +58,7 @@ function kegLevelBg(level: number): string {
 
 export default function POSPage() {
   const { customers, menuItems } = useData();
-  const { tabs, tapLines, addToTab, closeTab, holdTab } = useBrewery();
+  const { tabs, tapLines, addToTab, closeTab, holdTab, updateTapLine } = useBrewery();
   const { toast } = useToast();
   const [menuCat, setMenuCat] = useState<MenuCategory>('draft');
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
@@ -104,14 +107,14 @@ export default function POSPage() {
     return customers.filter(c =>
       `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
     ).slice(0, 5);
-  }, [customerSearch]);
+  }, [customerSearch, customers]);
 
   function handleBeerTap(beerName: string, isNA: boolean) {
     setSelectedBeerForPour({ name: beerName, isNA });
     setShowPourModal(true);
   }
 
-  function handleSelectPourSize(size: { name: string; price: number }) {
+  function handleSelectPourSize(size: { name: string; oz?: number; price: number }) {
     if (!selectedBeerForPour) return;
     const item = { name: selectedBeerForPour.name, size: size.name, price: size.price, qty: 1 };
 
@@ -125,6 +128,23 @@ export default function POSPage() {
         : [...prev.items, item];
       return { ...prev, items, subtotal: items.reduce((s, i) => s + i.price * i.qty, 0) };
     });
+
+    // Real-time keg decrement — find tap line matching this beer
+    const pourOz = size.oz ?? [...pourSizes, ...naPourSizes].find(p => p.name === size.name)?.oz ?? 16;
+    const tap = tapLines.find(t => t.beerName === selectedBeerForPour.name && t.status === 'active');
+    if (tap) {
+      const capacityOz = KEG_CAPACITY_OZ[tap.kegSize] ?? 1984;
+      const decrementPct = (pourOz / capacityOz) * 100;
+      const newLevel = Math.max(0, Math.round((tap.kegLevel - decrementPct) * 10) / 10);
+      updateTapLine(tap.tapNumber, { kegLevel: newLevel, totalPours: (tap.totalPours || 0) + 1 });
+      // Warn when keg crosses below 15% threshold
+      if (newLevel <= 15 && tap.kegLevel > 15) {
+        toast('error', `Keg low: ${tap.beerName} at ${Math.round(newLevel)}% — order a replacement`);
+      } else if (newLevel <= 0) {
+        toast('error', `${tap.beerName} just kicked! Tap ${tap.tapNumber} is empty.`);
+      }
+    }
+
     setShowPourModal(false);
     setSelectedBeerForPour(null);
     setMobileView('tab');
@@ -277,6 +297,24 @@ export default function POSPage() {
             })}
           </div>
         </div>
+
+        {/* Low Keg Alert Bar */}
+        {menuCat === 'draft' && (() => {
+          const lowKegs = tapLines.filter(t => t.status === 'active' && t.kegLevel > 0 && t.kegLevel <= 15);
+          if (lowKegs.length === 0) return null;
+          return (
+            <div className="flex items-center gap-2 mb-3 p-2.5 rounded-lg bg-red-900/20 border border-red-500/30 flex-shrink-0">
+              <span className="text-red-400 text-xs font-bold flex-shrink-0">⚠ Low Kegs:</span>
+              <div className="flex gap-1.5 flex-wrap">
+                {lowKegs.map(t => (
+                  <span key={t.tapNumber} className="text-[10px] bg-red-900/30 text-red-300 px-1.5 py-0.5 rounded font-medium">
+                    Tap {t.tapNumber} {t.beerName?.split(' ').slice(-1)[0]} {Math.round(t.kegLevel)}%
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Draft Beer Grid */}
         {menuCat === 'draft' && (
@@ -564,18 +602,47 @@ export default function POSPage() {
 
       {/* Pour Size Modal */}
       <Modal open={showPourModal} onClose={() => { setShowPourModal(false); setSelectedBeerForPour(null); }} title={`Select Size — ${selectedBeerForPour?.name || ''}`} size="sm">
+        {/* Keg level indicator */}
+        {selectedBeerForPour && (() => {
+          const tap = tapLines.find(t => t.beerName === selectedBeerForPour.name && t.status === 'active');
+          if (!tap) return null;
+          const levelColor = tap.kegLevel > 50 ? 'bg-emerald-500' : tap.kegLevel > 15 ? 'bg-amber-500' : 'bg-red-500';
+          const textColor = tap.kegLevel > 50 ? 'text-emerald-400' : tap.kegLevel > 15 ? 'text-amber-400' : 'text-red-400';
+          const capacityOz = KEG_CAPACITY_OZ[tap.kegSize] ?? 1984;
+          const ozRemaining = Math.round(capacityOz * tap.kegLevel / 100);
+          return (
+            <div className="mb-4 p-3 rounded-xl bg-brewery-800/40 border border-brewery-700/30">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs text-brewery-400">Tap {tap.tapNumber} · {tap.kegSize} bbl keg</span>
+                <span className={`text-xs font-bold ${textColor}`}>{tap.kegLevel}% · ~{ozRemaining}oz left</span>
+              </div>
+              <div className="h-2 rounded-full bg-brewery-700/50 overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${levelColor}`} style={{ width: `${tap.kegLevel}%` }} />
+              </div>
+              {tap.kegLevel <= 15 && (
+                <p className="text-[10px] text-red-400 mt-1 font-semibold">⚠ Keg running low — consider ordering a replacement</p>
+              )}
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-2 gap-3">
-          {(selectedBeerForPour?.isNA ? naPourSizes : pourSizes).map(size => (
-            <button
-              key={size.name}
-              onClick={() => handleSelectPourSize(size)}
-              className="p-4 rounded-xl bg-brewery-800/50 border border-brewery-700/30 hover:border-amber-500/30 transition-all text-center active:scale-[0.97]"
-            >
-              <p className="text-sm font-bold text-brewery-100">{size.name}</p>
-              <p className="text-[10px] text-brewery-400">{size.oz}oz</p>
-              <p className="text-xl font-bold text-amber-400 mt-1">${size.price}</p>
-            </button>
-          ))}
+          {(selectedBeerForPour?.isNA ? naPourSizes : pourSizes).map(size => {
+            const tap = tapLines.find(t => t.beerName === selectedBeerForPour?.name && t.status === 'active');
+            const capacityOz = tap ? (KEG_CAPACITY_OZ[tap.kegSize] ?? 1984) : 1984;
+            const pctDrop = tap ? Math.round((size.oz / capacityOz) * 100 * 10) / 10 : 0;
+            return (
+              <button
+                key={size.name}
+                onClick={() => handleSelectPourSize(size)}
+                className="p-4 rounded-xl bg-brewery-800/50 border border-brewery-700/30 hover:border-amber-500/30 transition-all text-center active:scale-[0.97]"
+              >
+                <p className="text-sm font-bold text-brewery-100">{size.name}</p>
+                <p className="text-[10px] text-brewery-400">{size.oz}oz</p>
+                <p className="text-xl font-bold text-amber-400 mt-1">${size.price}</p>
+                {tap && <p className="text-[9px] text-brewery-600 mt-0.5">−{pctDrop}% keg</p>}
+              </button>
+            );
+          })}
         </div>
       </Modal>
 

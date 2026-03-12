@@ -3,6 +3,7 @@ import type { ReactNode, ErrorInfo } from 'react';
 import { Activity, Users, TrendingUp, TrendingDown, Star, Clock, Droplets, Crown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area, LineChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { useData } from '../../context/DataContext';
+import { useBrewery } from '../../context/BreweryContext';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
 
@@ -22,6 +23,7 @@ const TOOLTIP_STYLE = { backgroundColor: '#24180b', border: '1px solid rgba(92,6
 const CAT_COLORS: Record<string, string> = { flagship: '#d97706', seasonal: '#60a5fa', limited: '#a78bfa', experimental: '#10b981' };
 const SOURCE_COLORS: Record<string, string> = { 'word-of-mouth': '#d97706', instagram: '#ec4899', google: '#3b82f6', yelp: '#ef4444', facebook: '#2563eb', untappd: '#f59e0b', 'friend-referral': '#10b981', 'pre-opening': '#a78bfa' };
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const SECTION_MAP: Record<string, string> = { taproom: 'Taproom', patio: 'Patio', 'beer-garden': 'Beer Garden', 'private-room': 'Private Room' };
 const TIER_COLORS: Record<string, string> = { Bronze: '#9ca3af', Silver: '#60a5fa', Gold: '#d97706', Platinum: '#a78bfa' };
 
 type TabId = 'live' | 'pour' | 'guests' | 'trends';
@@ -50,7 +52,8 @@ function getShiftStatus(reservationCount: number) {
 // TAB 1: LIVE SHIFT VIEW
 // ═══════════════════════════════════════════════
 function LiveShiftTab() {
-  const { dailySales, tapLines, reservations, staff } = useData();
+  const { dailySales, reservations, staff } = useData();
+  const { tapLines } = useBrewery();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -70,12 +73,12 @@ function LiveShiftTab() {
 
   const sortedTaps = useMemo(() =>
     [...tapLines].filter(t => t.status === 'active').sort((a, b) => a.kegLevel - b.kegLevel),
-  []);
+  [tapLines]);
 
   const todayDay = DAY_NAMES[now.getDay()];
   const onShiftStaff = useMemo(() =>
     staff.filter(s => s.status === 'active' && (s.schedule || []).some(sh => sh.day === todayDay.slice(0, 3))),
-  [todayDay]);
+  [todayDay, staff]);
 
   const topSeller = onShiftStaff.length > 0 ? onShiftStaff.reduce((best, s) => s.salesThisWeek > (best?.salesThisWeek ?? 0) ? s : best, onShiftStaff[0]) : null;
 
@@ -87,16 +90,15 @@ function LiveShiftTab() {
     { name: 'Private Room', tables: 2, cols: 2, rows: 1 },
   ];
 
-  const sectionMap: Record<string, string> = { taproom: 'Taproom', patio: 'Patio', 'beer-garden': 'Beer Garden', 'private-room': 'Private Room' };
   const sectionReservations = useMemo(() => {
     const map: Record<string, typeof reservations> = {};
     todayReservations.forEach(r => {
-      const sec = sectionMap[r.section] || r.section;
+      const sec = SECTION_MAP[r.section] || r.section;
       if (!map[sec]) map[sec] = [];
       map[sec].push(r);
     });
     return map;
-  }, []);
+  }, [todayReservations]);
 
   return (
     <div className="space-y-6">
