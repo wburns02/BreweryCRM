@@ -224,7 +224,7 @@ export default function FloorPlanPage() {
           icon={Map}
           iconColor="text-amber-400"
           iconBg="bg-amber-600/20"
-          change={Math.round((occupiedTables.length / floorTables.length) * 100)}
+          change={floorTables.length > 0 ? Math.round((occupiedTables.length / floorTables.length) * 100) : 0}
           changeLabel="occupancy"
         />
         <StatCard
