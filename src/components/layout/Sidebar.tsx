@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut, Factory, FileText, Gauge, QrCode, Thermometer, Tv2 } from 'lucide-react';
+import { LayoutDashboard, Users, Crown, GlassWater, FlaskConical, Calendar, BookOpen, UtensilsCrossed, Warehouse, UserCog, Truck, Megaphone, BarChart3, BarChart2, Settings, ChevronLeft, ChevronRight, X, Package, Beaker, DollarSign, CreditCard, Map, LogOut, Factory, FileText, Gauge, QrCode, Thermometer, Tv2, Calculator } from 'lucide-react';
 import type { PageId } from '../../types';
 import { clsx } from 'clsx';
 
@@ -28,6 +28,7 @@ const navItems: { id: PageId; label: string; icon: React.ElementType; group: str
   { id: 'kegs', label: 'Keg Tracking', icon: Package, group: 'Brewery' },
   { id: 'keg-monitor', label: 'Keg Monitor', icon: Gauge, group: 'Brewery' },
   { id: 'fermentation', label: 'Ferment Lab', icon: Thermometer, group: 'Brewery' },
+  { id: 'brew-costs', label: 'Brew Cost Lab', icon: Calculator, group: 'Brewery' },
   { id: 'menu', label: 'Food & Menu', icon: UtensilsCrossed, group: 'Operations' },
   { id: 'inventory', label: 'Inventory', icon: Warehouse, group: 'Operations' },
   { id: 'taproom-analytics', label: 'Taproom Analytics', icon: BarChart2, group: 'Operations' },
