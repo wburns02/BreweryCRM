@@ -39,9 +39,9 @@ function getDaysRemaining(kegLevel: number, avgDailyPours: number): number | nul
   return Math.ceil(pintsRemaining / avgDailyPours);
 }
 
-function getUrgency(kegLevel: number): 'critical' | 'low' | 'medium' | 'good' {
-  if (kegLevel < 15) return 'critical';
-  if (kegLevel < 30) return 'low';
+function getUrgency(kegLevel: number, daysLeft?: number | null): 'critical' | 'low' | 'medium' | 'good' {
+  if (kegLevel < 15 || (daysLeft !== null && daysLeft !== undefined && daysLeft <= 1)) return 'critical';
+  if (kegLevel < 30 || (daysLeft !== null && daysLeft !== undefined && daysLeft <= 3)) return 'low';
   if (kegLevel < 60) return 'medium';
   return 'good';
 }
@@ -139,9 +139,9 @@ function KegFillGauge({ level, urgency, animationDelay = 0 }: { level: number; u
 // ─── KEG CARD ────────────────────────────────────────────────────────────────
 
 function KegCard({ tap, idx }: { tap: TapLine; idx: number }) {
-  const urgency = getUrgency(tap.kegLevel);
   const avgPours = getAvgDailyPours(tap.tapNumber);
   const daysLeft = getDaysRemaining(tap.kegLevel, avgPours);
+  const urgency = getUrgency(tap.kegLevel, daysLeft);
   const pintsLeft = Math.round((tap.kegLevel / 100) * PINTS_PER_HALF_KEG);
   const history = MOCK_POUR_HISTORY[tap.tapNumber] || [15, 18, 12, 20, 16, 24, 22];
 
@@ -305,8 +305,14 @@ export default function KegMonitorPage() {
 
   const activeTaps = useMemo(() => tapLines.filter(t => t.status === 'active'), [tapLines]);
 
-  const critical = activeTaps.filter(t => getUrgency(t.kegLevel) === 'critical');
-  const low = activeTaps.filter(t => getUrgency(t.kegLevel) === 'low');
+  const critical = activeTaps.filter(t => {
+    const days = getDaysRemaining(t.kegLevel, getAvgDailyPours(t.tapNumber));
+    return getUrgency(t.kegLevel, days) === 'critical';
+  });
+  const low = activeTaps.filter(t => {
+    const days = getDaysRemaining(t.kegLevel, getAvgDailyPours(t.tapNumber));
+    return getUrgency(t.kegLevel, days) === 'low';
+  });
   const avgLevel = activeTaps.length > 0
     ? Math.round(activeTaps.reduce((s, t) => s + t.kegLevel, 0) / activeTaps.length)
     : 0;
@@ -314,8 +320,14 @@ export default function KegMonitorPage() {
 
   const sorted = useMemo(() => {
     let taps = [...activeTaps];
-    if (filterMode === 'alerts') taps = taps.filter(t => ['critical', 'low'].includes(getUrgency(t.kegLevel)));
-    if (filterMode === 'good') taps = taps.filter(t => ['medium', 'good'].includes(getUrgency(t.kegLevel)));
+    if (filterMode === 'alerts') taps = taps.filter(t => {
+      const days = getDaysRemaining(t.kegLevel, getAvgDailyPours(t.tapNumber));
+      return ['critical', 'low'].includes(getUrgency(t.kegLevel, days));
+    });
+    if (filterMode === 'good') taps = taps.filter(t => {
+      const days = getDaysRemaining(t.kegLevel, getAvgDailyPours(t.tapNumber));
+      return ['medium', 'good'].includes(getUrgency(t.kegLevel, days));
+    });
     switch (sortMode) {
       case 'level-asc': return taps.sort((a, b) => a.kegLevel - b.kegLevel);
       case 'level-desc': return taps.sort((a, b) => b.kegLevel - a.kegLevel);
@@ -412,7 +424,7 @@ export default function KegMonitorPage() {
         </div>
 
         {/* Sort selector */}
-        <div className="flex items-center gap-2 text-xs text-brewery-400">
+        <div className="flex items-center gap-2 text-xs text-brewery-400 overflow-x-auto pb-0.5 max-w-full scrollbar-none">
           <ArrowUpDown className="w-3.5 h-3.5" />
           <span>Sort:</span>
           {([
