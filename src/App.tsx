@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { LayoutDashboard, ShoppingCart, Users, Map, Beer } from 'lucide-react';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import CommandPalette from './components/CommandPalette';
@@ -27,6 +28,7 @@ import FloorPlanPage from './pages/floor-plan/FloorPlanPage';
 import ProductionPage from './pages/production/ProductionPage';
 import TTBReportsPage from './pages/ttb-reports/TTBReportsPage';
 import KegMonitorPage from './pages/keg-monitor/KegMonitorPage';
+import TapMenuBoardPage from './pages/tap-menu/TapMenuBoardPage';
 import LoginPage from './pages/auth/LoginPage';
 import { BreweryProvider } from './context/BreweryContext';
 import { DataProvider } from './context/DataContext';
@@ -62,6 +64,7 @@ const pageTitles: Record<PageId, string> = {
   'keg-monitor': 'Keg Health Monitor',
   'loyalty': 'Loyalty Check-in',
   'fermentation': 'Ferment Lab',
+  'tap-menu': 'Live Tap Menu Board',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -90,6 +93,7 @@ const pages: Record<PageId, React.ComponentType> = {
   'keg-monitor': KegMonitorPage,
   'loyalty': LoyaltyPage,
   'fermentation': FermentationPage,
+  'tap-menu': TapMenuBoardPage,
 };
 
 function App() {
@@ -189,7 +193,7 @@ function App() {
       />
       <div className={clsx('transition-all duration-300', sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]')}>
         <TopBar onMenuToggle={() => setMobileOpen(true)} pageTitle={pageTitles[currentPage]} onSearchClick={openCommandPalette} />
-        <main className="p-4 lg:p-6">
+        <main className="p-4 lg:p-6 pb-20 lg:pb-6">
           <PageComponent />
         </main>
       </div>
@@ -198,6 +202,28 @@ function App() {
         onClose={() => setCommandPaletteOpen(false)}
         onNavigate={setCurrentPage}
       />
+
+      {/* Mobile bottom nav bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-brewery-900/95 backdrop-blur-lg border-t border-brewery-700/30 flex">
+        {([
+          { id: 'dashboard', label: 'Home', Icon: LayoutDashboard },
+          { id: 'pos', label: 'POS', Icon: ShoppingCart },
+          { id: 'floor-plan', label: 'Floor', Icon: Map },
+          { id: 'customers', label: 'Guests', Icon: Users },
+          { id: 'taps', label: 'Taps', Icon: Beer },
+        ] as { id: import('./types').PageId; label: string; Icon: React.ElementType }[]).map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            onClick={() => setCurrentPage(id)}
+            className={`flex-1 flex flex-col items-center py-2 gap-0.5 text-[10px] font-medium transition-colors ${
+              currentPage === id ? 'text-amber-400' : 'text-brewery-500 hover:text-brewery-200'
+            }`}
+          >
+            <Icon className="w-5 h-5" />
+            {label}
+          </button>
+        ))}
+      </nav>
     </div>
     </ToastProvider>
     </BreweryProvider>

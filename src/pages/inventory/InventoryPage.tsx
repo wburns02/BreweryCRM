@@ -43,6 +43,14 @@ export default function InventoryPage() {
       toast('error', 'Name and unit are required');
       return;
     }
+    if (Number(form.parLevel) <= 0) {
+      toast('error', 'Par level must be greater than 0 — it prevents NaN display in stock tracking');
+      return;
+    }
+    if (Number(form.reorderPoint) >= Number(form.parLevel)) {
+      toast('error', 'Reorder point must be less than par level');
+      return;
+    }
     addInventoryItem({
       name: form.name.trim(),
       category: form.category,

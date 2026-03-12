@@ -16,7 +16,7 @@ const colors = {
 };
 
 export default function ProgressBar({ value, max = 100, size = 'md', color = 'amber', showLabel }: ProgressBarProps) {
-  const pct = Math.min(100, (value / max) * 100);
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   const barColor = pct < 20 ? 'bg-red-500' : pct < 40 ? 'bg-amber-500' : colors[color];
   const heights = { sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' };
 

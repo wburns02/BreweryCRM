@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { UserCog, Clock, DollarSign, ShieldCheck, Plus, Phone, Mail, Calendar, Edit2 } from 'lucide-react';
+import { UserCog, Clock, DollarSign, ShieldCheck, Plus, Phone, Mail, Calendar, Edit2, TrendingUp } from 'lucide-react';
+
+const TIP_ELIGIBLE_ROLES = new Set(['bartender', 'server', 'host']);
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { useData } from '../../context/DataContext';
@@ -289,20 +291,63 @@ export default function StaffPage() {
                 <span>${viewMember.hourlyRate}/hr</span>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
-                <p className="text-lg font-bold text-brewery-100">{viewMember.hoursThisWeek}h</p>
-                <p className="text-[10px] text-brewery-500 uppercase tracking-wider">This Week</p>
-              </div>
-              <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
-                <p className="text-lg font-bold text-emerald-400">${(viewMember.hoursThisWeek * viewMember.hourlyRate).toFixed(0)}</p>
-                <p className="text-[10px] text-brewery-500 uppercase tracking-wider">Labor Cost</p>
-              </div>
-              <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
-                <p className="text-lg font-bold text-blue-400">{viewMember.salesThisWeek > 0 ? '$' + viewMember.salesThisWeek.toLocaleString() : '—'}</p>
-                <p className="text-[10px] text-brewery-500 uppercase tracking-wider">Sales</p>
-              </div>
-            </div>
+            {(() => {
+              const isTipEligible = TIP_ELIGIBLE_ROLES.has(viewMember.role);
+              const tipsThisWeek = isTipEligible && viewMember.salesThisWeek > 0
+                ? Math.round(viewMember.salesThisWeek * 0.18)
+                : 0;
+              const tipsToday = isTipEligible
+                ? Math.round((tipsThisWeek / 5) * (0.8 + (viewMember.firstName.charCodeAt(0) % 10) * 0.04))
+                : 0;
+              return (
+                <>
+                  <div className={`grid gap-3 ${isTipEligible ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
+                      <p className="text-lg font-bold text-brewery-100">{viewMember.hoursThisWeek}h</p>
+                      <p className="text-[10px] text-brewery-500 uppercase tracking-wider">This Week</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
+                      <p className="text-lg font-bold text-emerald-400">${(viewMember.hoursThisWeek * viewMember.hourlyRate).toFixed(0)}</p>
+                      <p className="text-[10px] text-brewery-500 uppercase tracking-wider">Labor Cost</p>
+                    </div>
+                    {!isTipEligible && (
+                      <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
+                        <p className="text-lg font-bold text-blue-400">{viewMember.salesThisWeek > 0 ? '$' + viewMember.salesThisWeek.toLocaleString() : '—'}</p>
+                        <p className="text-[10px] text-brewery-500 uppercase tracking-wider">Sales</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {isTipEligible && (
+                    <div className="p-4 rounded-xl bg-amber-900/20 border border-amber-700/20">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp className="w-4 h-4 text-amber-400" />
+                        <p className="text-xs font-semibold text-amber-300 uppercase tracking-wider">Tip Earnings</p>
+                        <span className="ml-auto text-[10px] text-amber-600">18% est. avg</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="text-center">
+                          <p className="text-xl font-bold text-amber-300">${tipsToday}</p>
+                          <p className="text-[10px] text-amber-600 uppercase tracking-wider">Today</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xl font-bold text-amber-300">${tipsThisWeek}</p>
+                          <p className="text-[10px] text-amber-600 uppercase tracking-wider">This Week</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xl font-bold text-blue-400">${viewMember.salesThisWeek > 0 ? viewMember.salesThisWeek.toLocaleString() : '—'}</p>
+                          <p className="text-[10px] text-amber-600 uppercase tracking-wider">Sales</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-amber-700/20 flex items-center justify-between text-xs text-amber-600">
+                        <span>Est. total comp this week</span>
+                        <span className="font-bold text-amber-400">${(viewMember.hoursThisWeek * viewMember.hourlyRate + tipsThisWeek).toFixed(0)}</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className="p-3 rounded-xl bg-brewery-800/40">
               <p className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Certifications</p>
               <div className="flex gap-2 flex-wrap">

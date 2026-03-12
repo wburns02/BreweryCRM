@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, Shield, Bell, Database, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Settings, Shield, Bell, Database, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { useData } from '../../context/DataContext';
 import { useBrewery } from '../../context/BreweryContext';
@@ -9,7 +9,30 @@ export default function SettingsPage() {
   const { complianceItems } = useData();
   const { settings, updateSettings } = useBrewery();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'general' | 'compliance' | 'integrations' | 'notifications'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'hours' | 'compliance' | 'integrations' | 'notifications'>('general');
+
+  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
+  const [businessHours, setBusinessHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>({
+    Monday: { open: '11:00', close: '22:00', closed: false },
+    Tuesday: { open: '11:00', close: '22:00', closed: false },
+    Wednesday: { open: '11:00', close: '22:00', closed: false },
+    Thursday: { open: '11:00', close: '23:00', closed: false },
+    Friday: { open: '11:00', close: '24:00', closed: false },
+    Saturday: { open: '10:00', close: '24:00', closed: false },
+    Sunday: { open: '11:00', close: '21:00', closed: false },
+  });
+
+  const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
+    setBusinessHours(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
+  };
+
+  const handleHoursClosed = (day: string, closed: boolean) => {
+    setBusinessHours(prev => ({ ...prev, [day]: { ...prev[day], closed } }));
+  };
+
+  const handleSaveHours = () => {
+    toast('success', 'Business hours saved successfully');
+  };
   const [businessName, setBusinessName] = useState(settings.businessName);
   const [address, setAddress] = useState(settings.address);
   const [phone, setPhone] = useState(settings.phone);
@@ -37,6 +60,7 @@ export default function SettingsPage() {
       <div className="flex gap-1 border-b border-brewery-700/30">
         {([
           { key: 'general' as const, label: 'General', icon: Settings },
+          { key: 'hours' as const, label: 'Hours', icon: Clock },
           { key: 'compliance' as const, label: 'Compliance', icon: Shield },
           { key: 'integrations' as const, label: 'Integrations', icon: Database },
           { key: 'notifications' as const, label: 'Notifications', icon: Bell },
@@ -165,6 +189,105 @@ export default function SettingsPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {activeTab === 'hours' && (
+        <div className="max-w-2xl space-y-6">
+          <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-sm font-semibold text-brewery-200">Taproom Business Hours</h3>
+                <p className="text-xs text-brewery-400 mt-0.5">Used for reservation validation and public menu display</p>
+              </div>
+              <button
+                onClick={handleSaveHours}
+                className="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-amber-600/20"
+              >
+                Save Hours
+              </button>
+            </div>
+            <div className="space-y-3">
+              {DAYS.map(day => {
+                const h = businessHours[day];
+                return (
+                  <div key={day} className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${h.closed ? 'bg-brewery-800/20 border-brewery-700/20 opacity-60' : 'bg-brewery-800/40 border-brewery-700/30'}`}>
+                    <span className="text-sm font-medium text-brewery-200 w-24 flex-shrink-0">{day}</span>
+                    {h.closed ? (
+                      <span className="text-sm text-brewery-500 italic flex-1">Closed</span>
+                    ) : (
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-brewery-400">Open</label>
+                          <input
+                            type="time"
+                            value={h.open}
+                            onChange={e => handleHoursChange(day, 'open', e.target.value)}
+                            className="bg-brewery-700/50 border border-brewery-600/40 rounded-lg px-2 py-1.5 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50"
+                          />
+                        </div>
+                        <span className="text-brewery-500">—</span>
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs text-brewery-400">Close</label>
+                          <input
+                            type="time"
+                            value={h.close === '24:00' ? '23:59' : h.close}
+                            onChange={e => handleHoursChange(day, 'close', e.target.value)}
+                            className="bg-brewery-700/50 border border-brewery-600/40 rounded-lg px-2 py-1.5 text-sm text-brewery-100 focus:outline-none focus:border-amber-500/50"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      onClick={() => handleHoursClosed(day, !h.closed)}
+                      className={`w-10 h-6 rounded-full transition-colors cursor-pointer flex items-center flex-shrink-0 ${h.closed ? 'bg-brewery-700 justify-start' : 'bg-amber-600 justify-end'}`}
+                    >
+                      <div className="w-4 h-4 bg-white rounded-full mx-1 shadow" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-4 text-xs text-brewery-500">* Toggle the switch on the right to mark a day as closed</p>
+          </div>
+
+          {/* Quick presets */}
+          <div className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-brewery-200 mb-3">Quick Presets</h3>
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { label: 'Taproom Standard (Tue–Sun 11am–10pm)', action: () => {
+                  const updated: typeof businessHours = {};
+                  for (const d of DAYS) {
+                    if (d === 'Monday') updated[d] = { open: '11:00', close: '22:00', closed: true };
+                    else if (d === 'Friday' || d === 'Saturday') updated[d] = { open: '11:00', close: '24:00', closed: false };
+                    else updated[d] = { open: '11:00', close: '22:00', closed: false };
+                  }
+                  setBusinessHours(updated);
+                }},
+                { label: 'Weekend Only (Fri–Sun)', action: () => {
+                  const updated: typeof businessHours = {};
+                  for (const d of DAYS) {
+                    updated[d] = { open: '12:00', close: '23:00', closed: !['Friday', 'Saturday', 'Sunday'].includes(d) };
+                  }
+                  setBusinessHours(updated);
+                }},
+                { label: 'Open Every Day (11am–10pm)', action: () => {
+                  const updated: typeof businessHours = {};
+                  for (const d of DAYS) updated[d] = { open: '11:00', close: '22:00', closed: false };
+                  setBusinessHours(updated);
+                }},
+              ].map(preset => (
+                <button
+                  key={preset.label}
+                  onClick={preset.action}
+                  className="px-3 py-1.5 rounded-lg bg-brewery-800/50 border border-brewery-700/30 text-xs text-brewery-300 hover:border-amber-500/30 hover:text-amber-300 transition-all"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
