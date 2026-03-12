@@ -7,6 +7,7 @@ import type {
   DetailedRecipe, Keg, VisitRecord, CustomerNote, FloorTable, ServiceAlert,
   OrderTimelineEntry,
 } from '../types';
+import * as mock from '../data/mockData';
 
 // Snake_case → camelCase with abbreviation support
 const ABBREVIATIONS: Record<string, string> = {
@@ -123,36 +124,43 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         api.get<Record<string, unknown>[]>('/customers/all-notes').catch(() => []),
       ]);
 
-      setBeers(mapArray<Beer>(results[0]));
-      setTapLines(mapArray<TapLine>(results[1]));
-      setBatches(mapArray<Batch>(results[2]));
-      setCustomers(mapArray<Customer>(results[3]));
-      setReservations(mapArray<Reservation>(results[4]));
-      setEvents(mapArray<BreweryEvent>(results[5]));
-      setPerformers(mapArray<Performer>(results[6]));
-      setDailySales(mapArray<DailySales>(results[7]));
-      setMonthlyFinancials(mapArray<MonthlyFinancial>(results[8]));
-      setComplianceItems(mapArray<ComplianceItem>(results[9]));
-      setInventoryItems(mapArray<InventoryItem>(results[10]));
-      setMenuItems(mapArray<MenuItem>(results[11]));
-      setStaff(mapArray<StaffMember>(results[12]));
-      setWholesaleAccounts(mapArray<WholesaleAccount>(results[13]));
-      setMugClubMembers(mapArray<MugClubMember>(results[14]));
-      setEmailCampaigns(mapArray<EmailCampaign>(results[15]));
-      setDetailedRecipes(mapArray<DetailedRecipe>(results[16]));
-      setKegs(mapArray<Keg>(results[17]));
+      // Use API data if available, fall back to rich mock data for empty responses
+      const orMock = <T,>(apiData: T[], mockData: T[]): T[] => apiData.length > 0 ? apiData : mockData;
+
+      setBeers(orMock(mapArray<Beer>(results[0]), mock.beers));
+      setTapLines(orMock(mapArray<TapLine>(results[1]), mock.tapLines));
+      setBatches(orMock(mapArray<Batch>(results[2]), mock.batches));
+      setCustomers(orMock(mapArray<Customer>(results[3]), mock.customers));
+      setReservations(orMock(mapArray<Reservation>(results[4]), mock.reservations));
+      setEvents(orMock(mapArray<BreweryEvent>(results[5]), mock.events));
+      setPerformers(orMock(mapArray<Performer>(results[6]), mock.performers));
+      setDailySales(orMock(mapArray<DailySales>(results[7]), mock.dailySales));
+      setMonthlyFinancials(orMock(mapArray<MonthlyFinancial>(results[8]), mock.monthlyFinancials));
+      setComplianceItems(orMock(mapArray<ComplianceItem>(results[9]), mock.complianceItems));
+      setInventoryItems(orMock(mapArray<InventoryItem>(results[10]), mock.inventoryItems));
+      setMenuItems(orMock(mapArray<MenuItem>(results[11]), mock.menuItems));
+      setStaff(orMock(mapArray<StaffMember>(results[12]), mock.staff));
+      setWholesaleAccounts(orMock(mapArray<WholesaleAccount>(results[13]), mock.wholesaleAccounts));
+      setMugClubMembers(orMock(mapArray<MugClubMember>(results[14]), mock.mugClubMembers));
+      setEmailCampaigns(orMock(mapArray<EmailCampaign>(results[15]), mock.emailCampaigns));
+      setDetailedRecipes(orMock(mapArray<DetailedRecipe>(results[16]), mock.detailedRecipes));
+      setKegs(orMock(mapArray<Keg>(results[17]), mock.kegs));
       setFloorTables(mapArray<FloorTable>(results[18]));
       setServiceAlerts(mapArray<ServiceAlert>(results[19]));
       setOrderTimelines(mapArray<OrderTimelineEntry>(results[20]));
 
-      // Group visit records by customer ID
+      // Group visit records by customer ID (fall back to mock visit history)
       const allVisits = mapArray<VisitRecord & { customerId: string }>(results[21]);
-      const visitMap: Record<string, VisitRecord[]> = {};
-      for (const v of allVisits) {
-        if (!visitMap[v.customerId]) visitMap[v.customerId] = [];
-        visitMap[v.customerId].push(v);
+      if (allVisits.length > 0) {
+        const visitMap: Record<string, VisitRecord[]> = {};
+        for (const v of allVisits) {
+          if (!visitMap[v.customerId]) visitMap[v.customerId] = [];
+          visitMap[v.customerId].push(v);
+        }
+        setVisitHistory(visitMap);
+      } else {
+        setVisitHistory(mock.visitHistory);
       }
-      setVisitHistory(visitMap);
 
       // Group customer notes by customer ID
       const allNotes = mapArray<CustomerNote & { customerId: string }>(results[22]);

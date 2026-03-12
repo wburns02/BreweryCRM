@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { OpenTab, TapLine, Batch, GravityReading, FloorTable, ServiceAlert, Customer, Reservation, BreweryEvent, EmailCampaign, MugClubMember, InventoryItem, MenuItem, Keg, DetailedRecipe } from '../types';
 import { api } from '../api/client';
+import * as mock from '../data/mockData';
 
 interface BusinessSettings {
   businessName: string;
@@ -145,20 +146,22 @@ export function BreweryProvider({ children }: { children: React.ReactNode }) {
         api.get<Record<string, unknown>[]>('/detailed-recipes/').catch(() => []),
       ]);
 
+      const or = <T,>(apiData: T[], mockData: T[]): T[] => apiData.length > 0 ? apiData : mockData;
+
       setTabs(mapArray<OpenTab>(tabsData));
-      setTapLines(mapArray<TapLine>(tapsData));
-      setBatches(mapArray<Batch>(batchesData));
+      setTapLines(or(mapArray<TapLine>(tapsData), mock.tapLines));
+      setBatches(or(mapArray<Batch>(batchesData), mock.batches));
       setFloorTables(mapArray<FloorTable>(tablesData));
       setServiceAlerts(mapArray<ServiceAlert>(alertsData));
-      setCustomers(mapArray<Customer>(customersData));
-      setReservations(mapArray<Reservation>(reservationsData));
-      setEvents(mapArray<BreweryEvent>(eventsData));
-      setEmailCampaigns(mapArray<EmailCampaign>(campaignsData));
-      setMugClubMembers(mapArray<MugClubMember>(mugClubData));
-      setInventoryItems(mapArray<InventoryItem>(inventoryData));
-      setMenuItems(mapArray<MenuItem>(menuItemsData));
-      setKegs(mapArray<Keg>(kegsData));
-      setDetailedRecipes(mapArray<DetailedRecipe>(detailedRecipesData));
+      setCustomers(or(mapArray<Customer>(customersData), mock.customers));
+      setReservations(or(mapArray<Reservation>(reservationsData), mock.reservations));
+      setEvents(or(mapArray<BreweryEvent>(eventsData), mock.events));
+      setEmailCampaigns(or(mapArray<EmailCampaign>(campaignsData), mock.emailCampaigns));
+      setMugClubMembers(or(mapArray<MugClubMember>(mugClubData), mock.mugClubMembers));
+      setInventoryItems(or(mapArray<InventoryItem>(inventoryData), mock.inventoryItems));
+      setMenuItems(or(mapArray<MenuItem>(menuItemsData), mock.menuItems));
+      setKegs(or(mapArray<Keg>(kegsData), mock.kegs));
+      setDetailedRecipes(or(mapArray<DetailedRecipe>(detailedRecipesData), mock.detailedRecipes));
 
       if (settingsData) {
         const s = mapKeys(settingsData) as Record<string, string>;

@@ -13,6 +13,16 @@ import type {
   ProductionOverview, BatchTimelineEntry,
 } from '../../types';
 
+const MOCK_VESSELS: FermentationVessel[] = [
+  { id: 'v1', name: 'FV-1 Armadillo', vesselType: 'Fermenter', capacityBbl: 15, status: 'fermenting', temperatureF: 68, pressurePsi: 12, notes: '', batchName: 'BH-2026-021', batchBeerName: 'Hill Country Haze', batchStatus: 'fermenting', batchStyle: 'Hazy IPA', batchBrewDate: '2026-03-08' },
+  { id: 'v2', name: 'FV-2 Longhorn', vesselType: 'Fermenter', capacityBbl: 15, status: 'conditioning', temperatureF: 34, pressurePsi: 8, notes: '', batchName: 'BH-2026-020', batchBeerName: 'Bulverde Blonde', batchStatus: 'conditioning', batchStyle: 'American Blonde', batchBrewDate: '2026-03-01' },
+  { id: 'v3', name: 'FV-3 Prickly', vesselType: 'Fermenter', capacityBbl: 10, status: 'empty', temperatureF: 38, pressurePsi: 0, notes: 'Ready for next batch' },
+  { id: 'v4', name: 'BBT-1 Bluebonnet', vesselType: 'Brite Tank', capacityBbl: 20, status: 'carbonating', temperatureF: 32, pressurePsi: 15, notes: '', batchName: 'BH-2026-019', batchBeerName: 'Citra Smash IPA', batchStatus: 'carbonating', batchStyle: 'American IPA', batchBrewDate: '2026-02-22' },
+  { id: 'v5', name: 'BBT-2 Roadrunner', vesselType: 'Brite Tank', capacityBbl: 20, status: 'empty', temperatureF: 36, pressurePsi: 2, notes: 'Post-CIP' },
+  { id: 'v6', name: 'FV-4 Pecan', vesselType: 'Fermenter', capacityBbl: 7, status: 'fermenting', temperatureF: 72, pressurePsi: 10, notes: 'Open fermentation', batchName: 'BH-2026-022', batchBeerName: 'Prickly Pear Sour', batchStatus: 'fermenting', batchStyle: 'Fruited Sour', batchBrewDate: '2026-03-10' },
+  { id: 'v7', name: 'FV-5 Mesquite', vesselType: 'Fermenter', capacityBbl: 15, status: 'cleaning', temperatureF: 140, pressurePsi: 0, notes: 'CIP in progress' },
+];
+
 function mapKeys(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -54,7 +64,8 @@ export default function ProductionPage() {
         if (mapped.nextBrewDay) mapped.nextBrewDay = mapKeys(mapped.nextBrewDay as Record<string, unknown>);
         setOverview(mapped as unknown as ProductionOverview);
       }
-      setVessels(mapArr<FermentationVessel>(vesRes as Record<string, unknown>[] || []));
+      const apiVessels = mapArr<FermentationVessel>(vesRes as Record<string, unknown>[] || []);
+      setVessels(apiVessels.length > 0 ? apiVessels : MOCK_VESSELS);
       setBrewDays(mapArr<BrewDayLog>(bdRes as Record<string, unknown>[] || []));
       setTimeline(mapArr<BatchTimelineEntry>(tlRes as Record<string, unknown>[] || []));
     } catch (err) {
@@ -88,8 +99,14 @@ export default function ProductionPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-brewery-400 text-lg">Loading production data...</div>
+      <div className="space-y-6 animate-pulse">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-24 bg-brewery-800/40 rounded-xl" />)}
+        </div>
+        <div className="h-8 w-48 bg-brewery-700/40 rounded" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-40 bg-brewery-800/40 rounded-xl" />)}
+        </div>
       </div>
     );
   }

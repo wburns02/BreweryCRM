@@ -494,7 +494,16 @@ export default function POSPage() {
         </button>
         {tabsSidebarOpen && (
           <div className="flex-1 overflow-y-auto space-y-2">
-            <h3 className="text-[10px] font-semibold text-brewery-500 uppercase tracking-wider px-1">Open Tabs ({tabs.length})</h3>
+            <div className="flex items-center justify-between px-1 mb-1">
+            <h3 className="text-[10px] font-semibold text-brewery-500 uppercase tracking-wider">Open Tabs ({tabs.length})</h3>
+            <button
+              onClick={resetWorkingTab}
+              className="flex items-center gap-1 text-[10px] font-semibold text-amber-400 hover:text-amber-300 bg-amber-600/10 hover:bg-amber-600/20 px-2 py-1 rounded-md transition-all"
+              title="Start a new tab"
+            >
+              <Plus className="w-3 h-3" /> New Tab
+            </button>
+          </div>
             {tabs.map(tab => {
               const mins = getMinutesOpen(tab.openedAt);
               const isWarning = mins > 45;

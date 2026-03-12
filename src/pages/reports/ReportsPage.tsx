@@ -1,4 +1,4 @@
-import { DollarSign, Users, TrendingUp, Percent } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Percent, Download } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import { useData } from '../../context/DataContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
@@ -44,8 +44,34 @@ export default function ReportsPage() {
     { name: 'Platinum', value: customers.filter(c => c.loyaltyTier === 'Platinum').length, color: '#c084fc' },
   ];
 
+  function exportCSV() {
+    const headers = ['Date', 'Total Revenue', 'Beer Revenue', 'Food Revenue', 'NA Revenue', 'Events Revenue', 'Customers', 'Avg Ticket'];
+    const rows = dailySales.map(d => [
+      d.date, d.totalRevenue.toFixed(2), d.beerRevenue.toFixed(2), d.foodRevenue.toFixed(2),
+      d.naRevenue.toFixed(2), d.eventRevenue.toFixed(2), d.customerCount, d.avgTicket.toFixed(2),
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bearded-hop-sales-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header with export */}
+      <div className="flex items-center justify-between">
+        <div />
+        <button
+          onClick={exportCSV}
+          className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg bg-brewery-800/60 border border-brewery-700/30 text-brewery-300 hover:text-brewery-100 hover:border-amber-500/30 transition-all"
+        >
+          <Download className="w-4 h-4" /> Export CSV
+        </button>
+      </div>
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="30-Day Revenue" value={`$${totalRevenue.toLocaleString()}`} change={18} icon={DollarSign} iconBg="bg-emerald-600/20" iconColor="text-emerald-400" />
