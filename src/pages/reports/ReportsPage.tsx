@@ -15,7 +15,7 @@ export default function ReportsPage() {
   const { dailySales, beers, customers } = useData();
   const [rangeDays, setRangeDays] = useState(30);
 
-  const filteredSales = rangeDays === 0 ? dailySales : dailySales.slice(0, rangeDays);
+  const filteredSales = rangeDays === 0 ? dailySales : dailySales.slice(-rangeDays);
 
   const totalRevenue = filteredSales.reduce((s, d) => s + d.totalRevenue, 0);
   const totalCustomers = filteredSales.reduce((s, d) => s + d.customerCount, 0);

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useEffect } from 'react';
 
 interface ModalProps {
   open: boolean;
@@ -12,6 +13,13 @@ interface ModalProps {
 const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
 
 export default function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handle);
+    return () => document.removeEventListener('keydown', handle);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (

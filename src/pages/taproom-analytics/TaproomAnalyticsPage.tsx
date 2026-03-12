@@ -231,7 +231,8 @@ function LiveShiftTab() {
 // ═══════════════════════════════════════════════
 // TAB 2: POUR ANALYTICS
 // ═══════════════════════════════════════════════
-function PourTab() {
+function PourTab({ rangeDays }: { rangeDays: number }) {
+  void rangeDays; // PourTab uses tap-level data (not time-indexed)
   const { tapLines, beers } = useData();
   const activeTaps = useMemo(() => tapLines.filter(t => t.status === 'active'), [tapLines]);
 
@@ -423,7 +424,8 @@ function PourTab() {
 // ═══════════════════════════════════════════════
 // TAB 3: GUEST INSIGHTS
 // ═══════════════════════════════════════════════
-function GuestTab() {
+function GuestTab({ rangeDays }: { rangeDays: number }) {
+  void rangeDays; // GuestTab uses customer profile data (not time-indexed)
   const { customers } = useData();
   // Visit frequency distribution
   const visitBuckets = useMemo(() => {
@@ -622,22 +624,24 @@ function GuestTab() {
 // ═══════════════════════════════════════════════
 // TAB 4: TREND ANALYSIS
 // ═══════════════════════════════════════════════
-function TrendTab() {
+function TrendTab({ rangeDays }: { rangeDays: number }) {
   const { dailySales } = useData();
+  const slicedSales = rangeDays === 0 ? dailySales : dailySales.slice(-rangeDays);
+
   // Revenue trend with 7-day SMA
   const revenueWithSMA = useMemo(() => {
-    return dailySales.map((d, i) => {
-      const window = dailySales.slice(Math.max(0, i - 6), i + 1);
+    return slicedSales.map((d, i) => {
+      const window = slicedSales.slice(Math.max(0, i - 6), i + 1);
       const sma = window.reduce((s, w) => s + w.totalRevenue, 0) / window.length;
       return { date: d.date.slice(5), revenue: d.totalRevenue, sma: Math.round(sma), label: d.date };
     });
-  }, []);
+  }, [slicedSales]);
 
   // Day-of-week pattern
   const dowPattern = useMemo(() => {
     const days: Record<string, { beer: number; food: number; na: number; events: number; count: number }> = {};
     DAY_NAMES.forEach(d => { days[d] = { beer: 0, food: 0, na: 0, events: 0, count: 0 }; });
-    dailySales.forEach(d => {
+    slicedSales.forEach(d => {
       const dow = DAY_NAMES[new Date(d.date).getDay()];
       days[dow].beer += d.beerRevenue;
       days[dow].food += d.foodRevenue;
@@ -652,20 +656,20 @@ function TrendTab() {
       na: Math.round(days[name].na / Math.max(1, days[name].count)),
       events: Math.round(days[name].events / Math.max(1, days[name].count)),
     }));
-  }, []);
+  }, [slicedSales]);
 
   // Guest count vs revenue scatter
   const scatterData = useMemo(() => {
-    return dailySales.map(d => {
+    return slicedSales.map(d => {
       const dow = new Date(d.date).getDay();
       const isWeekend = dow === 0 || dow === 5 || dow === 6;
       return { x: d.customerCount, y: d.totalRevenue, z: d.avgTicket, color: isWeekend ? (dow === 5 ? '#d97706' : '#10b981') : '#60a5fa', label: d.date };
     });
-  }, []);
+  }, [slicedSales]);
 
   // Revenue composition trend (normalized to 100%)
   const compositionData = useMemo(() => {
-    return dailySales.map(d => {
+    return slicedSales.map(d => {
       const total = d.totalRevenue || 1;
       return {
         date: d.date.slice(5),
@@ -676,12 +680,12 @@ function TrendTab() {
         Merch: Math.round((d.merchandiseRevenue / total) * 100),
       };
     });
-  }, []);
+  }, [slicedSales]);
 
   // Best/Worst days
   const defaultDay = { date: '', totalRevenue: 0, customerCount: 0, avgTicket: 0, beerRevenue: 0, foodRevenue: 0, naRevenue: 0, merchandiseRevenue: 0, eventRevenue: 0 };
-  const bestDay = useMemo(() => dailySales.length > 0 ? dailySales.reduce((best, d) => d.totalRevenue > best.totalRevenue ? d : best, dailySales[0]) : defaultDay, []);
-  const worstDay = useMemo(() => dailySales.length > 0 ? dailySales.reduce((worst, d) => d.totalRevenue < worst.totalRevenue ? d : worst, dailySales[0]) : defaultDay, []);
+  const bestDay = useMemo(() => slicedSales.length > 0 ? slicedSales.reduce((best, d) => d.totalRevenue > best.totalRevenue ? d : best, slicedSales[0]) : defaultDay, [slicedSales]);
+  const worstDay = useMemo(() => slicedSales.length > 0 ? slicedSales.reduce((worst, d) => d.totalRevenue < worst.totalRevenue ? d : worst, slicedSales[0]) : defaultDay, [slicedSales]);
 
   return (
     <div className="space-y-6">
@@ -832,39 +836,65 @@ function TrendTab() {
   );
 }
 
+const DATE_RANGES = [
+  { label: '7 Days', days: 7 },
+  { label: '30 Days', days: 30 },
+  { label: '90 Days', days: 90 },
+  { label: 'All Time', days: 0 },
+];
+
 // ═══════════════════════════════════════════════
 // MAIN PAGE
 // ═══════════════════════════════════════════════
 export default function TaproomAnalyticsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('live');
+  const [rangeDays, setRangeDays] = useState(30);
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-1 border-b border-brewery-700/30">
-        {tabList.map(t => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={clsx(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px',
-                isActive ? 'border-amber-500 text-amber-400' : 'border-transparent text-brewery-400 hover:text-brewery-200'
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              {t.label}
-            </button>
-          );
-        })}
+      <div className="flex items-center justify-between flex-wrap gap-3 pb-0">
+        <div className="flex gap-1 border-b border-brewery-700/30 flex-1">
+          {tabList.map(t => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={clsx(
+                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px',
+                  isActive ? 'border-amber-500 text-amber-400' : 'border-transparent text-brewery-400 hover:text-brewery-200'
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+        {activeTab !== 'live' && (
+          <div className="flex gap-1.5 flex-shrink-0">
+            {DATE_RANGES.map(r => (
+              <button
+                key={r.days}
+                onClick={() => setRangeDays(r.days)}
+                className={clsx(
+                  'px-3 py-1.5 rounded-full text-xs font-semibold transition-all border',
+                  rangeDays === r.days ? 'bg-amber-600/20 text-amber-300 border-amber-500/30' : 'bg-brewery-800/40 text-brewery-400 border-brewery-700/30 hover:text-brewery-200'
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <ChartErrorBoundary key={activeTab}>
+      <ChartErrorBoundary key={`${activeTab}-${rangeDays}`}>
         {activeTab === 'live' && <LiveShiftTab />}
-        {activeTab === 'pour' && <PourTab />}
-        {activeTab === 'guests' && <GuestTab />}
-        {activeTab === 'trends' && <TrendTab />}
+        {activeTab === 'pour' && <PourTab rangeDays={rangeDays} />}
+        {activeTab === 'guests' && <GuestTab rangeDays={rangeDays} />}
+        {activeTab === 'trends' && <TrendTab rangeDays={rangeDays} />}
       </ChartErrorBoundary>
     </div>
   );

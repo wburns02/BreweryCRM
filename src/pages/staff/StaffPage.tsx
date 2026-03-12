@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UserCog, Clock, DollarSign, ShieldCheck, Plus } from 'lucide-react';
+import { UserCog, Clock, DollarSign, ShieldCheck, Plus, Phone, Mail, Calendar, Edit2 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import { useData } from '../../context/DataContext';
@@ -20,6 +20,7 @@ export default function StaffPage() {
   const [localStaff, setLocalStaff] = useState<StaffMember[]>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'schedule' | 'compliance'>('team');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [viewMember, setViewMember] = useState<StaffMember | null>(null);
 
   // Form state
   const [firstName, setFirstName] = useState('');
@@ -119,7 +120,7 @@ export default function StaffPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {staff.map(member => (
-                <div key={member.id} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5 hover:border-amber-500/20 transition-all">
+                <div key={member.id} onClick={() => setViewMember(member)} className="bg-brewery-900/80 border border-brewery-700/30 rounded-xl p-5 hover:border-amber-500/30 transition-all cursor-pointer group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center text-sm font-bold text-amber-400">
@@ -130,7 +131,10 @@ export default function StaffPage() {
                         <Badge variant={roleColors[member.role]}>{member.role}</Badge>
                       </div>
                     </div>
-                    <Badge variant={member.status === 'active' ? 'green' : 'gray'}>{member.status}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={member.status === 'active' ? 'green' : 'gray'}>{member.status}</Badge>
+                      <Edit2 className="w-3.5 h-3.5 text-brewery-600 group-hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100" />
+                    </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="text-center p-2 rounded-lg bg-brewery-800/30">
@@ -249,6 +253,79 @@ export default function StaffPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Staff Detail Modal */}
+      {viewMember && (
+        <Modal open={!!viewMember} onClose={() => setViewMember(null)} title={`${viewMember.firstName} ${viewMember.lastName}`} size="md">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 pb-4 border-b border-brewery-700/30">
+              <div className="w-16 h-16 rounded-full bg-amber-600/20 flex items-center justify-center text-2xl font-bold text-amber-400">
+                {viewMember.firstName[0]}{viewMember.lastName[0]}
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-brewery-100">{viewMember.firstName} {viewMember.lastName}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={roleColors[viewMember.role]}>{viewMember.role}</Badge>
+                  <Badge variant={viewMember.status === 'active' ? 'green' : 'gray'}>{viewMember.status}</Badge>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 text-sm text-brewery-300">
+                <Mail className="w-4 h-4 text-brewery-500 flex-shrink-0" />
+                <span className="truncate">{viewMember.email || '—'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-brewery-300">
+                <Phone className="w-4 h-4 text-brewery-500 flex-shrink-0" />
+                <span>{viewMember.phone || '—'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-brewery-300">
+                <Calendar className="w-4 h-4 text-brewery-500 flex-shrink-0" />
+                <span>Hired {viewMember.hireDate}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-brewery-300">
+                <DollarSign className="w-4 h-4 text-brewery-500 flex-shrink-0" />
+                <span>${viewMember.hourlyRate}/hr</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
+                <p className="text-lg font-bold text-brewery-100">{viewMember.hoursThisWeek}h</p>
+                <p className="text-[10px] text-brewery-500 uppercase tracking-wider">This Week</p>
+              </div>
+              <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
+                <p className="text-lg font-bold text-emerald-400">${(viewMember.hoursThisWeek * viewMember.hourlyRate).toFixed(0)}</p>
+                <p className="text-[10px] text-brewery-500 uppercase tracking-wider">Labor Cost</p>
+              </div>
+              <div className="p-3 rounded-xl bg-brewery-800/40 text-center">
+                <p className="text-lg font-bold text-blue-400">{viewMember.salesThisWeek > 0 ? '$' + viewMember.salesThisWeek.toLocaleString() : '—'}</p>
+                <p className="text-[10px] text-brewery-500 uppercase tracking-wider">Sales</p>
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-brewery-800/40">
+              <p className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Certifications</p>
+              <div className="flex gap-2 flex-wrap">
+                {viewMember.tabcCertified ? <Badge variant="green">TABC Certified ✓</Badge> : viewMember.role !== 'cook' && viewMember.role !== 'dishwasher' ? <Badge variant="red">TABC Missing</Badge> : null}
+                {viewMember.foodHandlerCertified ? <Badge variant="green">Food Handler ✓</Badge> : <Badge variant="gray">Food Handler —</Badge>}
+                {viewMember.tabcExpiry && <span className="text-xs text-brewery-400">TABC expires: {viewMember.tabcExpiry}</span>}
+              </div>
+            </div>
+            {viewMember.schedule && viewMember.schedule.length > 0 && (
+              <div className="p-3 rounded-xl bg-brewery-800/40">
+                <p className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Schedule</p>
+                <div className="flex flex-wrap gap-2">
+                  {viewMember.schedule.map(s => (
+                    <div key={s.day} className="px-2 py-1 rounded-lg bg-amber-600/10 border border-amber-500/20">
+                      <p className="text-xs font-medium text-amber-300">{s.day}</p>
+                      <p className="text-[10px] text-brewery-400">{s.startTime}–{s.endTime}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
       )}
 
       {/* Add Staff Modal */}

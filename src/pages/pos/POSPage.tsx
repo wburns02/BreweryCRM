@@ -68,6 +68,8 @@ export default function POSPage() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [tipPercent, setTipPercent] = useState<number | null>(null);
+  const [customTip, setCustomTip] = useState('');
 
   // Current working tab — either an existing one or a new blank
   const [workingTab, setWorkingTab] = useState<OpenTab>({
@@ -166,16 +168,27 @@ export default function POSPage() {
     resetWorkingTab();
   }
 
+  const tipAmount = useMemo(() => {
+    if (customTip !== '') return Math.max(0, parseFloat(customTip) || 0);
+    if (tipPercent === null) return 0;
+    return Math.round(subtotal * (tipPercent / 100) * 100) / 100;
+  }, [tipPercent, customTip, subtotal]);
+
+  const totalWithTip = Math.round((total + tipAmount) * 100) / 100;
+
   function handleCloseTab(method: 'cash' | 'card' | 'tab' | 'mug-club') {
     if (isExistingTab && activeTabId) {
       closeTab(activeTabId);
     }
+    const tipStr = tipAmount > 0 ? ` + $${tipAmount.toFixed(2)} tip` : '';
     setShowPayment(false);
     setShowReceipt(true);
-    toast('success', `Tab closed — $${total.toFixed(2)} (${method})`);
+    toast('success', `Tab closed — $${totalWithTip.toFixed(2)} (${method})${tipStr}`);
     setTimeout(() => {
       setShowReceipt(false);
       resetWorkingTab();
+      setTipPercent(null);
+      setCustomTip('');
     }, 2000);
   }
 
@@ -546,29 +559,81 @@ export default function POSPage() {
       </Modal>
 
       {/* Payment Modal */}
-      <Modal open={showPayment} onClose={() => setShowPayment(false)} title="Close Tab" size="sm">
+      <Modal open={showPayment} onClose={() => { setShowPayment(false); setTipPercent(null); setCustomTip(''); }} title="Close Tab" size="sm">
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-brewery-800/40 text-center">
-            <p className="text-xs text-brewery-400 mb-1">Total Due</p>
-            <p className="text-3xl font-bold text-amber-400">${total.toFixed(2)}</p>
+          {/* Totals */}
+          <div className="p-4 rounded-xl bg-brewery-800/40">
+            <div className="flex justify-between text-sm text-brewery-400 mb-1">
+              <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-sm text-purple-400 mb-1">
+                <span>Discount</span><span>-${discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm text-brewery-400 mb-1">
+              <span>Tax (8.25%)</span><span>${tax.toFixed(2)}</span>
+            </div>
+            {tipAmount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-400 mb-1">
+                <span>Tip</span><span>${tipAmount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-lg font-bold border-t border-brewery-700/30 pt-2 mt-2">
+              <span className="text-brewery-100">Total</span>
+              <span className="text-amber-400">${totalWithTip.toFixed(2)}</span>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => handleCloseTab('cash')} className="p-4 rounded-xl bg-emerald-600/20 border border-emerald-500/20 hover:bg-emerald-600/30 text-center transition-all active:scale-[0.97]">
-              <Banknote className="w-6 h-6 text-emerald-400 mx-auto mb-1" />
-              <p className="text-sm font-bold text-emerald-300">Cash</p>
-            </button>
-            <button onClick={() => handleCloseTab('card')} className="p-4 rounded-xl bg-blue-600/20 border border-blue-500/20 hover:bg-blue-600/30 text-center transition-all active:scale-[0.97]">
-              <CreditCard className="w-6 h-6 text-blue-400 mx-auto mb-1" />
-              <p className="text-sm font-bold text-blue-300">Card</p>
-            </button>
-            <button onClick={() => handleCloseTab('tab')} className="p-4 rounded-xl bg-amber-600/20 border border-amber-500/20 hover:bg-amber-600/30 text-center transition-all active:scale-[0.97]">
-              <Receipt className="w-6 h-6 text-amber-400 mx-auto mb-1" />
-              <p className="text-sm font-bold text-amber-300">Invoice</p>
-            </button>
-            <button onClick={() => handleCloseTab('mug-club')} className="p-4 rounded-xl bg-purple-600/20 border border-purple-500/20 hover:bg-purple-600/30 text-center transition-all active:scale-[0.97]">
-              <Crown className="w-6 h-6 text-purple-400 mx-auto mb-1" />
-              <p className="text-sm font-bold text-purple-300">Mug Club</p>
-            </button>
+
+          {/* Tip Selection */}
+          <div>
+            <p className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Add Tip</p>
+            <div className="grid grid-cols-4 gap-2 mb-2">
+              {[15, 18, 20, 25].map(pct => (
+                <button
+                  key={pct}
+                  onClick={() => { setTipPercent(tipPercent === pct ? null : pct); setCustomTip(''); }}
+                  className={`py-2 rounded-lg text-sm font-bold transition-all border ${tipPercent === pct && customTip === '' ? 'bg-emerald-600/30 border-emerald-500/40 text-emerald-300' : 'bg-brewery-800/40 border-brewery-700/30 text-brewery-300 hover:border-emerald-500/30'}`}
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                placeholder="Custom tip $"
+                value={customTip}
+                onChange={(e) => { setCustomTip(e.target.value); setTipPercent(null); }}
+                className="flex-1 bg-brewery-800/50 border border-brewery-700/30 rounded-lg px-3 py-2 text-sm text-brewery-100 focus:outline-none focus:border-emerald-500/40 placeholder-brewery-600"
+              />
+              {(tipPercent !== null || customTip !== '') && (
+                <button onClick={() => { setTipPercent(null); setCustomTip(''); }} className="px-3 py-2 rounded-lg bg-brewery-800/40 border border-brewery-700/30 text-brewery-400 hover:text-brewery-200 text-xs">No Tip</button>
+              )}
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div>
+            <p className="text-xs font-semibold text-brewery-400 uppercase tracking-wider mb-2">Payment Method</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => handleCloseTab('cash')} className="p-4 rounded-xl bg-emerald-600/20 border border-emerald-500/20 hover:bg-emerald-600/30 text-center transition-all active:scale-[0.97]">
+                <Banknote className="w-6 h-6 text-emerald-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-emerald-300">Cash</p>
+              </button>
+              <button onClick={() => handleCloseTab('card')} className="p-4 rounded-xl bg-blue-600/20 border border-blue-500/20 hover:bg-blue-600/30 text-center transition-all active:scale-[0.97]">
+                <CreditCard className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-blue-300">Card</p>
+              </button>
+              <button onClick={() => handleCloseTab('tab')} className="p-4 rounded-xl bg-amber-600/20 border border-amber-500/20 hover:bg-amber-600/30 text-center transition-all active:scale-[0.97]">
+                <Receipt className="w-6 h-6 text-amber-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-amber-300">Invoice</p>
+              </button>
+              <button onClick={() => handleCloseTab('mug-club')} className="p-4 rounded-xl bg-purple-600/20 border border-purple-500/20 hover:bg-purple-600/30 text-center transition-all active:scale-[0.97]">
+                <Crown className="w-6 h-6 text-purple-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-purple-300">Mug Club</p>
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
