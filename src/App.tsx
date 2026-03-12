@@ -5,6 +5,7 @@ import CommandPalette from './components/CommandPalette';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CustomersPage from './pages/customers/CustomersPage';
 import MugClubPage from './pages/mug-club/MugClubPage';
+import LoyaltyPage from './pages/loyalty/LoyaltyPage';
 import TapsPage from './pages/taps/TapsPage';
 import BrewingPage from './pages/brewing/BrewingPage';
 import RecipesPage from './pages/recipes/RecipesPage';
@@ -58,6 +59,7 @@ const pageTitles: Record<PageId, string> = {
   production: 'Production Dashboard',
   'ttb-reports': 'TTB Compliance Center',
   'keg-monitor': 'Keg Health Monitor',
+  'loyalty': 'Loyalty Check-in',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -84,6 +86,7 @@ const pages: Record<PageId, React.ComponentType> = {
   production: ProductionPage,
   'ttb-reports': TTBReportsPage,
   'keg-monitor': KegMonitorPage,
+  'loyalty': LoyaltyPage,
 };
 
 function App() {

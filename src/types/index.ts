@@ -811,4 +811,4 @@ export interface BatchTimelineEntry {
   estimatedCompletion?: string;
 }
 
-export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production' | 'ttb-reports' | 'keg-monitor';
+export type PageId = 'dashboard' | 'customers' | 'mug-club' | 'taps' | 'brewing' | 'recipes' | 'kegs' | 'financials' | 'events' | 'reservations' | 'menu' | 'inventory' | 'taproom-analytics' | 'staff' | 'distribution' | 'marketing' | 'reports' | 'settings' | 'pos' | 'floor-plan' | 'production' | 'ttb-reports' | 'keg-monitor' | 'loyalty';
