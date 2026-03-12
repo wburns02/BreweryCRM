@@ -6,6 +6,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import CustomersPage from './pages/customers/CustomersPage';
 import MugClubPage from './pages/mug-club/MugClubPage';
 import LoyaltyPage from './pages/loyalty/LoyaltyPage';
+import FermentationPage from './pages/fermentation/FermentationPage';
 import TapsPage from './pages/taps/TapsPage';
 import BrewingPage from './pages/brewing/BrewingPage';
 import RecipesPage from './pages/recipes/RecipesPage';
@@ -60,6 +61,7 @@ const pageTitles: Record<PageId, string> = {
   'ttb-reports': 'TTB Compliance Center',
   'keg-monitor': 'Keg Health Monitor',
   'loyalty': 'Loyalty Check-in',
+  'fermentation': 'Ferment Lab',
 };
 
 const pages: Record<PageId, React.ComponentType> = {
@@ -87,6 +89,7 @@ const pages: Record<PageId, React.ComponentType> = {
   'ttb-reports': TTBReportsPage,
   'keg-monitor': KegMonitorPage,
   'loyalty': LoyaltyPage,
+  'fermentation': FermentationPage,
 };
 
 function App() {
