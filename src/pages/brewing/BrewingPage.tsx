@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FlaskConical, Thermometer, Droplets, Plus, CheckCircle, ChevronRight, Activity } from 'lucide-react';
+import { FlaskConical, Thermometer, Droplets, Plus, CheckCircle, ChevronRight, Activity, DollarSign } from 'lucide-react';
+import BatchCostTab from './BatchCostTab';
 import Badge from '../../components/ui/Badge';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Modal from '../../components/ui/Modal';
@@ -32,7 +33,7 @@ export default function BrewingPage() {
   const { beers } = useData();
   const { batches, addBatch, advanceBatchStatus, addGravityReading } = useBrewery();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'batches' | 'tanks' | 'recipes'>('batches');
+  const [activeTab, setActiveTab] = useState<'batches' | 'tanks' | 'recipes' | 'costs'>('batches');
   const [showAddModal, setShowAddModal] = useState(false);
   const [gravityBatchId, setGravityBatchId] = useState<string | null>(null);
   const [gravityValue, setGravityValue] = useState('');
@@ -118,10 +119,16 @@ export default function BrewingPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-brewery-700/30">
-        {(['batches', 'tanks', 'recipes'] as const).map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${activeTab === tab ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+      <div className="flex gap-1 border-b border-brewery-700/30 overflow-x-auto">
+        {([
+          { id: 'batches', label: 'Batches' },
+          { id: 'tanks', label: 'Tanks' },
+          { id: 'recipes', label: 'Recipes' },
+          { id: 'costs', label: 'Cost Analysis' },
+        ] as const).map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 whitespace-nowrap flex items-center gap-1.5 ${activeTab === tab.id ? 'text-amber-400 border-amber-400' : 'text-brewery-400 border-transparent hover:text-brewery-200'}`}>
+            {tab.id === 'costs' && <DollarSign className="w-3.5 h-3.5" />}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -287,6 +294,8 @@ export default function BrewingPage() {
           ))}
         </div>
       )}
+
+      {activeTab === 'costs' && <BatchCostTab batches={batches} />}
 
       {/* New Batch Modal */}
       <Modal open={showAddModal} onClose={() => setShowAddModal(false)} title="New Brew Batch">
