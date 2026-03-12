@@ -268,7 +268,8 @@ export default function DistributionPage() {
                         </div>
                         {(order.status === 'delivered' || order.status === 'shipped') && (
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               const acc = selectedAccount!;
                               const lines = [
                                 `INVOICE — Bearded Hop Brewery`,
@@ -294,7 +295,7 @@ export default function DistributionPage() {
                               URL.revokeObjectURL(url);
                               toast('success', `Invoice ${order.id} downloaded`);
                             }}
-                            className="mt-2 flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+                            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/20 text-blue-300 rounded-lg text-xs font-semibold transition-all"
                           >
                             <FileText className="w-3 h-3" /> Download Invoice
                           </button>

@@ -187,7 +187,7 @@ function ReportsTab({ reports, onFile, onDownload }: { reports: TTBReport[]; onF
                       {(report.status === 'pending' || report.status === 'overdue') && (
                         <button
                           onClick={() => onFile(report.id)}
-                          className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-600/15 hover:bg-amber-600/25 border border-amber-500/20 text-amber-300 rounded-lg text-xs font-semibold transition-all"
                         >
                           <Send className="w-3 h-3" /> File
                         </button>
@@ -195,7 +195,7 @@ function ReportsTab({ reports, onFile, onDownload }: { reports: TTBReport[]; onF
                       {report.status === 'filed' && (
                         <button
                           onClick={() => onDownload(report)}
-                          className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/20 text-blue-300 rounded-lg text-xs font-semibold transition-all"
                         >
                           <Download className="w-3 h-3" /> PDF
                         </button>
